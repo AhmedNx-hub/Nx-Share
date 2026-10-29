@@ -1,200 +1,469 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0f766e">
-<title>نقل ملفات مباشر</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<meta name="color-scheme" content="light dark">
+<title>Nx-Share</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>
+/* Theme engine (runs first to avoid a flash) */
+(()=>{
+'use strict';
+const K={t:'ft.theme',c:'ft.themes'};
+const ls={get(k){try{return localStorage.getItem(k);}catch(_){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(_){}}};
+const hex2=h=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255];};
+const toHex=a=>'#'+a.map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+const mix=(a,b,t)=>{const A=hex2(a),B=hex2(b);return toHex(A.map((v,i)=>v*(1-t)+B[i]*t));};
+const lum=h=>{const[r,g,b]=hex2(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*r+.7152*g+.0722*b;};
+const rgba=(h,a)=>{const[r,g,b]=hex2(h);return 'rgba('+r+','+g+','+b+','+a+')';};
+const BUILT={
+  light:{name:'فاتح',bg:'#f3f5f9',surface:'#ffffff',text:'#0f172a',accent:'#0d9488'},
+  dark:{name:'داكن',bg:'#0b0f14',surface:'#131a22',text:'#e6ebf2',accent:'#2dd4bf'},
+  neon:{name:'نيون',bg:'#07040f',surface:'#0f0a1f',text:'#f1eaff',accent:'#00f0d0'}
+};
+const VARS=['--bg','--card','--card2','--text','--muted','--line','--accent','--accent2','--on','--danger','--ok','--warn','--shadow','--pglow','--glow','--orb'];
+function derive(c){
+  const dark=lum(c.bg)<.4, on=lum(c.accent)>.42?'#06130f':'#ffffff';
+  return {
+    '--bg':c.bg,'--card':c.surface,'--card2':mix(c.surface,c.text,.06),'--text':c.text,
+    '--muted':mix(c.text,c.bg,.42),'--line':mix(c.surface,c.text,.15),
+    '--accent':c.accent,'--accent2':dark?mix(c.accent,'#ffffff',.28):mix(c.accent,'#000000',.22),'--on':on,
+    '--danger':dark?'#f97066':'#b42318','--ok':dark?'#47cd89':'#067647','--warn':dark?'#fdb022':'#9a6700',
+    '--shadow':dark?'0 10px 30px -14px rgba(0,0,0,.7)':'0 10px 28px -16px rgba(15,23,42,.28)',
+    '--pglow':'0 8px 22px -8px '+rgba(c.accent,.55),'--glow':'0 0 0 0 transparent','--orb':rgba(c.accent,dark?.16:.12)
+  };
+}
+const root=document.documentElement;
+function customs(){try{const a=JSON.parse(ls.get(K.c)||'[]');return Array.isArray(a)?a.filter(x=>x&&x.name&&x.bg&&x.surface&&x.text&&x.accent):[];}catch(_){return[];}}
+function setMeta(bg){const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',bg);}
+function apply(id,pal){
+  let p=pal;
+  if(!p){ if(BUILT[id]) p=BUILT[id]; else if(String(id).startsWith('c:')) p=customs().find(x=>'c:'+x.name===id); }
+  if(!p){ id='dark'; p=BUILT.dark; }
+  const built=!!BUILT[id];
+  if(built){ VARS.forEach(v=>root.style.removeProperty(v)); root.dataset.theme=id; }
+  else{ const d=derive(p); for(const k in d) root.style.setProperty(k,d[k]); root.dataset.theme='custom'; }
+  root.style.colorScheme=lum(p.bg)<.4?'dark':'light';
+  setMeta(p.bg); root.dataset.themeId=id;
+  return id;
+}
+function init(){
+  let id=ls.get(K.t);
+  if(!id) id=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  apply(id);
+}
+init();
+window.NxTheme={BUILT,customs,apply,mix,lum,hex2,toHex,
+  current(){return root.dataset.themeId||'dark';},
+  persist(id){ls.set(K.t,id);},
+  save(p){const a=customs().filter(x=>x.name!==p.name);a.push(p);ls.set(K.c,JSON.stringify(a.slice(-12)));},
+  remove(name){ls.set(K.c,JSON.stringify(customs().filter(x=>x.name!==name)));}
+};
+})();
+</script>
 <style>
-:root{--bg:#f4f6f8;--card:#fff;--text:#1b1f24;--muted:#66707b;--line:#dfe3e8;--accent:#0f766e;--on:#fff;--danger:#b42318;--ok:#067647;--warn:#9a6700}
-@media (prefers-color-scheme:dark){:root{--bg:#101317;--card:#181d23;--text:#e8ebef;--muted:#9aa4b0;--line:#2a313a;--accent:#2dd4bf;--on:#06201d;--danger:#f97066;--ok:#47cd89;--warn:#fdb022}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
-main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-header .l{display:flex;align-items:center;gap:8px}
-h1{font-size:1.25rem;margin:0}
-h2{font-size:1rem;margin:16px 0 8px}
-.badge{font-size:.8rem;padding:2px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.badge.ok{color:var(--ok);border-color:var(--ok)}
-.badge.wait{color:var(--warn);border-color:var(--warn)}
-.badge.bad{color:var(--danger);border-color:var(--danger)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
-.muted{color:var(--muted);font-size:.9rem}
-button,.btn{font:inherit;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;display:inline-block;text-align:center}
-button.primary{background:var(--accent);color:var(--on);border-color:var(--accent);font-weight:600}
-button.icon{padding:6px 12px;font-size:1.2rem;line-height:1}
-button:disabled{opacity:.5}
+:root{
+  --bg:#0b0f14;--card:#131a22;--card2:#18212b;--text:#e6ebf2;--muted:#93a0b2;--line:#222c38;--accent:#2dd4bf;--accent2:#38bdf8;--on:#04231f;
+  --danger:#f97066;--ok:#47cd89;--warn:#fdb022;--shadow:0 10px 30px -14px rgba(0,0,0,.7);--pglow:0 8px 22px -8px rgba(45,212,191,.5);--glow:0 0 0 0 transparent;--orb:rgba(45,212,191,.14);
+  --r:16px;--ease:cubic-bezier(.22,1,.36,1);
+}
+:root[data-theme=light]{--bg:#f3f5f9;--card:#fff;--card2:#f6f8fb;--text:#0f172a;--muted:#5b6678;--line:#e2e6ee;--accent:#0d9488;--accent2:#0891b2;--on:#fff;--danger:#b42318;--ok:#067647;--warn:#9a6700;--shadow:0 10px 28px -16px rgba(15,23,42,.28);--pglow:0 8px 20px -8px rgba(13,148,136,.5);--orb:rgba(13,148,136,.12)}
+:root[data-theme=dark]{}
+:root[data-theme=neon]{--bg:#07040f;--card:#0f0a1f;--card2:#150d2c;--text:#f1eaff;--muted:#a79bc9;--line:#2c1d52;--accent:#00f0d0;--accent2:#ff2fd1;--on:#03110f;--danger:#ff5c7a;--ok:#4dffb0;--warn:#ffd23f;--shadow:0 0 0 1px rgba(0,240,208,.14),0 0 30px -10px rgba(0,240,208,.35);--pglow:0 0 22px -2px rgba(0,240,208,.7),0 0 40px -10px rgba(255,47,209,.6);--glow:0 0 14px rgba(0,240,208,.55);--orb:rgba(255,47,209,.2)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;min-height:100vh;overflow-x:hidden;transition:background .4s,color .4s;-webkit-font-smoothing:antialiased}
+body::before,body::after{content:"";position:fixed;z-index:-1;width:70vmax;height:70vmax;border-radius:50%;background:radial-gradient(closest-side,var(--orb),transparent);pointer-events:none;will-change:transform}
+body::before{top:-30vmax;inset-inline-end:-25vmax;animation:drift 26s ease-in-out infinite alternate}
+body::after{bottom:-35vmax;inset-inline-start:-30vmax;animation:drift 32s ease-in-out infinite alternate-reverse}
+:root[data-theme=neon] body::after{background:radial-gradient(closest-side,rgba(0,240,208,.16),transparent)}
+@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-6vmax,5vmax,0) scale(1.15)}}
+main{max-width:640px;margin:0 auto;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+.i{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.28em}
+.i.sm{width:1.05em;height:1.05em}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 0 10px;margin-bottom:6px;background:linear-gradient(var(--bg) 75%,transparent)}
+header .l,header .r{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px;font-size:1.2rem}
+.logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:var(--on);background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--pglow)}
+.logo .i{width:20px;height:20px;stroke-width:2.4}
+.brand b{background:linear-gradient(90deg,var(--text),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+:root[data-theme=neon] .brand b{text-shadow:var(--glow)}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;padding:4px 12px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;background:var(--card);transition:all .3s}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.8}
+.badge.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 55%,transparent)}
+.badge.ok::before{animation:pulse 1.8s infinite}
+.badge.wait{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 55%,transparent)}
+.badge.wait::before{animation:blink 1s infinite}
+.badge.bad{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 55%,transparent)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}100%{box-shadow:0 0 0 8px transparent}}
+@keyframes blink{50%{opacity:.2}}
+h2{font-size:1rem;margin:18px 0 10px}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);animation:rise .5s var(--ease) both;transition:background .4s,border-color .4s,transform .25s var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.muted{color:var(--muted);font-size:.88rem}
+button,.btn{position:relative;overflow:hidden;font:inherit;font-weight:600;font-size:.95rem;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;transition:transform .15s var(--ease),box-shadow .25s,background .25s,border-color .25s,opacity .2s;touch-action:manipulation;user-select:none}
+button:hover,.btn:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+button:active,.btn:active{transform:scale(.96)}
+button.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on);border-color:transparent;box-shadow:var(--pglow)}
+button.primary:hover{filter:brightness(1.08)}
+button.icon{padding:0;width:40px;height:40px;border-radius:12px}
+button.icon .i{width:20px;height:20px}
+button:disabled{opacity:.45;pointer-events:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rip{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);animation:rip .6s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(1);opacity:0}}
 [hidden]{display:none!important}
-.two{display:grid;gap:10px;margin-top:12px}
-.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-textarea,input[type=text]{width:100%;font:16px/1.4 ui-monospace,Consolas,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+textarea,input[type=text]{width:100%;font:15px/1.5 ui-monospace,Consolas,monospace;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);transition:border-color .2s,box-shadow .2s}
+textarea:focus,input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);outline:none}
 textarea{resize:vertical;word-break:break-all}
-.drop{text-align:center;padding:18px 12px;border:2px dashed var(--line);border-radius:12px;color:var(--muted)}
-.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.drop .btns{justify-content:center}
-.off{opacity:.5;pointer-events:none}
-.msgrow{display:flex;gap:8px;margin-top:12px}
-.msgrow input{flex:1;font-family:inherit}
-.sw{display:flex;align-items:center;gap:10px;cursor:pointer;margin:6px 0}
-.sw input{width:20px;height:20px;accent-color:var(--accent)}
-.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
-.row{display:flex;justify-content:space-between;gap:8px}
-.nm{overflow-wrap:anywhere}
-.sz{color:var(--muted);white-space:nowrap;font-size:.85rem}
-.bar{height:6px;background:var(--line);border-radius:6px;margin:8px 0;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--accent)}
-.st{font-size:.85rem;color:var(--muted)}
-.st.ok{color:var(--ok)}.st.bad{color:var(--danger)}.st.warn{color:var(--warn)}
-.msg{padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);margin-bottom:6px;overflow-wrap:anywhere}
-.msg small{display:block;color:var(--muted)}
-#err{color:var(--danger);margin:8px 0;font-size:.9rem}
-.tabs{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:8px}
-.tabs button{flex:1;border:0;border-radius:0;background:var(--card)}
-.tabs button.on{background:var(--accent);color:var(--on);font-weight:600}
+/* hero / start */
+.hero{text-align:center;padding:22px 6px 6px}
+.hero .big{width:76px;height:76px;margin:0 auto 14px;border-radius:24px;display:grid;place-items:center;color:var(--on);background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--pglow);animation:float 4.5s ease-in-out infinite}
+.hero .big .i{width:38px;height:38px;stroke-width:2.2}
+@keyframes float{50%{transform:translateY(-6px) rotate(-2deg)}}
+.hero h1{margin:0;font-size:1.7rem;letter-spacing:.3px;font-weight:800}
+.hero p{margin:4px 0 0;color:var(--muted)}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0 4px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);padding:5px 11px;border:1px solid var(--line);border-radius:99px;background:var(--card2)}
+.chip .i{width:14px;height:14px;color:var(--accent)}
+.actions{display:grid;gap:12px;margin-top:20px}
+.act{justify-content:flex-start;gap:14px;padding:16px 18px;border-radius:16px;font-size:1.02rem;text-align:start}
+.act .ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);flex:none}
+.act.primary .ico{background:rgba(255,255,255,.22);color:var(--on)}
+.act .ico .i{width:22px;height:22px}
+.act small{display:block;font-weight:500;font-size:.8rem;opacity:.75;margin-top:1px}
+.act .tx{display:flex;flex-direction:column;align-items:flex-start;line-height:1.35}
+.actions .card{margin:0}
+/* steps */
+.step{display:flex;align-items:center;gap:10px;margin:2px 0 12px;font-size:1rem}
+.step.later{margin-top:22px}
+.step b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on);flex:none}
+.tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--bg);margin-bottom:14px}
+.tabs button{flex:1;border:0;border-radius:10px;background:transparent;box-shadow:none;color:var(--muted)}
+.tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on);box-shadow:var(--pglow)}
 body[data-mode=txt] .m-qr{display:none!important}
 body[data-mode=qr] .m-txt{display:none!important}
-.qrbox{background:#fff;padding:8px;border-radius:12px;display:flex;justify-content:center;border:1px solid var(--line)}
-.qrbox canvas{max-width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
-.scan video{width:100%;max-height:55vh;border-radius:12px;background:#000;object-fit:cover}
-.warnbox{border:1px solid var(--warn);color:var(--warn);border-radius:10px;padding:10px 12px;margin:8px 0;font-size:.9rem}
-.warnbox button{margin-top:8px;color:var(--text)}
-.vcode{font:700 1.8rem/1.2 ui-monospace,Consolas,monospace;letter-spacing:.15em;direction:ltr;text-align:center;margin:6px 0}
-.lost{border-color:var(--danger)}
-.ov{margin-bottom:8px}
-.ov .row b{font-size:.95rem}
+.m-qr,.m-txt{animation:rise .4s var(--ease) both}
+.qrbox{background:#fff;padding:10px;border-radius:16px;display:flex;justify-content:center;border:1px solid var(--line);width:fit-content;max-width:100%;margin:0 auto;box-shadow:var(--shadow)}
+:root[data-theme=neon] .qrbox{box-shadow:0 0 28px -4px rgba(0,240,208,.5)}
+.qrbox canvas{max-width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;animation:pop .5s var(--ease)}
+@keyframes pop{from{opacity:0;transform:scale(.9)}}
+.qrbox+p{text-align:center}
+.scan video{width:100%;max-height:55vh;border-radius:16px;background:#000;object-fit:cover}
+.scan .btns{justify-content:center}
+.warnbox{border:1px solid color-mix(in srgb,var(--warn) 55%,transparent);background:color-mix(in srgb,var(--warn) 9%,transparent);color:var(--text);border-radius:14px;padding:12px 14px;margin:12px 0;font-size:.88rem;animation:rise .4s var(--ease)}
+.warnbox button{margin-top:8px}
+/* transfer */
+.drop{text-align:center;padding:26px 14px;border:2px dashed color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:16px;color:var(--muted);transition:all .25s var(--ease);background:color-mix(in srgb,var(--accent) 4%,transparent)}
+.drop .dz-ico{width:54px;height:54px;border-radius:18px;margin:0 auto 10px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);animation:float 4s ease-in-out infinite}
+.drop .dz-ico .i{width:26px;height:26px}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);transform:scale(1.015);box-shadow:var(--glow)}
+.drop .btns{justify-content:center}
+.drop .t{font-weight:600;color:var(--text)}
+.off{opacity:.45;pointer-events:none;filter:saturate(.6)}
+.msgrow{display:flex;gap:8px;margin-top:14px}
+.msgrow input{flex:1;font-family:inherit}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:8px;animation:slideIn .45s var(--ease) both;box-shadow:var(--shadow)}
+@keyframes slideIn{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.nm{overflow-wrap:anywhere;display:flex;align-items:center;gap:8px;font-weight:600;font-size:.95rem}
+.nm .dir{color:var(--accent);width:18px;height:18px}
+.sz{color:var(--muted);white-space:nowrap;font-size:.8rem}
+.bar{height:7px;background:color-mix(in srgb,var(--text) 9%,transparent);border-radius:7px;margin:10px 0 8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:7px;transition:width .25s linear;position:relative;overflow:hidden;box-shadow:var(--glow)}
+.bar i::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45),transparent 70%);transform:translateX(-100%);animation:shine 1.6s infinite}
+@keyframes shine{to{transform:translateX(100%)}}
+.st{font-size:.82rem;color:var(--muted)}
+.st.ok{color:var(--ok)}.st.bad{color:var(--danger)}.st.warn{color:var(--warn)}
+.item .btns{margin-top:8px}.item button{padding:6px 12px;font-size:.82rem;border-radius:10px}
+.msg{padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:8px;overflow-wrap:anywhere;animation:slideIn .4s var(--ease) both}
+.msg small{display:block;color:var(--muted);font-size:.75rem}
+#err{color:var(--danger);margin:8px 0;font-size:.88rem;padding:10px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--danger) 45%,transparent);background:color-mix(in srgb,var(--danger) 8%,transparent);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(5px)}75%{transform:translateX(-5px)}}
+.vcode{font:800 2.1rem/1.2 ui-monospace,Consolas,monospace;letter-spacing:.2em;direction:ltr;text-align:center;margin:8px 0;color:var(--accent);text-shadow:var(--glow)}
+.lost{border-color:color-mix(in srgb,var(--danger) 60%,transparent)}
+.ov{margin-bottom:10px}
+.ov .row b{font-size:.92rem;display:inline}
+.ovt{display:flex;align-items:center;gap:8px;color:var(--accent)}.ovt b{color:var(--text)}
 .listbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin:0 0 8px}
-.toast{position:fixed;inset-inline:12px;bottom:12px;z-index:50;background:var(--accent);color:var(--on);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.listbar button{padding:6px 12px;font-size:.82rem}
+.toast{position:fixed;inset-inline:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on);border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:var(--pglow);animation:toastIn .5s var(--ease);max-width:616px;margin:0 auto}
+@keyframes toastIn{from{opacity:0;transform:translateY(40px)}}
 .toast .btns{margin:0}
-.toast button{background:var(--on);color:var(--accent);border-color:var(--on);font-weight:700;white-space:nowrap}
-.tips ol{margin:8px 0 0;padding-inline-start:22px}
-.tips li{margin:6px 0}
-.tips summary{cursor:pointer}
+.toast button{background:var(--on);color:var(--accent);border-color:transparent;white-space:nowrap}
+.tips summary{cursor:pointer;display:flex;align-items:center;gap:8px}
+.tips ol{margin:10px 0 0;padding-inline-start:22px}
+.tips li{margin:7px 0;font-size:.9rem}
 .log{max-height:40vh;overflow:auto;margin-top:8px}
-.logi{border-top:1px solid var(--line);padding:8px 0}
+.logi{border-top:1px solid var(--line);padding:9px 0}
+/* drawer */
+.back{position:fixed;inset:0;z-index:70;background:rgba(2,6,14,.55);backdrop-filter:blur(3px);animation:fade .3s}
+@keyframes fade{from{opacity:0}}
+#menu{position:fixed;top:0;bottom:0;inset-inline-start:0;z-index:80;width:min(380px,92vw);margin:0;border-radius:0 0 0 0;border-width:0 0 0 1px;padding:0;overflow-y:auto;display:flex;flex-direction:column;animation:drawer .42s var(--ease);box-shadow:0 0 60px rgba(0,0,0,.5)}
+@keyframes drawer{from{transform:translateX(100%)}}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 18px 12px;position:sticky;top:0;background:var(--card);z-index:2;border-bottom:1px solid var(--line)}
+.mh .brand{font-size:1.05rem}
+.mb{padding:6px 18px 22px;flex:1}
+.sec{margin-top:20px}
+.sec>h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:.78rem;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase}
+.sec>h3 .i{width:16px;height:16px;color:var(--accent)}
+.set{background:var(--card2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.set .sw{margin:0;padding:12px 14px;border-bottom:1px solid var(--line)}
+.set .sw:last-child{border-bottom:0}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.sw>span{flex:1;font-size:.92rem}
+.sw small{display:block;color:var(--muted);font-size:.75rem;line-height:1.4;margin-top:1px}
+.sw input{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:99px;background:color-mix(in srgb,var(--text) 18%,transparent);position:relative;flex:none;transition:background .25s;cursor:pointer;margin:0}
+.sw input::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:inset-inline-start .25s var(--ease),transform .25s}
+.sw input:checked{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--glow)}
+.sw input:checked::after{inset-inline-start:21px}
+.sw input:active::after{transform:scaleX(1.2)}
+.box{padding:12px 14px}
+.box .btns{margin-top:8px}
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tc{flex-direction:column;gap:6px;padding:10px 4px;border-radius:14px;font-size:.78rem;font-weight:600;background:var(--card2);position:relative}
+.tc .sw2{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);position:relative;overflow:hidden;transition:transform .3s var(--ease)}
+.tc .sw2 i{position:absolute;inset:0;background:var(--c1)}
+.tc .sw2 u{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--c2);inset-inline-end:3px;bottom:3px;text-decoration:none;box-shadow:0 0 8px var(--c2)}
+.tc .sw2.p{display:grid;place-items:center;background:conic-gradient(#f43f5e,#f59e0b,#10b981,#06b6d4,#8b5cf6,#f43f5e);color:#fff}
+.tc .sw2.p .i{width:16px;height:16px}
+.tc[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.tc[aria-pressed=true] .sw2{transform:scale(1.1)}
+.tc .x{position:absolute;top:3px;inset-inline-end:3px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--bg);color:var(--muted);font-size:.7rem;line-height:1;border:1px solid var(--line)}
+.saved{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.saved .tc{flex-direction:row;padding:7px 12px;gap:8px;flex:none}
+.saved .tc .sw2{width:20px;height:20px;border-width:1px}
+.saved .tc .sw2 u{width:8px;height:8px;inset-inline-end:1px;bottom:1px}
+.saved .tc .x{position:static;margin-inline-start:2px}
+.designer{margin-top:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card2);animation:rise .4s var(--ease)}
+.designer .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.designer label.c{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.84rem;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.designer input[type=color]{appearance:none;-webkit-appearance:none;width:34px;height:34px;border:0;padding:0;border-radius:50%;background:none;cursor:pointer;flex:none}
+.designer input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.designer input[type=color]::-webkit-color-swatch{border:2px solid var(--line);border-radius:50%}
+.designer input[type=text]{margin-top:10px;font-family:inherit}
+.sig{margin:26px 0 4px;text-align:center;direction:ltr;font-size:.95rem;letter-spacing:.5px;background:linear-gradient(90deg,var(--muted),var(--accent),var(--accent2),var(--muted));background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 6s linear infinite}
+@keyframes sheen{to{background-position:-240% 0}}
+.mb .sig{margin-top:28px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body data-mode="qr">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-max" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></symbol>
+<symbol id="i-min" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+<symbol id="i-join" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l-5-5 5-5M5 12h12"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></symbol>
+<symbol id="i-paste" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+<symbol id="i-qr" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></symbol>
+<symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 1 10-10c0 3-2 4-4 4h-2a2 2 0 0 0-1 3.7c.6.5.4 2.3-3 2.3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="12" cy="7" r="1"/><circle cx="16.5" cy="11" r="1"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l4 2"/></symbol>
+<symbol id="i-install" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"/></symbol>
+</defs></svg>
+
 <main>
 <header>
-  <div class="l"><button id="btnMenu" class="icon" aria-label="الإعدادات" aria-expanded="false">☰</button><h1>نقل ملفات مباشر</h1></div>
-  <span id="badge" class="badge">غير متصل</span>
+  <div class="l">
+    <button id="btnMenu" class="icon" aria-label="القائمة والإعدادات" aria-expanded="false"><svg class="i"><use href="#i-menu"/></svg></button>
+    <div class="brand"><span class="logo"><svg class="i"><use href="#i-swap"/></svg></span><b>Nx-Share</b></div>
+  </div>
+  <div class="r">
+    <button id="btnFs" class="icon" aria-label="ملء الشاشة"><svg class="i"><use href="#i-max"/></svg></button>
+    <span id="badge" class="badge">غير متصل</span>
+  </div>
 </header>
 
-<div id="menu" class="card" hidden>
-  <h2 style="margin-top:0">الإعدادات</h2>
-  <label class="sw"><input type="checkbox" id="optAuto"><span>استلام الملفات تلقائيًا</span></label>
-  <p class="muted" style="margin:0 0 4px">لو متوقف، هيسألك قبول أو رفض لكل ملف.</p>
-  <label class="sw"><input type="checkbox" id="optIp"><span>تحسين الاتصال (طلب إذن الكاميرا لحظيًا)</span></label>
-  <p class="muted" style="margin:0">كروم بيخفي عنوان الجهاز على الشبكة، وده سبب شائع لفشل الاتصال. إذن الكاميرا بيظهره. مفيش صورة بتتسجل ولا بتتبعت.</p>
-  <label class="sw"><input type="checkbox" id="optAlert"><span>تنبيه لما النقل يخلص (اهتزاز وصوت)</span></label>
-  <label class="sw"><input type="checkbox" id="optSkip"><span>تخطي الملفات الموجودة عندي</span></label>
-  <p class="muted" style="margin:0">بيشتغل لما تكون اخترت مجلد حفظ مخصص: لو فيه ملف بنفس الاسم والحجم، مش هيتبعت تاني.</p>
-  <h2>مكان الحفظ</h2>
-  <div id="locName"></div>
-  <div class="btns">
-    <button id="btnLoc" hidden>تغيير المجلد…</button>
-    <button id="btnLocPerm" hidden>تفعيل المجلد</button>
-    <button id="btnLocReset" hidden>الرجوع للتحميلات</button>
+<div id="menuBack" class="back" hidden></div>
+<aside id="menu" class="card" hidden aria-label="الإعدادات">
+  <div class="mh">
+    <div class="brand"><span class="logo"><svg class="i"><use href="#i-swap"/></svg></span><b>الإعدادات</b></div>
+    <button id="btnMenuClose" class="icon" aria-label="إغلاق"><svg class="i"><use href="#i-close"/></svg></button>
   </div>
-  <p id="locNoteDir" class="muted" hidden>أندرويد غالبًا بيمنع اختيار مجلد التحميلات نفسه أو الذاكرة الرئيسية. اختار مجلد فرعي أو أنشئ مجلد جديد. اختيار مجلد بيخلي المجلدات المستلمة تتحفظ بنفس هيكلها.</p>
-  <p id="locNoteChrome" class="muted">الافتراضي إن الملفات تنزل في مجلد التحميلات. ولو عايز كروم يسألك عن المكان في كل مرة: إعدادات كروم ← التنزيلات (الاسم بيختلف حسب الإصدار).</p>
-  <h2>الملفات المستلمة</h2>
-  <div class="btns"><button id="btnLog">📂 عرض السجل</button><button id="btnLogClear" hidden>مسح السجل المحفوظ</button></div>
-  <div id="logBox" class="log" hidden></div>
-  <h2>التطبيق</h2>
-  <div id="pwaState" class="muted"></div>
-  <div class="btns">
-    <button id="btnInstall" hidden>تثبيت التطبيق</button>
-    <button id="btnSaveApp" hidden>حفظ نسخة من التطبيق</button>
+  <div class="mb">
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-palette"/></svg>المظهر</h3>
+      <div class="themes" id="themeGrid"></div>
+      <div id="designer" class="designer" hidden>
+        <div class="grid">
+          <label class="c">الخلفية<input type="color" id="dBg"></label>
+          <label class="c">السطح<input type="color" id="dSurface"></label>
+          <label class="c">النص<input type="color" id="dText"></label>
+          <label class="c">اللون الأساسي<input type="color" id="dAccent"></label>
+        </div>
+        <input type="text" id="dName" maxlength="20" placeholder="اسم الثيم" dir="auto">
+        <div class="btns"><button class="primary" id="dSave"><svg class="i sm"><use href="#i-save"/></svg>حفظ الثيم</button><button id="dCancel">إلغاء</button></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-sliders"/></svg>عام</h3>
+      <div class="set">
+        <label class="sw"><span>استلام الملفات تلقائيًا<small>لو متوقف، هيطلب موافقتك على كل ملف.</small></span><input type="checkbox" id="optAuto"></label>
+        <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
+        <label class="sw"><span>تخطي الملفات الموجودة<small>يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.</small></span><input type="checkbox" id="optSkip"></label>
+        <label class="sw"><span>ملء الشاشة تلقائيًا<small>يُفعَّل عند أول لمسة.</small></span><input type="checkbox" id="optFs"></label>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-wifi"/></svg>الاتصال</h3>
+      <div class="set">
+        <label class="sw"><span>تحسين التوافق<small>يطلب إذن الكاميرا لحظيًا لإظهار عنوان الجهاز الحقيقي (يخفيه كروم). يُفيد عند تعذّر الاتصال فقط، ولا يُلتقط أي تصوير.</small></span><input type="checkbox" id="optIp"></label>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-folder"/></svg>مكان الحفظ</h3>
+      <div class="set box">
+        <div id="locName"></div>
+        <div class="btns">
+          <button id="btnLoc" hidden><svg class="i sm"><use href="#i-folder"/></svg>تغيير المجلد</button>
+          <button id="btnLocPerm" hidden>تفعيل المجلد</button>
+          <button id="btnLocReset" hidden>الرجوع للتحميلات</button>
+        </div>
+        <p id="locNoteDir" class="muted" hidden>أندرويد قد يمنع اختيار مجلد التحميلات نفسه أو الذاكرة الرئيسية، فاختر مجلدًا فرعيًا أو أنشئ جديدًا. اختيار مجلد يحفظ المجلدات المستلمة بهيكلها.</p>
+        <p id="locNoteChrome" class="muted">الافتراضي: مجلد التحميلات.</p>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-history"/></svg>الملفات المستلمة</h3>
+      <div class="set box">
+        <div class="btns" style="margin-top:0"><button id="btnLog"><svg class="i sm"><use href="#i-history"/></svg>عرض السجل</button><button id="btnLogClear" hidden>مسح السجل</button></div>
+        <div id="logBox" class="log" hidden></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-install"/></svg>التطبيق</h3>
+      <div class="set box">
+        <div id="pwaState" class="muted"></div>
+        <div class="btns">
+          <button id="btnInstall" hidden><svg class="i sm"><use href="#i-install"/></svg>تثبيت التطبيق</button>
+          <button id="btnSaveApp" hidden><svg class="i sm"><use href="#i-save"/></svg>حفظ نسخة من التطبيق</button>
+        </div>
+        <p class="muted" id="pwaNote" hidden style="margin-bottom:0">«حفظ نسخة» ينزّل ملفًا واحدًا يمكن إرساله للجهاز الآخر (بلوتوث أو Quick Share) وفتحه دون إنترنت.</p>
+      </div>
+    </div>
+    <div class="sig">𝐃𝐞𝐯𝐞𝐥𝐨𝐩𝐞𝐝 𝐛𝐲 𝔸𝕙𝕞𝕖𝕕 ℕ𝕩</div>
   </div>
-  <p class="muted" id="pwaNote" hidden>«حفظ نسخة» بينزّل ملف واحد تقدر تبعته للجهاز التاني (بلوتوث أو Quick Share) وتفتحه هناك من غير إنترنت.</p>
-</div>
+</aside>
 
 <div id="err" hidden></div>
 <div id="shareNote" class="warnbox" hidden></div>
 <details id="tips" class="card tips" hidden>
-  <summary><b>مشكلة في الاتصال؟ جرّب الخطوات دي بالترتيب</b></summary>
+  <summary><svg class="i"><use href="#i-help"/></svg><b>تعذّر الاتصال؟ جرّب هذه الخطوات بالترتيب</b></summary>
   <ol>
-    <li>تأكد إن الجهازين على نفس الواي فاي. الأضمن: شغّل <b>هوتسبوت</b> من أحدهما ووصّل التاني عليه.</li>
-    <li>لو الواي فاي من غير إنترنت: أوقف <b>بيانات الموبايل</b> (وخاصية التبديل الذكي بين الواي فاي والشبكة) عشان أندرويد ما يسيبش الواي فاي.</li>
+    <li>تأكد أن الجهازين على الواي فاي نفسه. الأضمن: شغّل <b>هوتسبوت</b> من أحدهما وصِل الآخر به.</li>
+    <li>إن كان الواي فاي بلا إنترنت، أوقف <b>بيانات الموبايل</b> وخاصية التبديل الذكي كي لا يتركه أندرويد.</li>
     <li>أوقف أي <b>VPN</b> على الجهازين.</li>
-    <li>الواي فاي العام أو شبكة الضيوف بتمنع الأجهزة من الاتصال ببعض، فاستخدم هوتسبوت بدالها.</li>
-    <li>فعّل «تحسين الاتصال» من الإعدادات واسمح بالكاميرا لحظيًا، وبعدين اضغط الزرار اللي تحت عشان يتعمل كود جديد بعناوين حقيقية.</li>
-    <li>لو لسه مفيش اتصال: ابدأ من جديد على الجهازين، وخلّي الشاشتين شغالين لحد ما الاتصال يتم.</li>
+    <li>الواي فاي العام وشبكات الضيوف تمنع الأجهزة من رؤية بعضها، فاستخدم هوتسبوت بدلًا منها.</li>
+    <li>اضغط «جرّب عناوين حقيقية» أدناه واسمح بالكاميرا لحظيًا، ثم اعرض الكود الجديد على الجهاز الآخر.</li>
+    <li>إن استمر الفشل: ابدأ من جديد على الجهازين وأبقِ الشاشتين مضاءتين حتى يتم الاتصال.</li>
   </ol>
   <div class="btns"><button data-realip>جرّب عناوين حقيقية</button><button data-back>ابدأ من جديد</button></div>
 </details>
 <div id="toast" class="toast" hidden role="status">
-  <span id="toastMsg">فيه نسخة جديدة من التطبيق</span>
-  <div class="btns"><button id="toastBtn">اضغط للتحديث</button><button id="toastLater">لاحقًا</button></div>
+  <span id="toastMsg">يتوفر إصدار جديد من التطبيق</span>
+  <div class="btns"><button id="toastBtn">تحديث</button><button id="toastLater">لاحقًا</button></div>
 </div>
 
-<section id="s-start" class="card">
-  <p class="muted" style="margin-top:0">ابعت ملفات ومجلدات بين جهازين مباشرة، بدون سيرفر وبدون إنترنت. الجهازين لازم يكونوا على نفس شبكة الواي فاي، أو هوتسبوت من أحدهما.</p>
-  <div id="resumeNote" class="warnbox" hidden></div>
-  <div class="two">
-    <button id="btnHost" class="primary">① أنا أبدأ الاتصال</button>
-    <button id="btnJoin">② أنضم لاتصال بدأه الجهاز التاني</button>
+<section id="s-start">
+  <div class="hero">
+    <div class="big"><svg class="i"><use href="#i-swap"/></svg></div>
+    <h1>Nx-Share</h1>
+    <p>نقل الملفات والمجلدات بين الأجهزة، مباشرةً.</p>
+    <div class="chips">
+      <span class="chip"><svg class="i"><use href="#i-lock"/></svg>مُشفَّر</span>
+      <span class="chip"><svg class="i"><use href="#i-wifi"/></svg>بدون إنترنت</span>
+      <span class="chip"><svg class="i"><use href="#i-zap"/></svg>بدون خادم</span>
+    </div>
   </div>
-  <p class="muted">الاتصال بيحتاج تبادل كود قصير بين الجهازين مرتين: بمسح QR بالكاميرا (الأسرع)، أو بنسخ الكود ولصقه. النقل نفسه بعد كده مش محتاج إنترنت.</p>
+  <div id="resumeNote" class="warnbox" hidden></div>
+  <div class="actions">
+    <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدء الاتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
+    <button id="btnJoin" class="act"><span class="ico"><svg class="i"><use href="#i-join"/></svg></span><span class="tx">الانضمام إلى اتصال<small>مسح أو إدخال رمز من الجهاز الآخر</small></span></button>
+  </div>
 </section>
 
 <section id="s-host" class="card" hidden>
   <div class="tabs"></div>
-  <h2 style="margin-top:0">الخطوة 1: وصّل الكود للجهاز التاني</h2>
+  <h2 class="step"><b>1</b><span>اعرض الرمز على الجهاز الآخر</span></h2>
   <div class="m-qr">
     <div class="qrbox"><canvas id="offerQR" hidden></canvas></div>
-    <p class="muted" id="offerQRmsg">الجهاز التاني يضغط «أنضم» ثم «تشغيل الكاميرا» ويصوّر الكود ده.</p>
+    <p class="muted" id="offerQRmsg"></p>
   </div>
   <div class="m-txt">
-    <textarea id="offerOut" readonly dir="ltr" rows="3" placeholder="جارٍ إنشاء الكود…"></textarea>
-    <div class="btns"><button data-copy="offerOut">نسخ</button><button data-share="offerOut">مشاركة</button></div>
+    <textarea id="offerOut" readonly dir="ltr" rows="3" placeholder="جارٍ إنشاء الرمز…"></textarea>
+    <div class="btns"><button data-copy="offerOut"><svg class="i sm"><use href="#i-copy"/></svg>نسخ</button><button data-share="offerOut"><svg class="i sm"><use href="#i-share"/></svg>مشاركة</button></div>
   </div>
   <div id="offerInfo" class="muted"></div>
   <div id="ipWarnH" class="warnbox" hidden>
-    الكود فيه عناوين مخفية (mDNS) وده ممكن يمنع الاتصال على بعض الشبكات.
-    <br><button data-realip>جرّب عناوين حقيقية (إذن كاميرا لحظي)</button>
-    <br>هيتعمل كود جديد، فلازم تعرضه للجهاز التاني من تاني.
+    يحتوي الرمز على عناوين مخفية (mDNS)، وقد يمنع ذلك الاتصال على بعض الشبكات.
+    <br><button data-realip>جرّب عناوين حقيقية</button>
+    <br>سيُنشأ رمز جديد، فاعرضه على الجهاز الآخر من جديد. (يطلب إذن الكاميرا لحظيًا)
   </div>
-  <h2>الخطوة 2: استلم كود الرد من الجهاز التاني</h2>
+  <h2 class="step later"><b>2</b><span>استقبل رمز الرد من الجهاز الآخر</span></h2>
   <div class="m-qr"><div class="scan" data-target="answerIn" data-go="btnConnect"></div></div>
   <div class="m-txt">
     <textarea id="answerIn" dir="ltr" rows="3" placeholder="G1.…"></textarea>
-    <div class="btns"><button data-paste="answerIn" data-go="btnConnect">لصق</button></div>
+    <div class="btns"><button data-paste="answerIn" data-go="btnConnect"><svg class="i sm"><use href="#i-paste"/></svg>لصق</button></div>
   </div>
-  <div class="btns"><button id="btnConnect" class="primary">اتصال</button><button data-back>رجوع</button><button data-tips>مشكلة في الاتصال؟</button></div>
+  <div class="btns"><button id="btnConnect" class="primary"><svg class="i sm"><use href="#i-link"/></svg>اتصال</button><button data-back>رجوع</button><button data-tips><svg class="i sm"><use href="#i-help"/></svg>مساعدة</button></div>
 </section>
 
 <section id="s-join" class="card" hidden>
   <div class="tabs"></div>
-  <h2 style="margin-top:0">الخطوة 1: استلم الكود من الجهاز الأول</h2>
+  <h2 class="step"><b>1</b><span>استقبل الرمز من الجهاز الأول</span></h2>
   <div class="m-qr"><div class="scan" data-target="offerIn" data-go="btnAnswer"></div></div>
   <div class="m-txt">
     <textarea id="offerIn" dir="ltr" rows="3" placeholder="G1.…"></textarea>
-    <div class="btns"><button data-paste="offerIn" data-go="btnAnswer">لصق</button></div>
+    <div class="btns"><button data-paste="offerIn" data-go="btnAnswer"><svg class="i sm"><use href="#i-paste"/></svg>لصق</button></div>
   </div>
-  <div class="btns"><button id="btnAnswer" class="primary">إنشاء كود الرد</button><button data-back>رجوع</button><button data-tips>مشكلة في الاتصال؟</button></div>
+  <div class="btns"><button id="btnAnswer" class="primary"><svg class="i sm"><use href="#i-qr"/></svg>إنشاء رمز الرد</button><button data-back>رجوع</button><button data-tips><svg class="i sm"><use href="#i-help"/></svg>مساعدة</button></div>
   <div id="answerBox" hidden>
-    <h2>الخطوة 2: وصّل كود الرد للجهاز الأول</h2>
+    <h2 class="step later"><b>2</b><span>اعرض رمز الرد على الجهاز الأول</span></h2>
     <div class="m-qr">
       <div class="qrbox"><canvas id="answerQR" hidden></canvas></div>
       <p class="muted" id="answerQRmsg"></p>
     </div>
     <div class="m-txt">
       <textarea id="answerOut" readonly dir="ltr" rows="3"></textarea>
-      <div class="btns"><button data-copy="answerOut">نسخ</button><button data-share="answerOut">مشاركة</button></div>
+      <div class="btns"><button data-copy="answerOut"><svg class="i sm"><use href="#i-copy"/></svg>نسخ</button><button data-share="answerOut"><svg class="i sm"><use href="#i-share"/></svg>مشاركة</button></div>
     </div>
     <div id="answerInfo" class="muted"></div>
     <div id="ipWarnJ" class="warnbox" hidden>
-      الكود فيه عناوين مخفية (mDNS) وده ممكن يمنع الاتصال على بعض الشبكات.
-      <br><button data-realip>جرّب عناوين حقيقية (إذن كاميرا لحظي)</button>
-      <br>هيتعمل كود رد جديد، فلازم تعرضه للجهاز الأول من تاني.
+      يحتوي الرمز على عناوين مخفية (mDNS)، وقد يمنع ذلك الاتصال على بعض الشبكات.
+      <br><button data-realip>جرّب عناوين حقيقية</button>
+      <br>سيُنشأ رمز رد جديد، فاعرضه على الجهاز الأول من جديد. (يطلب إذن الكاميرا لحظيًا)
     </div>
-    <p class="muted">الجهاز الأول يصوّر الـQR ده (أو يلصق الكود) ويضغط اتصال، والاتصال بيتم تلقائيًا.</p>
+    <p class="muted">بعد أن يمسح الجهاز الأول هذا الرمز ويضغط «اتصال»، يكتمل الاتصال تلقائيًا.</p>
   </div>
 </section>
 
@@ -202,33 +471,36 @@ body[data-mode=qr] .m-txt{display:none!important}
   <div id="lost" class="card lost" hidden>
     <b>انقطع الاتصال</b>
     <p class="muted" id="lostMsg" style="margin:4px 0"></p>
-    <p class="muted" style="margin:4px 0">الملفات الناقصة هتكمّل من حيث وقفت أول ما الاتصال يرجع (من غير ما تقفل الصفحة).</p>
-    <button class="primary" id="btnReconnect">إعادة الاتصال</button>
+    <p class="muted" style="margin:4px 0">ستُستكمل الملفات الناقصة من حيث توقفت عند عودة الاتصال، دون إغلاق الصفحة.</p>
+    <button class="primary" id="btnReconnect"><svg class="i sm"><use href="#i-refresh"/></svg>إعادة الاتصال</button>
   </div>
   <div id="vbox" class="card" hidden>
-    <b>رمز التحقق</b>
+    <b style="display:flex;align-items:center;gap:8px"><svg class="i" style="color:var(--accent)"><use href="#i-shield"/></svg>رمز التحقق</b>
     <div class="vcode" id="vcode">------</div>
-    <p class="muted" style="margin:0">لازم يظهر نفس الرقم بالظبط على الجهاز التاني. لو مختلف، اقطع الاتصال لأن حد ممكن يكون اعترض الكود.</p>
-    <div class="btns"><button class="primary" id="vOk">متطابق ✓</button><button id="vBad">مختلف ✗</button></div>
+    <p class="muted" style="margin:0">يجب أن يظهر الرقم نفسه على الجهاز الآخر. إن اختلف فاقطع الاتصال، فقد يكون أحدهم اعترض الرمز.</p>
+    <div class="btns"><button class="primary" id="vOk"><svg class="i sm"><use href="#i-check"/></svg>متطابق</button><button id="vBad"><svg class="i sm"><use href="#i-close"/></svg>مختلف</button></div>
   </div>
   <div class="card" id="pickCard">
     <div class="drop" id="dropZone">
-      <div style="margin-bottom:6px">اسحب ملفات أو مجلدات هنا، أو اختار:</div>
+      <div class="dz-ico"><svg class="i"><use href="#i-upload"/></svg></div>
+      <div class="t">اسحب الملفات أو المجلدات هنا</div>
+      <div class="muted">أو اخترها من الجهاز</div>
       <div class="btns">
-        <label class="btn"><input type="file" id="pick" multiple hidden>📄 ملفات</label>
-        <button id="btnFolder">📁 مجلد</button>
+        <label class="btn"><input type="file" id="pick" multiple hidden><svg class="i sm"><use href="#i-file"/></svg>ملفات</label>
+        <button id="btnFolder"><svg class="i sm"><use href="#i-folder"/></svg>مجلد</button>
       </div>
       <input type="file" id="pickDir" webkitdirectory hidden>
     </div>
-    <div class="msgrow"><input type="text" id="msgIn" placeholder="اكتب نص أو رابط لإرساله" dir="auto"><button id="msgSend">إرسال</button></div>
-    <div class="btns"><button id="btnSpeed">⚡ اختبار السرعة</button></div>
+    <div class="msgrow"><input type="text" id="msgIn" placeholder="نص أو رابط لإرساله" dir="auto"><button id="msgSend" class="primary icon" aria-label="إرسال"><svg class="i"><use href="#i-send"/></svg></button></div>
+    <div class="btns"><button id="btnSpeed"><svg class="i sm"><use href="#i-zap"/></svg>اختبار السرعة</button></div>
   </div>
-  <div id="ovOut" class="card ov" hidden><div class="row"><b></b><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
-  <div id="ovIn" class="card ov" hidden><div class="row"><b></b><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
-  <div class="listbar" id="listBar" hidden><span class="muted" id="listCount"></span><button id="btnClear">🧹 مسح السجل</button></div>
+  <div id="ovOut" class="card ov" hidden><div class="row"><span class="ovt"><svg class="i"><use href="#i-up"/></svg><b></b></span><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
+  <div id="ovIn" class="card ov" hidden><div class="row"><span class="ovt"><svg class="i"><use href="#i-down"/></svg><b></b></span><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
+  <div class="listbar" id="listBar" hidden><span class="muted" id="listCount"></span><button id="btnClear"><svg class="i sm"><use href="#i-trash"/></svg>مسح المنتهية</button></div>
   <div id="list"></div>
   <div id="msgs"></div>
 </section>
+<div class="sig">𝐃𝐞𝐯𝐞𝐥𝐨𝐩𝐞𝐝 𝐛𝐲 𝔸𝕙𝕞𝕖𝕕 ℕ𝕩</div>
 </main>
 
 <script>
@@ -685,6 +957,7 @@ function showErr(t){ const e=$('#err'); e.textContent=t||''; e.hidden=!t; }
 function view(id){
   stopScans(); for(const s of $$('main > section')) s.hidden=(s.id!==id);
   if(id!=='s-host'&&id!=='s-join') $('#tips').hidden=true;
+  try{ window.scrollTo({top:0}); }catch(_){}
 }
 function showTips(open){ const t=$('#tips'); t.hidden=false; t.open=!!open; if(open) try{ t.scrollIntoView({block:'nearest'}); }catch(_){} }
 function setBadge(t,c){ const b=$('#badge'); b.textContent=t; b.className='badge '+(c||''); }
@@ -695,10 +968,10 @@ function saveBlob(blob,name){
 }
 
 // ---------- settings ----------
-const settings={auto:true,realIp:true,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
+const settings={auto:true,realIp:false,fs:true,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
 try{
   settings.auto=localStorage.getItem('ft.auto')!=='0';
-  settings.realIp=localStorage.getItem('ft.ip')!=='0';
+  settings.realIp=localStorage.getItem('ft.ip')==='1'; settings.fs=localStorage.getItem('ft.fs')!=='0';
   settings.alert=localStorage.getItem('ft.alert')!=='0';
   settings.skip=localStorage.getItem('ft.skip')==='1';
   const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt') settings.mode=m;
@@ -744,7 +1017,7 @@ async function refreshLoc(){
     $('#btnLocPerm').hidden=true; $('#btnLocReset').hidden=true;
   }
 }
-$('#btnMenu').onclick=()=>{ const m=$('#menu'); m.hidden=!m.hidden; $('#btnMenu').setAttribute('aria-expanded',String(!m.hidden)); if(!m.hidden) refreshLoc(); };
+
 $('#optAuto').checked=settings.auto;
 $('#optAuto').onchange=e=>{ settings.auto=e.target.checked; lsSet('ft.auto',settings.auto?'1':'0'); };
 $('#optIp').checked=settings.realIp;
@@ -932,7 +1205,7 @@ async function renderLog(){
     box.append(d);
   }
 }
-$('#btnLog').onclick=()=>{ const b=$('#logBox'); b.hidden=!b.hidden; $('#btnLog').textContent=b.hidden?'📂 عرض السجل':'📂 إخفاء السجل'; if(!b.hidden) renderLog(); };
+$('#btnLog').onclick=()=>{ const b=$('#logBox'); b.hidden=!b.hidden; $('#btnLog').innerHTML='<svg class="i sm"><use href="#i-history"/></svg>'+(b.hidden?'عرض السجل':'إخفاء السجل'); if(!b.hidden) renderLog(); };
 $('#btnLogClear').onclick=async()=>{ try{ await idbDel('log'); }catch(_){} renderLog(); };
 let deferredInstall=null;
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstall=e; $('#btnInstall').hidden=false; });
@@ -1170,7 +1443,7 @@ function drawQR(id,text,msgId){
     g.fillStyle='#fff'; g.fillRect(0,0,W,W); g.fillStyle='#000';
     for(let y=0;y<q.size;y++) for(let x=0;x<q.size;x++) if(q.get(x,y)) g.fillRect((x+b)*scale,(y+b)*scale,scale,scale);
     cv.hidden=false;
-    msg.textContent=id==='offerQR'?'الجهاز التاني يضغط «أنضم» ثم «تشغيل الكاميرا» ويصوّر الكود ده.':'';
+    msg.textContent=id==='offerQR'?'على الجهاز الآخر: الانضمام إلى اتصال ← تشغيل الكاميرا ← وجّهها نحو هذا الرمز.':'';
   }catch(e){ cv.hidden=true; msg.textContent='الكود طويل جدًا للـQR. استخدم «كود نصي».'; }
 }
 let detP=null;
@@ -1188,7 +1461,7 @@ function getDetector(){
 }
 function stopScans(){ scans.forEach(s=>s.stop()); }
 function initScan(box){
-  box.innerHTML='<video playsinline muted hidden></video><div class="btns"><button class="primary" data-s="start">📷 تشغيل الكاميرا</button><button data-s="stop" hidden>إيقاف</button><button data-s="img">🖼 من صورة</button></div><input type="file" accept="image/*" hidden><div class="muted" data-s="msg"></div>';
+  box.innerHTML='<video playsinline muted hidden></video><div class="btns"><button class="primary" data-s="start"><svg class="i sm"><use href="#i-camera"/></svg>تشغيل الكاميرا</button><button data-s="stop" hidden><svg class="i sm"><use href="#i-close"/></svg>إيقاف</button><button data-s="img"><svg class="i sm"><use href="#i-image"/></svg>من صورة</button></div><input type="file" accept="image/*" hidden><div class="muted" data-s="msg"></div>';
   const v=box.querySelector('video'), bs=box.querySelector('[data-s=start]'), bx=box.querySelector('[data-s=stop]'),
         bi=box.querySelector('[data-s=img]'), fi=box.querySelector('input'), msg=box.querySelector('[data-s=msg]');
   const say=t=>{ msg.textContent=t||''; };
@@ -1239,14 +1512,14 @@ function setMode(m){
   $$('[data-setmode]').forEach(b=>b.classList.toggle('on',b.dataset.setmode===m));
   if(m!=='qr') stopScans();
 }
-$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr">QR</button><button data-setmode="txt">كود نصي</button>'; });
+$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm"><use href="#i-qr"/></svg>رمز QR</button><button data-setmode="txt"><svg class="i sm"><use href="#i-type"/></svg>رمز نصي</button>'; });
 setMode(settings.mode);
 
 // ---------- cards ----------
 function addCard(dir,name,size){
   const el=document.createElement('div'); el.className='item';
-  el.innerHTML='<div class="row"><b class="nm"></b><span class="sz"></span></div><div class="bar"><i></i></div><div class="st"></div><div class="btns"></div>';
-  el.querySelector('.nm').textContent=(dir==='in'?'⬇ ':'⬆ ')+name;
+  el.innerHTML='<div class="row"><b class="nm"><svg class="i dir"><use href="#i-'+(dir==='in'?'down':'up')+'"/></svg><span class="tx"></span></b><span class="sz"></span></div><div class="bar"><i></i></div><div class="st"></div><div class="btns"></div>';
+  el.querySelector('.nm .tx').textContent=name;
   el.querySelector('.sz').textContent=fmtSize(size);
   $('#list').prepend(el);
   const bar=el.querySelector('.bar i'), st=el.querySelector('.st'), bt=el.querySelector('.btns');
@@ -1316,7 +1589,7 @@ function makeOverall(boxId,title){
     clearIfOver(){ if(S.over){ S.files=0; box.hidden=true; } }
   };
 }
-const ovOut=makeOverall('ovOut','⬆ الإرسال (الكل)'), ovIn=makeOverall('ovIn','⬇ الاستلام (الكل)');
+const ovOut=makeOverall('ovOut','الإرسال (الكل)'), ovIn=makeOverall('ovIn','الاستلام (الكل)');
 
 // ---------- done alert (vibrate + short beep) ----------
 function unlockAudio(){
@@ -1363,7 +1636,7 @@ async function runSpeed(){
   if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
   if(sending||current||spd||sendQueue.length){ showErr('استنى النقل الحالي يخلص الأول.'); return; }
   showErr(''); sending=true; $('#btnSpeed').disabled=true;
-  const SIZE=50*1048576, id='s'+(nextId++), ui=addCard('out','⚡ اختبار السرعة',SIZE);
+  const SIZE=50*1048576, id='s'+(nextId++), ui=addCard('out','اختبار السرعة',SIZE);
   ui.status('بنجهّز الاختبار…');
   try{
     const chunk=new Uint8Array(CHUNK); crypto.getRandomValues(chunk);
@@ -1384,7 +1657,7 @@ async function runSpeed(){
     const r=await res; if(!r) throw new Error('الاختبار اتقطع');
     const bps=SIZE/((performance.now()-start)/1000);
     ui.progress(SIZE,SIZE,start,true);
-    ui.done('⚡ الإرسال: '+fmtSpeed(bps)+' — '+speedHint(bps));
+    ui.done('الإرسال: '+fmtSpeed(bps)+' — '+speedHint(bps));
   }catch(e){ ui.fail((e&&e.message)||String(e)); }
   finally{ sending=false; $('#btnSpeed').disabled=false; pump(); }
 }
@@ -1572,7 +1845,7 @@ function onRemoteCancel(m){
 function onSpeedStart(m){
   const size=Number(m.size);
   if(!Number.isFinite(size)||size<=0||size>200*1048576||spd||sending||(current&&!current.failed)){ sendCtl({t:'speedgo',id:m.id,ok:false}); return; }
-  const ui=addCard('in','⚡ اختبار السرعة',size); ui.status('جارٍ الاستلام…');
+  const ui=addCard('in','اختبار السرعة',size); ui.status('جارٍ الاستلام…');
   spd={id:m.id,size,got:0,t0:0,ui};
   sendCtl({t:'speedgo',id:m.id,ok:true});
 }
@@ -1582,7 +1855,7 @@ function onSpeedEnd(m){
   const ms=Math.max(1,performance.now()-s.t0), bps=s.got/(ms/1000);
   sendCtl({t:'speedres',id:s.id,ms,bytes:s.got});
   s.ui.progress(s.got,s.size,s.t0,true);
-  s.ui.done('⚡ الاستلام: '+fmtSpeed(bps)+' — '+speedHint(bps));
+  s.ui.done('الاستلام: '+fmtSpeed(bps)+' — '+speedHint(bps));
   pump();
 }
 async function uniqueFile(dir,name){
@@ -1798,7 +2071,7 @@ document.addEventListener('click',async e=>{
   if(c){
     const ta=$('#'+c.dataset.copy); ta.select();
     try{ await navigator.clipboard.writeText(ta.value); }catch(_){ document.execCommand('copy'); }
-    c.textContent='تم النسخ ✓'; setTimeout(()=>{ c.textContent='نسخ'; },1500); return;
+    const h0=c.innerHTML; c.innerHTML='<svg class="i sm"><use href="#i-check"/></svg>تم النسخ'; setTimeout(()=>{ c.innerHTML=h0; },1500); return;
   }
   const s=t.closest('[data-share]');
   if(s){ navigator.share({text:$('#'+s.dataset.share).value}).catch(()=>{}); return; }
@@ -1816,6 +2089,80 @@ window.addEventListener('beforeunload',e=>{
   if(busy){ e.preventDefault(); e.returnValue=''; }
 });
 if(!window.RTCPeerConnection){ showErr('متصفحك لا يدعم WebRTC. استخدم كروم حديث.'); $('#btnHost').disabled=$('#btnJoin').disabled=true; }
+
+// ---------- drawer / theme designer / fullscreen / ripple ----------
+(()=>{
+  const T=window.NxTheme, menu=$('#menu'), back=$('#menuBack'), btn=$('#btnMenu');
+  const ic=(n,c)=>'<svg class="i '+(c||'')+'"><use href="#i-'+n+'"/></svg>';
+  function openMenu(){ menu.hidden=false; back.hidden=false; btn.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; refreshLoc(); }
+  function closeMenu(){ menu.hidden=true; back.hidden=true; btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  btn.onclick=()=>menu.hidden?openMenu():closeMenu();
+  $('#btnMenuClose').onclick=closeMenu; back.onclick=closeMenu;
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!menu.hidden) closeMenu(); });
+
+  // themes
+  const grid=$('#themeGrid'), des=$('#designer'), inp={bg:$('#dBg'),surface:$('#dSurface'),text:$('#dText'),accent:$('#dAccent')};
+  let savedId=T.current();
+  const rgb2hex=s=>{ const m=String(s).match(/\d+(\.\d+)?/g); return m?T.toHex(m.slice(0,3).map(Number)):'#000000'; };
+  const readCur=()=>{ const cs=getComputedStyle(document.documentElement); const g=v=>cs.getPropertyValue(v).trim();
+    const h=v=>/^#/.test(v)?v:rgb2hex(v);
+    return {bg:h(g('--bg')),surface:h(g('--card')),text:h(g('--text')),accent:h(g('--accent'))}; };
+  function chip(id,label,p,extra){
+    const b=document.createElement('button'); b.className='tc'; b.dataset.tid=id; b.setAttribute('aria-pressed',String(des.hidden&&T.current()===id));
+    b.innerHTML='<span class="sw2" style="--c1:'+p.bg+';--c2:'+p.accent+'"><i></i><u></u></span><span></span>';
+    b.lastChild.textContent=label;
+    if(extra){ const x=document.createElement('span'); x.className='x'; x.textContent='×'; x.title='حذف'; x.onclick=e=>{ e.stopPropagation(); T.remove(p.name); if(T.current()===id){ T.apply('dark'); T.persist('dark'); savedId='dark'; } render(); }; b.appendChild(x); }
+    b.onclick=()=>{ des.hidden=true; T.apply(id); T.persist(id); savedId=id; render(); };
+    return b;
+  }
+  function render(){
+    grid.innerHTML='';
+    for(const id of ['light','dark','neon']) grid.appendChild(chip(id,T.BUILT[id].name,T.BUILT[id]));
+    const d=document.createElement('button'); d.className='tc'; d.setAttribute('aria-pressed',String(!des.hidden));
+    d.innerHTML='<span class="sw2 p">'+ic('palette')+'</span><span>مصمم خاص</span>';
+    d.onclick=()=>{ if(des.hidden){ const c=readCur(); for(const k in inp) inp[k].value=c[k]; $('#dName').value=''; des.hidden=false; } else{ cancelDesign(); } render(); };
+    grid.appendChild(d);
+    const list=T.customs();
+    if(list.length){
+      const wrap=document.createElement('div'); wrap.className='saved';
+      for(const p of list) wrap.appendChild(chip('c:'+p.name,p.name,p,true));
+      grid.appendChild(wrap);
+    }
+  }
+  function preview(){ T.apply('custom-preview',{bg:inp.bg.value,surface:inp.surface.value,text:inp.text.value,accent:inp.accent.value}); }
+  function cancelDesign(){ des.hidden=true; T.apply(savedId); }
+  for(const k in inp) inp[k].addEventListener('input',preview);
+  $('#dCancel').onclick=()=>{ cancelDesign(); render(); };
+  $('#dSave').onclick=()=>{
+    let name=$('#dName').value.trim().replace(/[<>]/g,'');
+    if(!name){ $('#dName').focus(); $('#dName').placeholder='اكتب اسمًا للثيم أولًا'; return; }
+    const p={name,bg:inp.bg.value,surface:inp.surface.value,text:inp.text.value,accent:inp.accent.value};
+    T.save(p); const id='c:'+name; T.apply(id); T.persist(id); savedId=id; des.hidden=true; render();
+  };
+  render();
+
+  // fullscreen
+  const fsIcon=()=>{ $('#btnFs').innerHTML=ic(document.fullscreenElement?'min':'max'); };
+  const fsOk=!!(document.documentElement.requestFullscreen&&document.fullscreenEnabled!==false);
+  let fsDone=false;
+  async function goFs(){ try{ await document.documentElement.requestFullscreen({navigationUI:'hide'}); fsDone=true; }catch(_){} }
+  $('#optFs').checked=settings.fs;
+  $('#optFs').onchange=e=>{ settings.fs=e.target.checked; lsSet('ft.fs',settings.fs?'1':'0'); if(settings.fs&&!document.fullscreenElement) goFs(); };
+  $('#btnFs').hidden=!fsOk;
+  $('#btnFs').onclick=async()=>{ if(document.fullscreenElement){ try{ await document.exitFullscreen(); }catch(_){} fsDone=true; } else goFs(); };
+  document.addEventListener('fullscreenchange',fsIcon);
+  const autoFs=()=>{ if(fsOk&&settings.fs&&!fsDone&&!document.fullscreenElement) goFs(); };
+  for(const ev of ['pointerup','click','touchend']) document.addEventListener(ev,autoFs,{capture:true,passive:true});
+
+  // ripple
+  document.addEventListener('pointerdown',e=>{
+    const b=e.target.closest&&e.target.closest('button,.btn'); if(!b||b.disabled) return;
+    const r=b.getBoundingClientRect(), s=Math.max(r.width,r.height)*2.2, el=document.createElement('span');
+    el.className='rip'; el.style.cssText='width:'+s+'px;height:'+s+'px;left:'+(e.clientX-r.left-s/2)+'px;top:'+(e.clientY-r.top-s/2)+'px';
+    b.appendChild(el); setTimeout(()=>el.remove(),650);
+  },{passive:true});
+})();
+
 })();
 
 </script>
