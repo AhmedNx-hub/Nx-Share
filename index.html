@@ -148,6 +148,13 @@ textarea{resize:vertical;word-break:break-all}
 .tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on);box-shadow:var(--pglow)}
 body[data-mode=txt] .m-qr{display:none!important}
 body[data-mode=qr] .m-txt{display:none!important}
+.m-short{display:none}
+body[data-mode=short] .m-short{display:block;animation:rise .4s var(--ease) both}
+body[data-mode=short] .m-txt{display:none!important}
+body[data-mode=short] .m-qr.st2{display:none!important}
+.codebig{font:700 1.15rem/1.9 ui-monospace,Consolas,monospace;letter-spacing:.06em;direction:ltr;text-align:center;word-break:break-word;padding:14px 10px;border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);user-select:all}
+#shortIn{font-size:1.1rem;letter-spacing:.08em;text-align:center;direction:ltr;text-transform:uppercase}
+.tabs button{padding:10px 6px;font-size:.88rem}
 .m-qr,.m-txt{animation:rise .4s var(--ease) both}
 .qrbox{background:#fff;padding:10px;border-radius:16px;display:flex;justify-content:center;border:1px solid var(--line);width:fit-content;max-width:100%;margin:0 auto;box-shadow:var(--shadow)}
 :root[data-theme=neon] .qrbox{box-shadow:0 0 28px -4px rgba(0,240,208,.5)}
@@ -337,6 +344,7 @@ body[data-mode=qr] .m-txt{display:none!important}
     <div class="sec">
       <h3><svg class="i"><use href="#i-wifi"/></svg>الاتصال</h3>
       <div class="set">
+        <div class="sw" style="cursor:default"><span>الأجهزة المقترنة<small id="pairInfo">—</small></span><button id="btnUnpair" type="button">مسح</button></div>
         <label class="sw"><span>تحسين التوافق<small>يطلب إذن الكاميرا لحظيًا لإظهار عنوان الجهاز الحقيقي (يخفيه كروم). يُفيد عند تعذّر الاتصال فقط، ولا يُلتقط أي تصوير.</small></span><input type="checkbox" id="optIp"></label>
       </div>
     </div>
@@ -430,7 +438,11 @@ body[data-mode=qr] .m-txt{display:none!important}
     <br>سيُنشأ رمز جديد، فاعرضه على الجهاز الآخر من جديد. (يطلب إذن الكاميرا لحظيًا)
   </div>
   <h2 class="step later"><b>2</b><span>استقبل رمز الرد من الجهاز الآخر</span></h2>
-  <div class="m-qr"><div class="scan" data-target="answerIn" data-go="btnConnect"></div></div>
+  <div class="m-qr st2"><div class="scan" data-target="answerIn" data-go="btnConnect"></div></div>
+  <div class="m-short">
+    <input type="text" id="shortIn" dir="ltr" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="S1-XXXX-XXXX-XXXX-…">
+    <div class="muted" id="shortCount" style="margin-top:8px;text-align:center">اكتب الرمز الظاهر على الجهاز الآخر. يبدأ الاتصال تلقائيًا عند اكتماله.</div>
+  </div>
   <div class="m-txt">
     <textarea id="answerIn" dir="ltr" rows="3" placeholder="G1.…"></textarea>
     <div class="btns"><button data-paste="answerIn" data-go="btnConnect"><svg class="i sm"><use href="#i-paste"/></svg>لصق</button></div>
@@ -449,13 +461,17 @@ body[data-mode=qr] .m-txt{display:none!important}
   <div class="btns"><button id="btnAnswer" class="primary"><svg class="i sm"><use href="#i-qr"/></svg>إنشاء رمز الرد</button><button data-back>رجوع</button><button data-tips><svg class="i sm"><use href="#i-help"/></svg>مساعدة</button></div>
   <div id="answerBox" hidden>
     <h2 class="step later"><b>2</b><span>اعرض رمز الرد على الجهاز الأول</span></h2>
-    <div class="m-qr">
+    <div class="m-qr st2">
       <div class="qrbox"><canvas id="answerQR" hidden></canvas></div>
       <p class="muted" id="answerQRmsg"></p>
     </div>
     <div class="m-txt">
       <textarea id="answerOut" readonly dir="ltr" rows="3"></textarea>
       <div class="btns"><button data-copy="answerOut"><svg class="i sm"><use href="#i-copy"/></svg>نسخ</button><button data-share="answerOut"><svg class="i sm"><use href="#i-share"/></svg>مشاركة</button></div>
+    </div>
+    <div class="m-short">
+      <div class="codebig" id="shortOut"></div>
+      <p class="muted" id="shortNote" style="text-align:center"></p>
     </div>
     <div id="answerInfo" class="muted"></div>
     <div id="ipWarnJ" class="warnbox" hidden>
@@ -857,6 +873,7 @@ async function pack(desc){
 }
 async function unpack(code){
   code=String(code).replace(/\s+/g,'');
+  if(/^S1/i.test(code)) return shortDecode(code);
   const m=code.match(/^(G1|F0|F1)\.([A-Za-z0-9_-]+)$/);
   if(!m) throw new Error('الكود غير صحيح. تأكد إنك نسخته كامل.');
   try{
@@ -974,7 +991,7 @@ try{
   settings.realIp=localStorage.getItem('ft.ip')==='1'; settings.fs=localStorage.getItem('ft.fs')!=='0';
   settings.alert=localStorage.getItem('ft.alert')!=='0';
   settings.skip=localStorage.getItem('ft.skip')==='1';
-  const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt') settings.mode=m;
+  const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt'||m==='short') settings.mode=m;
 }catch(_){}
 const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(_){} };
 function idb(){
@@ -1254,7 +1271,7 @@ async function holdMedia(force){
 function releaseMedia(){ if(media){ try{ media.getTracks().forEach(t=>t.stop()); }catch(_){} media=null; } }
 
 function makePC(){
-  const p=new RTCPeerConnection({iceServers:[]});
+  const p=new RTCPeerConnection(myCert?{iceServers:[],certificates:[myCert]}:{iceServers:[]});
   pc=p;
   p.onconnectionstatechange=()=>{
     if(p!==pc) return;
@@ -1349,7 +1366,8 @@ function connLost(msg){
 function resetToStart(msg){
   if(sess&&sess.open&&!sess.lost) connLost(msg||'تم قطع الاتصال.');
   closePC(); releaseMedia(); sess=null; role=null;
-  for(const id of ['offerOut','answerIn','offerIn','answerOut']) $('#'+id).value='';
+  for(const id of ['offerOut','answerIn','offerIn','answerOut','shortIn']) $('#'+id).value='';
+  $('#shortOut').textContent=''; $('#shortCount').textContent=SHORT_HINT;
   $('#answerBox').hidden=true; $('#ipWarnH').hidden=true; $('#ipWarnJ').hidden=true;
   for(const id of ['offerQR','answerQR']){ const c=$('#'+id); c.hidden=true; }
   $('#offerInfo').textContent=''; $('#answerInfo').textContent='';
@@ -1374,6 +1392,7 @@ async function startHost(force){
   $('#offerQR').hidden=true; $('#ipWarnH').hidden=true;
   try{
     if(settings.realIp||force) await holdMedia(force);
+    await ensureCert();
     const p=makePC(); setupDC(p.createDataChannel('files'));
     await p.setLocalDescription(await p.createOffer());
     await waitIce(p);
@@ -1403,6 +1422,7 @@ async function joinCreate(force){
     if(d.type!=='offer') throw new Error('ده مش كود بداية اتصال. الصق الكود من الجهاز الأول.');
     role='join'; closePC(); $('#answerBox').hidden=true; $('#answerQR').hidden=true; $('#ipWarnJ').hidden=true;
     if(settings.realIp||force) await holdMedia(force);
+    await ensureCert();
     const p=makePC();
     await p.setRemoteDescription(d);
     await p.setLocalDescription(await p.createAnswer());
@@ -1411,6 +1431,7 @@ async function joinCreate(force){
     $('#answerBox').hidden=false;
     showCode('answer',await pack(p.localDescription),p.localDescription);
     setBadge('بانتظار الجهاز الأول','wait');
+    try{ const sc=await shortEncode(p.localDescription,p.remoteDescription.sdp); fillShort(sc,$('#answerOut').value); }catch(_){ fillShort(null,$('#answerOut').value); }
   }catch(e){ showErr(e.message||String(e)); }
   finally{ releaseMedia(); }
 }
@@ -1428,7 +1449,7 @@ async function showVerify(){
     $('#vbox').hidden=false;
   }catch(_){}
 }
-$('#vOk').onclick=()=>{ $('#vbox').hidden=true; setBadge('متصل ✓ (موثّق)','ok'); };
+$('#vOk').onclick=()=>{ $('#vbox').hidden=true; setBadge('متصل ✓ (موثّق)','ok'); try{ pinPeer(fpOf(pc.remoteDescription.sdp)); }catch(_){} };
 $('#vBad').onclick=()=>resetToStart('اتقطع الاتصال لأن رمز التحقق مختلف. ممكن حد اعترض الكود. ابدأ من جديد وابعت الكود بطريقة مباشرة.');
 
 // ---------- QR: render + scan ----------
@@ -1510,9 +1531,9 @@ $$('.scan').forEach(initScan);
 function setMode(m){
   settings.mode=m; document.body.dataset.mode=m; lsSet('ft.mode',m);
   $$('[data-setmode]').forEach(b=>b.classList.toggle('on',b.dataset.setmode===m));
-  if(m!=='qr') stopScans();
+  if(m==='txt') stopScans();
 }
-$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm"><use href="#i-qr"/></svg>رمز QR</button><button data-setmode="txt"><svg class="i sm"><use href="#i-type"/></svg>رمز نصي</button>'; });
+$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm"><use href="#i-qr"/></svg>رمز QR</button><button data-setmode="txt"><svg class="i sm"><use href="#i-type"/></svg>رمز نصي</button><button data-setmode="short"><svg class="i sm"><use href="#i-zap"/></svg>رمز قصير</button>'; });
 setMode(settings.mode);
 
 // ---------- cards ----------
@@ -2089,6 +2110,77 @@ window.addEventListener('beforeunload',e=>{
   if(busy){ e.preventDefault(); e.returnValue=''; }
 });
 if(!window.RTCPeerConnection){ showErr('متصفحك لا يدعم WebRTC. استخدم كروم حديث.'); $('#btnHost').disabled=$('#btnJoin').disabled=true; }
+
+
+// ---------- pairing + short code ----------
+const SHORT_HINT='اكتب الرمز الظاهر على الجهاز الآخر. يبدأ الاتصال تلقائيًا عند اكتماله.';
+const B64A='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', CK='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+let myCert=null, certPersistent=false;
+function b64to(str){ const out=[]; let acc=0,bits=0; for(const ch of str){ acc=(acc<<6)|B64A.indexOf(ch); bits+=6; while(bits>=8){ bits-=8; out.push((acc>>bits)&255); } acc&=(1<<bits)-1; } return out; }
+function bytesToB64(b){ let s='',acc=0,bits=0; for(const v of b){ acc=(acc<<8)|v; bits+=8; while(bits>=6){ bits-=6; s+=B64A[(acc>>bits)&63]; } acc&=(1<<bits)-1; } return s; }
+function ckEnc(bytes){ let s='',acc=0,bits=0; for(const v of bytes){ acc=(acc<<8)|v; bits+=8; while(bits>=5){ bits-=5; s+=CK[(acc>>bits)&31]; } acc&=(1<<bits)-1; } if(bits) s+=CK[(acc<<(5-bits))&31]; return s; }
+function ckDec(s){ const out=[]; let acc=0,bits=0; for(const ch of s){ const v=CK.indexOf(ch); if(v<0) return null; acc=(acc<<5)|v; bits+=5; if(bits>=8){ bits-=8; out.push((acc>>bits)&255); } acc&=(1<<bits)-1; } return out; }
+function normShort(raw){ return String(raw).toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V'); }
+function fmtShort(raw){ const n=normShort(raw); if(!n.startsWith('S1')) return null; const rest=n.slice(2,54); return {text:'S1'+(rest?'-'+rest.match(/.{1,4}/g).join('-'):'-'),len:rest.length}; }
+async function ensureCert(){
+  if(myCert||!window.RTCPeerConnection||!RTCPeerConnection.generateCertificate) return;
+  try{
+    let c=null; try{ c=await idbGet('cert'); }catch(_){}
+    if(c&&c.expires>Date.now()+7*864e5){ myCert=c; certPersistent=true; return; }
+    c=await RTCPeerConnection.generateCertificate({name:'ECDSA',namedCurve:'P-256',expires:300*864e5});
+    myCert=c;
+    try{ await idbSet('cert',c); certPersistent=true; }catch(_){ certPersistent=false; }
+  }catch(_){ myCert=null; certPersistent=false; }
+}
+async function getPeers(){ try{ const a=await idbGet('peers'); return Array.isArray(a)?a:[]; }catch(_){ return []; } }
+async function pinPeer(fp){
+  if(!fp||!certPersistent) return;
+  const arr=await getPeers(); if(arr.some(x=>x.fp===fp)) return;
+  arr.push({fp,ts:Date.now()}); try{ await idbSet('peers',arr.slice(-50)); }catch(_){}
+  updatePairInfo();
+}
+async function updatePairInfo(){ const n=(await getPeers()).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · يفعّل الرمز القصير'):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
+$('#btnUnpair').onclick=async()=>{ try{ await idbDel('peers'); }catch(_){} updatePairInfo(); };
+updatePairInfo();
+async function shortEncode(desc,remoteSdp){
+  if(!certPersistent) return null;
+  const rfp=fpOf(remoteSdp); if(!rfp||!(await getPeers()).some(x=>x.fp===rfp)) return null;
+  const p=parseSDP(desc.sdp); if(!p||desc.type!=='answer'||p.setup!=='active') return null;
+  if(!/^[A-Za-z0-9+\/]{4}$/.test(p.ufrag)||!/^[A-Za-z0-9+\/]{24}$/.test(p.pwd)) return null;
+  const c=p.cands.find(x=>ip4(x.addr)); if(!c) return null;
+  const id=p.fp.split(':').slice(0,3).map(h=>parseInt(h,16));
+  const body=[...id,...b64to(p.ufrag),...b64to(p.pwd),...ip4(c.addr),c.port>>8,c.port&255];
+  const crc=crc16(body); body.push(crc>>8,crc&255);
+  return 'S1-'+ckEnc(body).match(/.{1,4}/g).join('-');
+}
+function fillShort(sc,long){
+  $('#shortOut').textContent=sc||String(long||'').replace(/(.{4})/g,'$1 ').trim();
+  $('#shortNote').textContent=sc?'اكتب هذا الرمز على الجهاز الأول. لا فرق بين الحروف الكبيرة والصغيرة.'
+    :'الرمز القصير غير متاح الآن. يتفعّل بعد أول اتصال ناجح مع الضغط على «متطابق» في الجهازين. يمكنك كتابة هذا الرمز (الحروف الكبيرة والصغيرة تفرق).';
+}
+async function shortDecode(raw){
+  const rest=normShort(raw).slice(2);
+  if(rest.length!==52) throw new Error('الرمز القصير 52 حرفًا، المكتوب '+rest.length+'.');
+  const b=ckDec(rest); if(!b||b.length<32) throw new Error('الرمز القصير فيه حرف غير صحيح.');
+  const body=b.slice(0,32);
+  if(crc16(body.slice(0,30))!==((body[30]<<8)|body[31])) throw new Error('يوجد خطأ في كتابة الرمز القصير. راجع الحروف.');
+  const idHex=body.slice(0,3).map(x=>x.toString(16).padStart(2,'0')).join('');
+  const peer=(await getPeers()).find(x=>x.fp.split(':').slice(0,3).join('').toLowerCase()===idHex);
+  if(!peer) throw new Error('هذا الجهاز غير مقترن بعد. اتصل مرة بالرمز العادي، ثم اضغط «متطابق» على الجهازين.');
+  const ufrag=bytesToB64(body.slice(3,6)), pwd=bytesToB64(body.slice(6,24));
+  return {type:'answer',sdp:buildSDP({ufrag,pwd,fp:peer.fp,setup:'active',cands:[{addr:body.slice(24,28).join('.'),port:(body[28]<<8)|body[29],prio:2113937151}]})};
+}
+(()=>{
+  const inp=$('#shortIn'); let fired='';
+  inp.addEventListener('input',()=>{
+    const f=fmtShort(inp.value);
+    if(f){ inp.value=f.text; $('#shortCount').textContent='المكتوب: '+f.len+' من 52'; }
+    else $('#shortCount').textContent=inp.value?'يجب أن يبدأ الرمز بـ S1':SHORT_HINT;
+    $('#answerIn').value=inp.value;
+    if(f&&f.len===52&&fired!==f.text){ fired=f.text; $('#btnConnect').click(); }
+    if(!f||f.len<52) fired='';
+  });
+})();
 
 // ---------- drawer / theme designer / fullscreen / ripple ----------
 (()=>{
