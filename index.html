@@ -152,6 +152,12 @@ body[data-mode=qr] .m-txt{display:none!important}
 body[data-mode=short] .m-short{display:block;animation:rise .4s var(--ease) both}
 body[data-mode=short] .m-txt{display:none!important}
 body[data-mode=short] .m-qr.st2{display:none!important}
+.cbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
+.cbar b{display:flex;align-items:center;gap:8px}
+.cbar b::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
+button.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,var(--line));background:color-mix(in srgb,var(--danger) 8%,transparent)}
+select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);max-width:48%}
+#dlogBox{direction:ltr;text-align:left;white-space:pre-wrap;font:11px/1.5 ui-monospace,Consolas,monospace;margin:10px 0 0;max-height:36vh;overflow:auto;color:var(--muted)}
 .codebig{font:700 1.15rem/1.9 ui-monospace,Consolas,monospace;letter-spacing:.06em;direction:ltr;text-align:center;word-break:break-word;padding:14px 10px;border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);user-select:all}
 #shortIn{font-size:1.1rem;letter-spacing:.08em;text-align:center;direction:ltr;text-transform:uppercase}
 .tabs button{padding:10px 6px;font-size:.88rem}
@@ -345,7 +351,15 @@ body[data-mode=short] .m-qr.st2{display:none!important}
       <h3><svg class="i"><use href="#i-wifi"/></svg>الاتصال</h3>
       <div class="set">
         <div class="sw" style="cursor:default"><span>الأجهزة المقترنة<small id="pairInfo">—</small></span><button id="btnUnpair" type="button">مسح</button></div>
+        <label class="sw"><span>مدة الاتصال<small>يُقطع الاتصال تلقائيًا بعد المدة المحددة، وينتظر انتهاء أي نقل جارٍ. الافتراضي: يبقى حتى تقطعه.</small></span><select id="optMax"><option value="0">بلا حد</option><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="60">ساعة</option><option value="180">3 ساعات</option><option value="480">8 ساعات</option></select></label>
         <label class="sw"><span>تحسين التوافق<small>يطلب إذن الكاميرا لحظيًا لإظهار عنوان الجهاز الحقيقي (يخفيه كروم). يُفيد عند تعذّر الاتصال فقط، ولا يُلتقط أي تصوير.</small></span><input type="checkbox" id="optIp"></label>
+      </div>
+    </div>
+    <div class="sec">
+      <h3><svg class="i"><use href="#i-help"/></svg>تشخيص الاتصال</h3>
+      <div class="set box">
+        <div class="btns" style="margin-top:0"><button id="btnDlog">عرض سجل الاتصال</button></div>
+        <pre id="dlogBox" hidden></pre>
       </div>
     </div>
     <div class="sec">
@@ -484,6 +498,10 @@ body[data-mode=short] .m-qr.st2{display:none!important}
 </section>
 
 <section id="s-xfer" hidden>
+  <div id="connBar" class="card cbar" hidden>
+    <div><b>متصل</b><div class="muted" id="connInfo"></div></div>
+    <button id="btnDisc" class="danger"><svg class="i sm"><use href="#i-close"/></svg>قطع الاتصال</button>
+  </div>
   <div id="lost" class="card lost" hidden>
     <b>انقطع الاتصال</b>
     <p class="muted" id="lostMsg" style="margin:4px 0"></p>
@@ -985,10 +1003,10 @@ function saveBlob(blob,name){
 }
 
 // ---------- settings ----------
-const settings={auto:true,realIp:false,fs:true,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
+const settings={auto:true,realIp:false,fs:true,maxMin:0,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
 try{
   settings.auto=localStorage.getItem('ft.auto')!=='0';
-  settings.realIp=localStorage.getItem('ft.ip')==='1'; settings.fs=localStorage.getItem('ft.fs')!=='0';
+  settings.realIp=localStorage.getItem('ft.ip')==='1'; settings.fs=localStorage.getItem('ft.fs')!=='0'; settings.maxMin=Math.max(0,parseInt(localStorage.getItem('ft.max')||'0',10)||0);
   settings.alert=localStorage.getItem('ft.alert')!=='0';
   settings.skip=localStorage.getItem('ft.skip')==='1';
   const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt'||m==='short') settings.mode=m;
@@ -1273,23 +1291,18 @@ function releaseMedia(){ if(media){ try{ media.getTracks().forEach(t=>t.stop());
 function makePC(){
   const p=new RTCPeerConnection(myCert?{iceServers:[],certificates:[myCert]}:{iceServers:[]});
   pc=p;
+  p.oniceconnectionstatechange=()=>{ if(p===pc) dlogAdd('ice: '+p.iceConnectionState); };
   p.onconnectionstatechange=()=>{
     if(p!==pc) return;
-    const s=p.connectionState;
-    if(s==='connected'){ clearTimeout(discT); if(sess&&sess.open&&!sess.lost) setBadge('متصل','ok'); }
-    else if(s==='connecting') setBadge('جارٍ الاتصال…','wait');
-    else if(s==='disconnected'){
-      if(sess&&sess.open&&!sess.lost){
-        setBadge('الاتصال ضعيف… بنحاول','wait');
-        clearTimeout(discT);
-        discT=setTimeout(()=>{ if(p===pc&&p.connectionState!=='connected') connLost('الاتصال ضعيف ومرجعش.'); },15000);
-      }
+    const st=p.connectionState; dlogAdd('conn: '+st);
+    const live=!!(sess&&sess.open&&!sess.lost);
+    if(st==='connected'){ stopWeak(); if(live) setBadge('متصل','ok'); }
+    else if(st==='connecting') setBadge('جارٍ الاتصال…','wait');
+    else if(st==='disconnected'||st==='failed'){
+      if(live) startWeak();
+      else if(st==='failed'){ setBadge('فشل الاتصال','bad'); showErr('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.'); showTips(true); }
     }
-    else if(s==='failed'){
-      if(sess&&sess.open) connLost('انقطع الاتصال.');
-      else{ setBadge('فشل الاتصال','bad'); showErr('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.'); showTips(true); }
-    }
-    else if(s==='closed'){ if(sess&&sess.open) connLost('انقطع الاتصال.'); }
+    else if(st==='closed'){ if(live) connLost('انقطع الاتصال.'); }
   };
   p.ondatachannel=e=>{ if(p===pc) setupDC(e.channel); };
   return p;
@@ -1312,7 +1325,7 @@ function waitIce(p){
 function setupDC(ch){
   dc=ch; ch.binaryType='arraybuffer'; ch.bufferedAmountLowThreshold=1<<20;
   ch.onopen=()=>{ if(ch===dc) onConnected(); };
-  ch.onclose=()=>{ if(ch===dc&&sess&&sess.open) connLost('انقطع الاتصال.'); };
+  ch.onclose=()=>{ dlogAdd('datachannel closed'); if(ch===dc&&sess&&sess.open) connLost('انقطع الاتصال.'); };
   ch.onmessage=e=>{ if(ch===dc) onMsg(e); };
   if(ch.readyState==='open') queueMicrotask(()=>{ if(ch===dc) onConnected(); });
 }
@@ -1324,7 +1337,7 @@ function onConnected(){
   clearTimeout(slowT); clearTimeout(discT);
   sess={open:true,lost:false};
   showErr(''); setBadge('متصل','ok'); view('s-xfer');
-  $('#lost').hidden=true; setPicker(true); keepAwake(); showVerify();
+  $('#lost').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
   for(const t of outgoing.values()){
     if(t.state==='interrupted'){
       t.state='queued'; t.ui.status('بيكمل…'); t.ui.buttons([['إلغاء',()=>cancelOut(t)]]); sendQueue.push(t);
@@ -1339,7 +1352,7 @@ function onConnected(){
 }
 function connLost(msg){
   if(!sess||!sess.open||sess.lost) return;
-  sess.lost=true; clearTimeout(discT); releaseWake();
+  sess.lost=true; clearTimeout(discT); releaseWake(); stopLive(); $('#connBar').hidden=true; dlogAdd('LOST: '+(msg||''));
   setBadge('انقطع الاتصال','bad');
   sendQueue.length=0;
   for(const t of outgoing.values()){
@@ -1365,7 +1378,7 @@ function connLost(msg){
 }
 function resetToStart(msg){
   if(sess&&sess.open&&!sess.lost) connLost(msg||'تم قطع الاتصال.');
-  closePC(); releaseMedia(); sess=null; role=null;
+  stopLive(); $('#connBar').hidden=true; closePC(); releaseMedia(); sess=null; role=null;
   for(const id of ['offerOut','answerIn','offerIn','answerOut','shortIn']) $('#'+id).value='';
   $('#shortOut').textContent=''; $('#shortCount').textContent=SHORT_HINT;
   $('#answerBox').hidden=true; $('#ipWarnH').hidden=true; $('#ipWarnJ').hidden=true;
@@ -1817,6 +1830,8 @@ function handleCtl(m){
     case 'fin': { const t=outgoing.get(m.id); if(t){ t.fin=true; if(t.onFin){ const f=t.onFin; t.onFin=null; f(); } } break; }
     case 'abort': { const t=outgoing.get(m.id); if(t){ t.aborted=true; for(const k of ['onAck','onFin']){ if(t[k]){ const f=t[k]; t[k]=null; f(); } } } break; }
     case 'cancel': onRemoteCancel(m); break;
+    case 'ping': break;
+    case 'bye': dlogAdd('remote said bye'); resetToStart('الجهاز الآخر قطع الاتصال.'); break;
     case 'end': finishIn(m); break;
     case 'msg': addMsg(String(m.text),'in'); break;
   }
@@ -2181,6 +2196,65 @@ async function shortDecode(raw){
     if(!f||f.len<52) fired='';
   });
 })();
+
+
+// ---------- keep-alive / session duration / disconnect ----------
+const dlog=[]; let weakMs=0, weakT=0, hb=0, limTick=0, connAt=0, lockRel=null, lockWant=false;
+const WEAK_LIMIT=120000;
+function dlogAdd(m){ try{ dlog.push(new Date().toLocaleTimeString('en-GB')+(document.visibilityState==='hidden'?' [bg] ':' ')+m); if(dlog.length>80) dlog.shift(); const b=$('#dlogBox'); if(b&&!b.hidden) b.textContent=dlog.join('\n'); }catch(_){} }
+function startWeak(){
+  setBadge('الاتصال ضعيف… بنحاول','wait');
+  if(weakT) return; weakMs=0;
+  weakT=setInterval(()=>{
+    const p=pc; if(!p||!(sess&&sess.open&&!sess.lost)){ stopWeak(); return; }
+    if(p.connectionState==='connected'){ stopWeak(); setBadge('متصل','ok'); return; }
+    if(document.visibilityState==='visible') weakMs+=2000;
+    if(weakMs>=WEAK_LIMIT){ stopWeak(); connLost('الاتصال ضعيف ولم يعد.'); }
+  },2000);
+}
+function stopWeak(){ clearInterval(weakT); weakT=0; weakMs=0; }
+function fmtClock(ms){ const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60; return (h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(x).padStart(2,'0'); }
+function fmtMin(m){ return m>=60?(m/60)+' ساعة':m+' دقيقة'; }
+function startLive(){
+  connAt=Date.now(); clearInterval(hb); hb=setInterval(()=>sendCtl({t:'ping'}),5000);
+  clearInterval(limTick); limTick=setInterval(liveTick,1000);
+  lockWant=true;
+  try{ if(navigator.locks&&!lockRel) navigator.locks.request('nx-share-live',()=>new Promise(res=>{ if(!lockWant) return res(); lockRel=res; })).catch(()=>{}); }catch(_){}
+  $('#connBar').hidden=false; liveTick();
+}
+function stopLive(){
+  clearInterval(hb); clearInterval(limTick); hb=limTick=0; lockWant=false;
+  if(lockRel){ const r=lockRel; lockRel=null; r(); }
+  stopWeak();
+}
+function liveTick(){
+  if(!(sess&&sess.open&&!sess.lost)) return;
+  const el=Date.now()-connAt, mx=settings.maxMin*60000;
+  let t='مدة الاتصال: '+fmtClock(el)+(mx?' · يتبقى '+fmtClock(mx-el):' · بلا حد زمني');
+  if(mx&&el>=mx){
+    if(allIdle()){ disconnectNow('انتهت مدة الاتصال المحددة ('+fmtMin(settings.maxMin)+').'); return; }
+    t+=' · بانتظار انتهاء النقل';
+  }
+  $('#connInfo').textContent=t;
+}
+function disconnectNow(msg){
+  dlogAdd('disconnect: '+msg);
+  sendCtl({t:'bye'});
+  setTimeout(()=>resetToStart(msg),150);
+}
+$('#btnDisc').onclick=()=>{
+  if(!allIdle()&&!confirm('فيه نقل جارٍ. هل تقطع الاتصال؟')) return;
+  disconnectNow('تم قطع الاتصال.');
+};
+$('#optMax').value=String(settings.maxMin);
+if($('#optMax').value!==String(settings.maxMin)){ const o=document.createElement('option'); o.value=String(settings.maxMin); o.textContent=fmtMin(settings.maxMin); $('#optMax').appendChild(o); $('#optMax').value=String(settings.maxMin); }
+$('#optMax').onchange=e=>{ settings.maxMin=parseInt(e.target.value,10)||0; lsSet('ft.max',String(settings.maxMin)); liveTick(); };
+$('#btnDlog').onclick=()=>{ const b=$('#dlogBox'); b.hidden=!b.hidden; if(!b.hidden) b.textContent=dlog.join('\n')||'لا توجد أحداث بعد.'; };
+document.addEventListener('visibilitychange',()=>{ dlogAdd('page '+document.visibilityState); liveTick(); });
+document.addEventListener('freeze',()=>dlogAdd('FREEZE'));
+document.addEventListener('resume',()=>dlogAdd('resume'));
+window.addEventListener('online',()=>dlogAdd('network online'));
+window.addEventListener('offline',()=>dlogAdd('network offline'));
 
 // ---------- drawer / theme designer / fullscreen / ripple ----------
 (()=>{
