@@ -64,6 +64,17 @@ body[data-mode=qr] .m-txt{display:none!important}
 .warnbox button{margin-top:8px;color:var(--text)}
 .vcode{font:700 1.8rem/1.2 ui-monospace,Consolas,monospace;letter-spacing:.15em;direction:ltr;text-align:center;margin:6px 0}
 .lost{border-color:var(--danger)}
+.ov{margin-bottom:8px}
+.ov .row b{font-size:.95rem}
+.listbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin:0 0 8px}
+.toast{position:fixed;inset-inline:12px;bottom:12px;z-index:50;background:var(--accent);color:var(--on);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.toast .btns{margin:0}
+.toast button{background:var(--on);color:var(--accent);border-color:var(--on);font-weight:700;white-space:nowrap}
+.tips ol{margin:8px 0 0;padding-inline-start:22px}
+.tips li{margin:6px 0}
+.tips summary{cursor:pointer}
+.log{max-height:40vh;overflow:auto;margin-top:8px}
+.logi{border-top:1px solid var(--line);padding:8px 0}
 </style>
 </head>
 <body data-mode="qr">
@@ -79,6 +90,9 @@ body[data-mode=qr] .m-txt{display:none!important}
   <p class="muted" style="margin:0 0 4px">لو متوقف، هيسألك قبول أو رفض لكل ملف.</p>
   <label class="sw"><input type="checkbox" id="optIp"><span>تحسين الاتصال (طلب إذن الكاميرا لحظيًا)</span></label>
   <p class="muted" style="margin:0">كروم بيخفي عنوان الجهاز على الشبكة، وده سبب شائع لفشل الاتصال. إذن الكاميرا بيظهره. مفيش صورة بتتسجل ولا بتتبعت.</p>
+  <label class="sw"><input type="checkbox" id="optAlert"><span>تنبيه لما النقل يخلص (اهتزاز وصوت)</span></label>
+  <label class="sw"><input type="checkbox" id="optSkip"><span>تخطي الملفات الموجودة عندي</span></label>
+  <p class="muted" style="margin:0">بيشتغل لما تكون اخترت مجلد حفظ مخصص: لو فيه ملف بنفس الاسم والحجم، مش هيتبعت تاني.</p>
   <h2>مكان الحفظ</h2>
   <div id="locName"></div>
   <div class="btns">
@@ -88,6 +102,9 @@ body[data-mode=qr] .m-txt{display:none!important}
   </div>
   <p id="locNoteDir" class="muted" hidden>أندرويد غالبًا بيمنع اختيار مجلد التحميلات نفسه أو الذاكرة الرئيسية. اختار مجلد فرعي أو أنشئ مجلد جديد. اختيار مجلد بيخلي المجلدات المستلمة تتحفظ بنفس هيكلها.</p>
   <p id="locNoteChrome" class="muted">الافتراضي إن الملفات تنزل في مجلد التحميلات. ولو عايز كروم يسألك عن المكان في كل مرة: إعدادات كروم ← التنزيلات (الاسم بيختلف حسب الإصدار).</p>
+  <h2>الملفات المستلمة</h2>
+  <div class="btns"><button id="btnLog">📂 عرض السجل</button><button id="btnLogClear" hidden>مسح السجل المحفوظ</button></div>
+  <div id="logBox" class="log" hidden></div>
   <h2>التطبيق</h2>
   <div id="pwaState" class="muted"></div>
   <div class="btns">
@@ -98,6 +115,23 @@ body[data-mode=qr] .m-txt{display:none!important}
 </div>
 
 <div id="err" hidden></div>
+<div id="shareNote" class="warnbox" hidden></div>
+<details id="tips" class="card tips" hidden>
+  <summary><b>مشكلة في الاتصال؟ جرّب الخطوات دي بالترتيب</b></summary>
+  <ol>
+    <li>تأكد إن الجهازين على نفس الواي فاي. الأضمن: شغّل <b>هوتسبوت</b> من أحدهما ووصّل التاني عليه.</li>
+    <li>لو الواي فاي من غير إنترنت: أوقف <b>بيانات الموبايل</b> (وخاصية التبديل الذكي بين الواي فاي والشبكة) عشان أندرويد ما يسيبش الواي فاي.</li>
+    <li>أوقف أي <b>VPN</b> على الجهازين.</li>
+    <li>الواي فاي العام أو شبكة الضيوف بتمنع الأجهزة من الاتصال ببعض، فاستخدم هوتسبوت بدالها.</li>
+    <li>فعّل «تحسين الاتصال» من الإعدادات واسمح بالكاميرا لحظيًا، وبعدين اضغط الزرار اللي تحت عشان يتعمل كود جديد بعناوين حقيقية.</li>
+    <li>لو لسه مفيش اتصال: ابدأ من جديد على الجهازين، وخلّي الشاشتين شغالين لحد ما الاتصال يتم.</li>
+  </ol>
+  <div class="btns"><button data-realip>جرّب عناوين حقيقية</button><button data-back>ابدأ من جديد</button></div>
+</details>
+<div id="toast" class="toast" hidden role="status">
+  <span id="toastMsg">فيه نسخة جديدة من التطبيق</span>
+  <div class="btns"><button id="toastBtn">اضغط للتحديث</button><button id="toastLater">لاحقًا</button></div>
+</div>
 
 <section id="s-start" class="card">
   <p class="muted" style="margin-top:0">ابعت ملفات ومجلدات بين جهازين مباشرة، بدون سيرفر وبدون إنترنت. الجهازين لازم يكونوا على نفس شبكة الواي فاي، أو هوتسبوت من أحدهما.</p>
@@ -132,7 +166,7 @@ body[data-mode=qr] .m-txt{display:none!important}
     <textarea id="answerIn" dir="ltr" rows="3" placeholder="G1.…"></textarea>
     <div class="btns"><button data-paste="answerIn" data-go="btnConnect">لصق</button></div>
   </div>
-  <div class="btns"><button id="btnConnect" class="primary">اتصال</button><button data-back>رجوع</button></div>
+  <div class="btns"><button id="btnConnect" class="primary">اتصال</button><button data-back>رجوع</button><button data-tips>مشكلة في الاتصال؟</button></div>
 </section>
 
 <section id="s-join" class="card" hidden>
@@ -143,7 +177,7 @@ body[data-mode=qr] .m-txt{display:none!important}
     <textarea id="offerIn" dir="ltr" rows="3" placeholder="G1.…"></textarea>
     <div class="btns"><button data-paste="offerIn" data-go="btnAnswer">لصق</button></div>
   </div>
-  <div class="btns"><button id="btnAnswer" class="primary">إنشاء كود الرد</button><button data-back>رجوع</button></div>
+  <div class="btns"><button id="btnAnswer" class="primary">إنشاء كود الرد</button><button data-back>رجوع</button><button data-tips>مشكلة في الاتصال؟</button></div>
   <div id="answerBox" hidden>
     <h2>الخطوة 2: وصّل كود الرد للجهاز الأول</h2>
     <div class="m-qr">
@@ -187,7 +221,11 @@ body[data-mode=qr] .m-txt{display:none!important}
       <input type="file" id="pickDir" webkitdirectory hidden>
     </div>
     <div class="msgrow"><input type="text" id="msgIn" placeholder="اكتب نص أو رابط لإرساله" dir="auto"><button id="msgSend">إرسال</button></div>
+    <div class="btns"><button id="btnSpeed">⚡ اختبار السرعة</button></div>
   </div>
+  <div id="ovOut" class="card ov" hidden><div class="row"><b></b><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
+  <div id="ovIn" class="card ov" hidden><div class="row"><b></b><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
+  <div class="listbar" id="listBar" hidden><span class="muted" id="listCount"></span><button id="btnClear">🧹 مسح السجل</button></div>
   <div id="list"></div>
   <div id="msgs"></div>
 </section>
@@ -204,6 +242,8 @@ const scans=new Set();    // active QR scanners
 const outgoing=new Map(), sendQueue=[];
 const inCards=new Map(), pendingIn=new Map(), acceptedKeys=new Set(), finishedKeys=new Set();
 let pc=null, dc=null, sess=null, role=null, current=null, wl=null, sending=false, nextId=1, discT=0, slowT=0, media=null;
+let pendingShare=null, spd=null, alertT=0, actx=null;
+const waiters=new Map();  // one-shot waiters for control replies (speed test)
 
 // QR encoder (byte mode, ECC L/M, versions 1-40). Self-contained, no dependencies.
 const QR=(()=>{
@@ -642,7 +682,11 @@ function safeName(n){
 }
 function cleanPath(p){ return String(p||'').split('/').filter(x=>x&&x!=='.'&&x!=='..').map(safeName).slice(0,16).join('/'); }
 function showErr(t){ const e=$('#err'); e.textContent=t||''; e.hidden=!t; }
-function view(id){ stopScans(); for(const s of $$('main > section')) s.hidden=(s.id!==id); }
+function view(id){
+  stopScans(); for(const s of $$('main > section')) s.hidden=(s.id!==id);
+  if(id!=='s-host'&&id!=='s-join') $('#tips').hidden=true;
+}
+function showTips(open){ const t=$('#tips'); t.hidden=false; t.open=!!open; if(open) try{ t.scrollIntoView({block:'nearest'}); }catch(_){} }
 function setBadge(t,c){ const b=$('#badge'); b.textContent=t; b.className='badge '+(c||''); }
 function saveBlob(blob,name){
   const url=URL.createObjectURL(blob), a=document.createElement('a');
@@ -651,10 +695,12 @@ function saveBlob(blob,name){
 }
 
 // ---------- settings ----------
-const settings={auto:true,realIp:true,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
+const settings={auto:true,realIp:true,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
 try{
   settings.auto=localStorage.getItem('ft.auto')!=='0';
   settings.realIp=localStorage.getItem('ft.ip')!=='0';
+  settings.alert=localStorage.getItem('ft.alert')!=='0';
+  settings.skip=localStorage.getItem('ft.skip')==='1';
   const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt') settings.mode=m;
 }catch(_){}
 const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(_){} };
@@ -703,6 +749,10 @@ $('#optAuto').checked=settings.auto;
 $('#optAuto').onchange=e=>{ settings.auto=e.target.checked; lsSet('ft.auto',settings.auto?'1':'0'); };
 $('#optIp').checked=settings.realIp;
 $('#optIp').onchange=e=>{ settings.realIp=e.target.checked; lsSet('ft.ip',settings.realIp?'1':'0'); };
+$('#optAlert').checked=settings.alert;
+$('#optAlert').onchange=e=>{ settings.alert=e.target.checked; lsSet('ft.alert',settings.alert?'1':'0'); if(settings.alert){ unlockAudio(); beep(); } };
+$('#optSkip').checked=settings.skip;
+$('#optSkip').onchange=e=>{ settings.skip=e.target.checked; lsSet('ft.skip',settings.skip?'1':'0'); };
 $('#btnLoc').onclick=async()=>{
   try{
     const h=await window.showDirectoryPicker({mode:'readwrite'});
@@ -784,11 +834,106 @@ function setPwa(state){
   const t={ready:'جاهز للعمل بدون إنترنت ✓',pending:'جارٍ التجهيز للعمل بدون إنترنت…',err:'تعذر تفعيل العمل بدون إنترنت.',file:'بتشتغل من ملف محلي. للتثبيت افتح التطبيق من رابط https.'}[state];
   $('#pwaState').textContent=t;
 }
+function showUpdate(){ $('#toast').hidden=false; }
+function transferBusy(){ return Array.from(outgoing.values()).some(t=>t.state==='sending'||t.state==='offered')||!!(current&&!current.failed)||!!spd; }
+$('#toastBtn').onclick=()=>{
+  if(transferBusy()&&!confirm('فيه نقل شغال، وإعادة التحميل هتقطعه (وبيكمل بعدين). تكمل؟')) return;
+  location.reload();
+};
+$('#toastLater').onclick=()=>{ $('#toast').hidden=true; };
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   setPwa('pending');
+  const hadCtl=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('message',e=>{ if(e.data&&e.data.t==='update') showUpdate(); });
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(hadCtl) showUpdate(); });
   navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>setPwa('ready')).catch(()=>setPwa('err'));
   $('#btnSaveApp').hidden=false; $('#pwaNote').hidden=false;
 }else setPwa('file');
+
+// ---------- files shared to the app (Android share sheet) ----------
+function updateShareNote(){
+  const n=$('#shareNote'), c=pendingShare?pendingShare.length:0;
+  n.hidden=!c;
+  if(!c){ n.textContent=''; return; }
+  n.textContent='فيه '+c+' ملف جاهز للإرسال (جه من قائمة المشاركة). اتصل بالجهاز التاني وهيتبعتوا تلقائيًا. ';
+  const b=document.createElement('button'); b.textContent='إلغاء'; b.onclick=()=>{ pendingShare=null; if('caches' in window) caches.delete('ft-share').catch(()=>{}); updateShareNote(); };
+  n.appendChild(b);
+}
+async function loadShared(){
+  if(!('caches' in window)) return;
+  try{
+    const c=await caches.open('ft-share'), keys=await c.keys();
+    if(!new URLSearchParams(location.search).has('share')){
+      for(const k of keys){ const r=await c.match(k), t=Number(r&&r.headers.get('x-ts')); if(!t||Date.now()-t>24*3600*1000) await c.delete(k); }
+      return;
+    }
+    const files=[]; let text='';
+    for(const k of keys.sort((a,b)=>a.url<b.url?-1:1)){
+      const r=await c.match(k); if(!r) continue;
+      if(k.url.endsWith('/shared/text')){ text=await r.text(); continue; }
+      const blob=await r.blob(), name=decodeURIComponent(r.headers.get('x-name')||'file');
+      files.push(new File([blob],name,{type:blob.type,lastModified:Number(r.headers.get('x-lm'))||Date.now()}));
+    }
+    try{ history.replaceState(null,'',location.pathname); }catch(_){}
+    if(text) $('#msgIn').value=text;
+    if(files.length){ pendingShare=files; updateShareNote(); }
+  }catch(_){}
+}
+loadShared();
+
+// ---------- received files log (persistent) ----------
+let logQ=Promise.resolve();
+function logAdd(entry){
+  logQ=logQ.then(async()=>{
+    let arr=[]; try{ arr=(await idbGet('log'))||[]; }catch(_){}
+    arr.unshift(entry); if(arr.length>200) arr.length=200;
+    await idbSet('log',arr);
+    if(!$('#logBox').hidden) renderLog();
+  }).catch(()=>{});
+}
+async function logFile(e){
+  if(!e.root) throw new Error('الملف اتحفظ في التحميلات. افتحه من تطبيق الملفات.');
+  let p=await e.root.queryPermission({mode:'read'});
+  if(p!=='granted') p=await e.root.requestPermission({mode:'read'});
+  if(p!=='granted') throw new Error('لازم تسمح بالوصول للمجلد.');
+  try{
+    let d=e.root; for(const seg of String(e.path||'').split('/').filter(Boolean)) d=await d.getDirectoryHandle(seg);
+    return await (await d.getFileHandle(e.fname)).getFile();
+  }catch(err){ throw new Error('الملف مش موجود (اتمسح أو اتنقل).'); }
+}
+async function renderLog(){
+  const box=$('#logBox'); let arr=[]; try{ arr=(await idbGet('log'))||[]; }catch(_){}
+  $('#btnLogClear').hidden=!arr.length;
+  box.innerHTML='';
+  if(!arr.length){ box.textContent='لسه مفيش ملفات مستلمة.'; box.className='log muted'; return; }
+  box.className='log';
+  for(const e of arr){
+    const d=document.createElement('div'); d.className='logi';
+    const r=document.createElement('div'); r.className='row';
+    const nm=document.createElement('b'); nm.className='nm'; nm.textContent=(e.path?e.path+'/':'')+e.name;
+    const sz=document.createElement('span'); sz.className='sz'; sz.textContent=fmtSize(e.size);
+    r.append(nm,sz);
+    const m=document.createElement('div'); m.className='muted';
+    let when=''; try{ when=new Date(e.ts).toLocaleString('ar-EG'); }catch(_){ when=new Date(e.ts).toISOString(); }
+    m.textContent=when+' · '+(e.root?('مجلد «'+e.root.name+'»'):'التحميلات');
+    d.append(r,m);
+    if(e.root){
+      const b=document.createElement('div'); b.className='btns';
+      const open=document.createElement('button'); open.textContent='فتح';
+      open.onclick=async()=>{ try{ showErr(''); const f=await logFile(e), u=URL.createObjectURL(f); const w=window.open(u,'_blank'); if(!w) saveBlob(f,e.name); setTimeout(()=>URL.revokeObjectURL(u),120000); }catch(err){ showErr(err.message||String(err)); } };
+      b.append(open);
+      if(navigator.share){
+        const sh=document.createElement('button'); sh.textContent='مشاركة';
+        sh.onclick=async()=>{ try{ showErr(''); const f=await logFile(e); if(navigator.canShare&&!navigator.canShare({files:[f]})) throw new Error('نوع الملف ده مش مدعوم للمشاركة.'); await navigator.share({files:[f]}); }catch(err){ if(!err||err.name!=='AbortError') showErr(err.message||String(err)); } };
+        b.append(sh);
+      }
+      d.append(b);
+    }
+    box.append(d);
+  }
+}
+$('#btnLog').onclick=()=>{ const b=$('#logBox'); b.hidden=!b.hidden; $('#btnLog').textContent=b.hidden?'📂 عرض السجل':'📂 إخفاء السجل'; if(!b.hidden) renderLog(); };
+$('#btnLogClear').onclick=async()=>{ try{ await idbDel('log'); }catch(_){} renderLog(); };
 let deferredInstall=null;
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstall=e; $('#btnInstall').hidden=false; });
 window.addEventListener('appinstalled',()=>{ $('#btnInstall').hidden=true; });
@@ -852,7 +997,7 @@ function makePC(){
     }
     else if(s==='failed'){
       if(sess&&sess.open) connLost('انقطع الاتصال.');
-      else{ setBadge('فشل الاتصال','bad'); showErr('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.'); }
+      else{ setBadge('فشل الاتصال','bad'); showErr('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.'); showTips(true); }
     }
     else if(s==='closed'){ if(sess&&sess.open) connLost('انقطع الاتصال.'); }
   };
@@ -895,6 +1040,11 @@ function onConnected(){
       t.state='queued'; t.ui.status('بيكمل…'); t.ui.buttons([['إلغاء',()=>cancelOut(t)]]); sendQueue.push(t);
     }
   }
+  if(pendingShare){
+    const f=pendingShare; pendingShare=null; updateShareNote();
+    if('caches' in window) caches.delete('ft-share').catch(()=>{});
+    enqueue(f.map(file=>({file,path:''})));
+  }
   pump();
 }
 function connLost(msg){
@@ -914,8 +1064,10 @@ function connLost(msg){
     const r=current; current=null; r.failed=true;
     r.ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>{ store.clear(r.key).catch(()=>{}); inCards.delete(r.key); r.ui.fail('تم الإلغاء'); }]]);
   }
-  for(const j of pendingIn.values()) j.ui.fail('انقطع الاتصال قبل ما تقبل');
+  for(const j of pendingIn.values()){ j.ui.fail('انقطع الاتصال قبل ما تقبل'); ovIn.gone(j.size); }
   pendingIn.clear();
+  if(spd){ spd.ui.fail('انقطع الاتصال'); spd=null; }
+  for(const [k,w] of Array.from(waiters)){ waiters.delete(k); w(null); }
   $('#vbox').hidden=true;
   $('#lostMsg').textContent=msg||'';
   $('#lost').hidden=false; setPicker(false);
@@ -968,7 +1120,7 @@ async function hostConnect(){
     const p=pc;
     await p.setRemoteDescription(d);
     clearTimeout(slowT);
-    slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)) showErr('الاتصال بياخد وقت. تأكد إن الجهازين على نفس الواي فاي، أو جرّب هوتسبوت من أحدهما.'); },15000);
+    slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr('الاتصال بياخد وقت. تأكد إن الجهازين على نفس الواي فاي، أو جرّب هوتسبوت من أحدهما.'); showTips(true); } },15000);
   }catch(e){ showErr(e.message||String(e)); }
 }
 async function joinCreate(force){
@@ -1099,9 +1251,11 @@ function addCard(dir,name,size){
   $('#list').prepend(el);
   const bar=el.querySelector('.bar i'), st=el.querySelector('.st'), bt=el.querySelector('.btns');
   let last=0;
+  const fin=v=>{ el.dataset.fin=v?'1':'0'; refreshListBar(); };
+  fin(false);
   const api={
-    base:0,
-    status(t){ st.textContent=t; st.className='st'; },
+    base:0, el,
+    status(t){ st.textContent=t; st.className='st'; fin(false); },
     progress(done,total,start,force){
       const now=performance.now();
       if(!force&&now-last<120) return; last=now;
@@ -1111,10 +1265,10 @@ function addCard(dir,name,size){
       st.textContent=pct.toFixed(0)+'% · '+fmtSize(Math.max(0,sp))+'/ث · باقي '+fmtTime(sp>0?(total-done)/sp:0);
       st.className='st';
     },
-    done(t){ bar.style.width='100%'; st.textContent=t; st.className='st ok'; api.buttons([]); },
-    fail(t,btns){ st.textContent=t; st.className='st bad'; api.buttons(btns||[]); },
-    pause(t,btns){ st.textContent=t; st.className='st warn'; api.buttons(btns||[]); },
-    reset(){ api.base=0; st.className='st'; api.buttons([]); },
+    done(t){ bar.style.width='100%'; st.textContent=t; st.className='st ok'; api.buttons([]); fin(true); },
+    fail(t,btns){ st.textContent=t; st.className='st bad'; api.buttons(btns||[]); fin(!(btns&&btns.length)); },
+    pause(t,btns){ st.textContent=t; st.className='st warn'; api.buttons(btns||[]); fin(false); },
+    reset(){ api.base=0; st.className='st'; api.buttons([]); fin(false); },
     buttons(list){
       bt.innerHTML='';
       for(const [label,fn,cls] of list){
@@ -1125,20 +1279,139 @@ function addCard(dir,name,size){
   return api;
 }
 function setPicker(on){ $('#pickCard').classList.toggle('off',!on); }
+function refreshListBar(){
+  const n=$$('#list .item').length, f=$$('#list .item[data-fin="1"]').length;
+  $('#listBar').hidden=!n; $('#listCount').textContent=n?(f+' منتهي من '+n):''; $('#btnClear').disabled=!f;
+}
+$('#btnClear').onclick=()=>{
+  $$('#list .item[data-fin="1"]').forEach(el=>{ if(el._rm) el._rm(); el.remove(); });
+  ovOut.clearIfOver(); ovIn.clearIfOver(); refreshListBar();
+};
+
+// ---------- overall progress (whole batch / folder) ----------
+function makeOverall(boxId,title){
+  const box=$('#'+boxId), cnt=box.querySelector('.cnt'), bar=box.querySelector('.bar i'), st=box.querySelector('.st');
+  box.querySelector('b').textContent=title;
+  const S={files:0,done:0,bytes:0,base:0,cur:0,start:0,last:0,over:true};
+  const draw=force=>{
+    const now=performance.now(); if(!force&&now-S.last<150) return; S.last=now;
+    box.hidden=S.files<2;
+    const got=Math.min(S.bytes,S.base+S.cur), pct=S.bytes?got/S.bytes*100:100;
+    cnt.textContent=S.done+' من '+S.files+' ملف';
+    bar.style.width=pct.toFixed(1)+'%';
+    if(S.files&&S.done>=S.files){ st.textContent='تم ✓ '+fmtSize(S.bytes); st.className='st ok'; return; }
+    const sp=got/(((now-S.start)/1000)||0.001);
+    st.textContent=pct.toFixed(0)+'% · '+fmtSize(sp)+'/ث · باقي '+fmtTime(sp>0?(S.bytes-got)/sp:0);
+    st.className='st';
+  };
+  return {
+    add(n,bytes){
+      if(!(n>0)) return;
+      if(S.over){ S.files=0; S.done=0; S.bytes=0; S.base=0; S.cur=0; S.over=false; S.start=performance.now(); }
+      S.files+=n; S.bytes+=Math.max(0,bytes||0); draw(true);
+    },
+    cur(n){ if(S.over) return; S.cur=n; draw(false); },
+    done(size){ if(S.over) return; S.base+=size; S.cur=0; S.done++; if(S.done>=S.files) S.over=true; draw(true); },
+    gone(size){ if(S.over) return; S.files=Math.max(0,S.files-1); S.bytes=Math.max(0,S.bytes-size); S.cur=0; if(S.done>=S.files) S.over=true; draw(true); },
+    clearIfOver(){ if(S.over){ S.files=0; box.hidden=true; } }
+  };
+}
+const ovOut=makeOverall('ovOut','⬆ الإرسال (الكل)'), ovIn=makeOverall('ovIn','⬇ الاستلام (الكل)');
+
+// ---------- done alert (vibrate + short beep) ----------
+function unlockAudio(){
+  try{ const C=window.AudioContext||window.webkitAudioContext; if(C&&!actx) actx=new C(); if(actx&&actx.state==='suspended') actx.resume(); }catch(_){}
+}
+document.addEventListener('click',unlockAudio,{passive:true});
+function beep(){
+  if(!actx) return;
+  try{
+    if(actx.state==='suspended') actx.resume();
+    const t=actx.currentTime, o=actx.createOscillator(), g=actx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(880,t); o.frequency.setValueAtTime(1175,t+0.18);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.42);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.45);
+  }catch(_){}
+}
+function allIdle(){
+  return !sending&&!sendQueue.length&&!current&&!spd&&!pendingIn.size&&
+    !Array.from(outgoing.values()).some(t=>t.state==='queued'||t.state==='offered'||t.state==='sending');
+}
+function noteDone(){
+  clearTimeout(alertT);
+  alertT=setTimeout(()=>{
+    if(!settings.alert||!allIdle()) return;
+    try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(_){}
+    beep();
+  },1500);
+}
+
+// ---------- control-message waiters (speed test) ----------
+function waitFor(key,ms){
+  return new Promise(res=>{
+    const t=setTimeout(()=>{ waiters.delete(key); res(null); },ms);
+    waiters.set(key,v=>{ clearTimeout(t); waiters.delete(key); res(v); });
+  });
+}
+function fire(key,v){ const w=waiters.get(key); if(w) w(v); }
+const fmtSpeed=bps=>(bps/1048576).toFixed(1)+' MB/s ≈ '+(bps*8/1e6).toFixed(0)+' Mbps';
+function speedHint(bps){
+  const m=bps/1048576;
+  return m>=10?'ممتاز':m>=3?'مقبول':'ضعيف. جرّب هوتسبوت (5GHz) وقرّب الجهازين من بعض.';
+}
+async function runSpeed(){
+  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(sending||current||spd||sendQueue.length){ showErr('استنى النقل الحالي يخلص الأول.'); return; }
+  showErr(''); sending=true; $('#btnSpeed').disabled=true;
+  const SIZE=50*1048576, id='s'+(nextId++), ui=addCard('out','⚡ اختبار السرعة',SIZE);
+  ui.status('بنجهّز الاختبار…');
+  try{
+    const chunk=new Uint8Array(CHUNK); crypto.getRandomValues(chunk);
+    const go=waitFor('speedgo:'+id,8000);
+    sendCtl({t:'speed',id,size:SIZE});
+    const g=await go;
+    if(!g) throw new Error('الجهاز التاني مردش على الاختبار');
+    if(!g.ok) throw new Error('الجهاز التاني مشغول بنقل تاني');
+    const res=waitFor('speedres:'+id,90000), start=performance.now(); let sent=0;
+    while(sent<SIZE){
+      if(!connected()) throw new Error('انقطع الاتصال');
+      while(dc.bufferedAmount>SEND_BUF){ if(!connected()) throw new Error('انقطع الاتصال'); await bufLow(); }
+      const len=Math.min(CHUNK,SIZE-sent);
+      dc.send(len===CHUNK?chunk:chunk.subarray(0,len)); sent+=len; ui.progress(sent,SIZE,start);
+    }
+    sendCtl({t:'speedend',id});
+    ui.status('بنستنى تأكيد الجهاز التاني…');
+    const r=await res; if(!r) throw new Error('الاختبار اتقطع');
+    const bps=SIZE/((performance.now()-start)/1000);
+    ui.progress(SIZE,SIZE,start,true);
+    ui.done('⚡ الإرسال: '+fmtSpeed(bps)+' — '+speedHint(bps));
+  }catch(e){ ui.fail((e&&e.message)||String(e)); }
+  finally{ sending=false; $('#btnSpeed').disabled=false; pump(); }
+}
 
 // ---------- sending ----------
 function enqueue(items){
   if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
   if(items.length>MAXFILES){ showErr('العدد كبير. هيتبعت أول '+MAXFILES+' ملف بس.'); items=items.slice(0,MAXFILES); }
+  let bytes=0;
   for(const {file,path} of items){
     const p=cleanPath(path), id=nextId++;
     const ui=addCard('out',(p?p+'/':'')+file.name,file.size); ui.status('في الانتظار…');
-    const t={id,file,path:p,key:fileKey(file,p),ui,acked:0,fin:false,aborted:false,state:'queued',onAnswer:null,onAck:null,onFin:null};
+    const t={id,file,path:p,key:fileKey(file,p),ui,acked:0,fin:false,aborted:false,state:'queued',counted:true,onAnswer:null,onAck:null,onFin:null};
     ui.buttons([['إلغاء',()=>cancelOut(t)]]);
-    outgoing.set(id,t); sendQueue.push(t);
+    ui.el._rm=()=>{ if(t.state==='done'||t.state==='cancelled'||t.state==='rejected'||t.state==='failed') outgoing.delete(id); };
+    outgoing.set(id,t); sendQueue.push(t); bytes+=file.size;
   }
+  announce(items.length,bytes);
   pump();
 }
+function announce(n,bytes){
+  if(!(n>0)) return;
+  ovOut.add(n,bytes);
+  sendCtl({t:'plan',n,bytes});
+}
+function uncount(t){ if(t.counted){ t.counted=false; ovOut.gone(t.file.size); } }
+function recount(t){ if(!t.counted){ t.counted=true; announce(1,t.file.size); } }
 async function pump(){
   if(sending) return; sending=true;
   try{ while(sendQueue.length){ const t=sendQueue.shift(); if(t.state!=='queued') continue; await sendFile(t); } }
@@ -1160,10 +1433,12 @@ function cancelOut(t){
   if(prev==='offered'||prev==='sending') sendCtl({t:'cancel',id:t.id});
   const a=t.onAnswer, k=t.onAck, f=t.onFin; t.onAnswer=t.onAck=t.onFin=null;
   a&&a(null); k&&k(); f&&f();
+  uncount(t);
   t.ui.fail('تم الإلغاء');
 }
 function retryOut(t){
-  if(!connected()){ t.state='interrupted'; t.ui.pause('هيكمل بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); return; }
+  if(!connected()){ t.state='interrupted'; t.ui.pause('هيكمل بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); recount(t); return; }
+  recount(t);
   t.state='queued'; t.ui.reset(); t.ui.status('في الانتظار…'); t.ui.buttons([['إلغاء',()=>cancelOut(t)]]);
   sendQueue.push(t); pump();
 }
@@ -1176,7 +1451,8 @@ async function sendFile(t){
   const ans=await new Promise(r=>{ t.onAnswer=r; });
   t.onAnswer=null;
   if(t.state==='interrupted'||t.state==='cancelled') return;
-  if(!ans||!ans.ok){ t.state='rejected'; ui.fail(ans&&ans.busy?'الجهاز التاني مشغول بملف تاني':'تم الرفض'); return; }
+  if(!ans||!ans.ok){ t.state='rejected'; uncount(t); ui.fail(ans&&ans.busy?'الجهاز التاني مشغول بملف تاني':'تم الرفض'); return; }
+  if(ans.skip){ t.state='done'; ui.done('الجهاز التاني عنده الملف بالفعل — اتخطى ✓'); if(t.counted){ t.counted=false; ovOut.done(t.file.size); } noteDone(); return; }
   const size=t.file.size, off=Math.min(Math.max(0,Number(ans.off)||0),size);
   t.state='sending'; t.acked=off; let sent=off;
   const start=performance.now(); ui.base=off;
@@ -1202,7 +1478,7 @@ async function sendFile(t){
         const len=Math.min(CHUNK,buf.byteLength-p);
         dc.send(new Uint8Array(buf,p,len));
         sent+=len;
-        ui.progress(sent,size,start);
+        ui.progress(sent,size,start); ovOut.cur(sent);
       }
     }
     alive();
@@ -1213,13 +1489,15 @@ async function sendFile(t){
     if(!t.fin) throw new Error('تعذر تأكيد الاستلام');
     ui.progress(sent,size,start,true);
     t.state='done'; ui.done('تم الإرسال ✓');
+    if(t.counted){ t.counted=false; ovOut.done(size); }
+    noteDone();
   }catch(e){
     if(e===LOST){
       if(t.state!=='interrupted'){ t.state='interrupted'; ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); }
       return;
     }
     if(t.state==='cancelled'){ ui.fail('تم الإلغاء'); return; }
-    t.state='failed';
+    t.state='failed'; uncount(t);
     ui.fail((e&&e.message)||String(e),[['إعادة المحاولة',()=>retryOut(t)]]);
   }
 }
@@ -1235,7 +1513,12 @@ function handleCtl(m){
   switch(m.t){
     case 'meta': onMeta(m); break;
     case 'blk': if(current&&current.id===m.id&&typeof m.h==='string') current.hashes.set(Number(m.i),m.h); break;
-    case 'resp': { const t=outgoing.get(m.id); if(t&&t.onAnswer){ const f=t.onAnswer; t.onAnswer=null; f({ok:!!m.ok,off:m.off,busy:!!m.busy}); } break; }
+    case 'resp': { const t=outgoing.get(m.id); if(t&&t.onAnswer){ const f=t.onAnswer; t.onAnswer=null; f({ok:!!m.ok,off:m.off,busy:!!m.busy,skip:!!m.skip}); } break; }
+    case 'plan': { const n=Number(m.n), b=Number(m.bytes); if(Number.isFinite(n)&&n>0&&n<=100000&&Number.isFinite(b)&&b>=0) ovIn.add(n,b); break; }
+    case 'speed': onSpeedStart(m); break;
+    case 'speedgo': fire('speedgo:'+m.id,{ok:!!m.ok}); break;
+    case 'speedend': onSpeedEnd(m); break;
+    case 'speedres': fire('speedres:'+m.id,{ms:Number(m.ms)||0,bytes:Number(m.bytes)||0}); break;
     case 'ack': { const t=outgoing.get(m.id); if(t){ t.acked=Math.max(t.acked,Number(m.n)||0); if(t.onAck){ const f=t.onAck; t.onAck=null; f(); } } break; }
     case 'fin': { const t=outgoing.get(m.id); if(t){ t.fin=true; if(t.onFin){ const f=t.onFin; t.onFin=null; f(); } } break; }
     case 'abort': { const t=outgoing.get(m.id); if(t){ t.aborted=true; for(const k of ['onAck','onFin']){ if(t[k]){ const f=t[k]; t[k]=null; f(); } } } break; }
@@ -1253,17 +1536,54 @@ function onMeta(m){
   if(ui) ui.reset(); else{ ui=addCard('in',label,size); inCards.set(key,ui); }
   if(current&&!current.failed){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف تاني'); return; }
   const job={id,key,name,path,size,ui};
-  if(settings.auto||acceptedKeys.has(key)){ acceptIncoming(job); return; }
-  pendingIn.set(id,job);
-  ui.status('عايز يبعتلك ملف');
-  ui.buttons([
-    ['قبول',()=>{ pendingIn.delete(id); acceptIncoming(job); },'primary'],
-    ['رفض',()=>{ pendingIn.delete(id); sendCtl({t:'resp',id,ok:false}); inCards.delete(key); ui.fail('تم الرفض'); }]
-  ]);
+  (async()=>{
+    if(await existsInDest(path,name,size)){
+      if(!connected()) return;
+      sendCtl({t:'resp',id,ok:true,skip:true}); inCards.delete(key);
+      ui.done('موجود عندك بالفعل — اتخطى ✓'); ovIn.done(size); noteDone();
+      return;
+    }
+    if(!connected()||(current&&!current.failed)){ if(connected()){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف تاني'); } return; }
+    if(settings.auto||acceptedKeys.has(key)){ acceptIncoming(job); return; }
+    pendingIn.set(id,job);
+    ui.status('عايز يبعتلك ملف');
+    ui.buttons([
+      ['قبول',()=>{ pendingIn.delete(id); acceptIncoming(job); },'primary'],
+      ['رفض',()=>{ pendingIn.delete(id); sendCtl({t:'resp',id,ok:false}); inCards.delete(key); ui.fail('تم الرفض'); ovIn.gone(size); }]
+    ]);
+  })();
+}
+// بيشتغل بس لو اخترت مجلد حفظ مخصص: ملف بنفس المسار والاسم والحجم يتخطى
+async function existsInDest(path,name,size){
+  if(!settings.skip||!settings.dirHandle) return false;
+  try{
+    if(!(await dirPerm(false))) return false;
+    let d=settings.dirHandle;
+    for(const seg of String(path||'').split('/').filter(Boolean)) d=await d.getDirectoryHandle(seg);
+    return (await (await d.getFileHandle(name)).getFile()).size===size;
+  }catch(_){ return false; }
 }
 function onRemoteCancel(m){
   if(current&&current.id===m.id) failIn(current,null,{msg:'الجهاز التاني ألغى الإرسال',silent:true});
-  else{ const j=pendingIn.get(m.id); if(j){ pendingIn.delete(m.id); inCards.delete(j.key); j.ui.fail('الجهاز التاني ألغى الإرسال'); } }
+  else{ const j=pendingIn.get(m.id); if(j){ pendingIn.delete(m.id); inCards.delete(j.key); j.ui.fail('الجهاز التاني ألغى الإرسال'); ovIn.gone(j.size); } }
+}
+
+// ---------- speed test (receiver side) ----------
+function onSpeedStart(m){
+  const size=Number(m.size);
+  if(!Number.isFinite(size)||size<=0||size>200*1048576||spd||sending||(current&&!current.failed)){ sendCtl({t:'speedgo',id:m.id,ok:false}); return; }
+  const ui=addCard('in','⚡ اختبار السرعة',size); ui.status('جارٍ الاستلام…');
+  spd={id:m.id,size,got:0,t0:0,ui};
+  sendCtl({t:'speedgo',id:m.id,ok:true});
+}
+function onSpeedEnd(m){
+  const s=spd; if(!s||s.id!==m.id) return;
+  spd=null;
+  const ms=Math.max(1,performance.now()-s.t0), bps=s.got/(ms/1000);
+  sendCtl({t:'speedres',id:s.id,ms,bytes:s.got});
+  s.ui.progress(s.got,s.size,s.t0,true);
+  s.ui.done('⚡ الاستلام: '+fmtSpeed(bps)+' — '+speedHint(bps));
+  pump();
 }
 async function uniqueFile(dir,name){
   const dot=name.lastIndexOf('.'), base=dot>0?name.slice(0,dot):name, ext=dot>0?name.slice(dot):'';
@@ -1299,6 +1619,11 @@ async function acceptIncoming(job){
   sendCtl({t:'resp',id,ok:true,off});
 }
 function onBinary(buf){
+  if(spd){
+    if(!spd.t0) spd.t0=performance.now();
+    spd.got+=buf.byteLength; spd.ui.progress(spd.got,spd.size,spd.t0);
+    return;
+  }
   const r=current; if(!r||r.failed||r.ended) return;
   const len=buf.byteLength;
   if(r.got+len>r.size||r.blockGot+len>r.blockLen){ failIn(r,new Error('بيانات زيادة عن المتوقع')); return; }
@@ -1308,7 +1633,7 @@ function onBinary(buf){
     r.parts=[]; r.blockGot=0; r.idx++; r.blockLen=Math.min(BLOCK,r.size-r.got);
     r.chain=r.chain.then(()=>commitBlock(r,parts,idx,blen)).catch(e=>failIn(r,e));
   }
-  r.ui.progress(r.got,r.size,r.start);
+  r.ui.progress(r.got,r.size,r.start); ovIn.cur(r.got);
 }
 async function commitBlock(r,parts,idx,blen){
   if(r.failed) return;
@@ -1328,7 +1653,7 @@ function failIn(r,e,opts){
   const o=opts||{};
   r.ui.fail(o.msg||('فشل: '+((e&&e.message)||e)));
   store.clear(r.key).catch(()=>{});
-  inCards.delete(r.key); acceptedKeys.delete(r.key);
+  inCards.delete(r.key); acceptedKeys.delete(r.key); ovIn.gone(r.size);
   if(!o.silent) sendCtl({t:'abort',id:r.id});
   if(current===r) current=null;
 }
@@ -1354,6 +1679,7 @@ async function finalize(r){
       try{ await blob.stream().pipeTo(w); }catch(e){ try{ await w.abort(); }catch(_){} throw e; }
       r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'» ✓');
       store.clear(r.key).catch(()=>{});
+      logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),root:settings.dirHandle,fname:fh.name});
       saved=true;
     }catch(e){
       console.warn('dir save failed',e);
@@ -1363,12 +1689,14 @@ async function finalize(r){
   if(!saved){
     const flat=(r.path?r.path.split('/').join('__')+'__':'')+r.name;
     saveBlob(blob,flat);
+    logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),root:null,fname:flat});
     r.ui.done('تم الحفظ في التحميلات ✓'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
     r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]]);
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
   }
   inCards.delete(r.key); finishedKeys.add(r.key); acceptedKeys.delete(r.key);
   sendCtl({t:'fin',id:r.id});
+  ovIn.done(r.size); noteDone();
 }
 
 // ---------- text messages ----------
@@ -1457,11 +1785,13 @@ $('#btnConnect').onclick=hostConnect;
 $('#btnAnswer').onclick=()=>joinCreate(false);
 $('#btnReconnect').onclick=()=>resetToStart('');
 $('#msgSend').onclick=sendMsg;
+$('#btnSpeed').onclick=runSpeed;
 $('#msgIn').addEventListener('keydown',e=>{ if(e.key==='Enter') sendMsg(); });
 if(!navigator.share) $$('[data-share]').forEach(b=>b.hidden=true);
 document.addEventListener('click',async e=>{
   const t=e.target; if(!t.closest) return;
   const sm=t.closest('[data-setmode]'); if(sm){ setMode(sm.dataset.setmode); return; }
+  if(t.closest('[data-tips]')){ showTips(true); return; }
   if(t.closest('[data-realip]')){ if(role==='host') startHost(true); else joinCreate(true); return; }
   if(t.closest('[data-back]')){ resetToStart(''); return; }
   const c=t.closest('[data-copy]');
