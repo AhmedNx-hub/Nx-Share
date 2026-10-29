@@ -467,7 +467,8 @@ function parseSDP(sdp){
   for(const l of L){
     if(!l.startsWith('a=candidate:')) continue;
     const p=l.slice(12).split(' ');
-    if(p[1]!=='1'||String(p[2]).toLowerCase()!=='udp'||p[6]!=='typ'||p[7]!=='host') return null;
+    // كروم بيضيف مرشحين TCP (مش مفيدين هنا)، فنتخطاهم بدل ما نرجع للكود الطويل
+    if(p[1]!=='1'||String(p[2]).toLowerCase()!=='udp'||p[6]!=='typ'||p[7]!=='host') continue;
     cands.push({addr:p[4],port:Number(p[5]),prio:Number(p[3])});
   }
   return {ufrag,pwd,fp:fm[1].toUpperCase(),setup,cands};
@@ -816,11 +817,21 @@ async function holdMedia(force){
   if(media) return true;
   const md=navigator.mediaDevices;
   if(!md||!md.getUserMedia||!window.isSecureContext) return false;
-  try{
-    try{ media=await md.getUserMedia({video:true}); }
-    catch(e){ if(e&&e.name==='NotFoundError') media=await md.getUserMedia({audio:true}); else throw e; }
-    return true;
-  }catch(e){ media=null; return false; }
+  // لو نافذة طلب الإذن فضلت من غير رد، منستناش للأبد: نكمل بالكود العادي، وأي ستريم يوصل متأخر بيتقفل.
+  let late=false, timer=0;
+  const get=(async()=>{
+    try{
+      let s;
+      try{ s=await md.getUserMedia({video:true}); }
+      catch(e){ if(e&&e.name==='NotFoundError') s=await md.getUserMedia({audio:true}); else throw e; }
+      if(late){ s.getTracks().forEach(t=>t.stop()); return false; }
+      media=s; return true;
+    }catch(e){ return false; }
+  })();
+  const limit=new Promise(r=>{ timer=setTimeout(()=>{ late=true; r(false); },force?30000:12000); });
+  const res=await Promise.race([get,limit]);
+  clearTimeout(timer);
+  return res;
 }
 function releaseMedia(){ if(media){ try{ media.getTracks().forEach(t=>t.stop()); }catch(_){} media=null; } }
 
@@ -1317,7 +1328,7 @@ function failIn(r,e,opts){
   const o=opts||{};
   r.ui.fail(o.msg||('فشل: '+((e&&e.message)||e)));
   store.clear(r.key).catch(()=>{});
-  inCards.delete(r.key);
+  inCards.delete(r.key); acceptedKeys.delete(r.key);
   if(!o.silent) sendCtl({t:'abort',id:r.id});
   if(current===r) current=null;
 }
@@ -1356,7 +1367,7 @@ async function finalize(r){
     r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]]);
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
   }
-  inCards.delete(r.key); finishedKeys.add(r.key);
+  inCards.delete(r.key); finishedKeys.add(r.key); acceptedKeys.delete(r.key);
   sendCtl({t:'fin',id:r.id});
 }
 
