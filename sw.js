@@ -1,4 +1,4 @@
-const CACHE='ft-v6', SHARE='ft-share';
+const CACHE='ft-v7', SHARE='ft-share';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})))).then(()=>self.skipWaiting()));

@@ -430,6 +430,8 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
   <div id="resumeNote" class="warnbox" hidden></div>
   <div class="actions">
     <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدء الاتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
+    <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
+    <input type="file" id="preFiles" multiple hidden>
     <button id="btnJoin" class="act"><span class="ico"><svg class="i"><use href="#i-join"/></svg></span><span class="tx">الانضمام إلى اتصال<small>مسح أو إدخال رمز من الجهاز الآخر</small></span></button>
   </div>
 </section>
@@ -1163,7 +1165,7 @@ function updateShareNote(){
   const n=$('#shareNote'), c=pendingShare?pendingShare.length:0;
   n.hidden=!c;
   if(!c){ n.textContent=''; return; }
-  n.textContent='فيه '+c+' ملف جاهز للإرسال (جه من قائمة المشاركة). اتصل بالجهاز التاني وهيتبعتوا تلقائيًا. ';
+  n.textContent='فيه '+c+' ملف جاهز للإرسال، وهيتبعتوا تلقائيًا فور إتمام الاتصال. ';
   const b=document.createElement('button'); b.textContent='إلغاء'; b.onclick=()=>{ pendingShare=null; if('caches' in window) caches.delete('ft-share').catch(()=>{}); updateShareNote(); };
   n.appendChild(b);
 }
@@ -1811,6 +1813,7 @@ async function sendFile(t){
 
 // ---------- receiving ----------
 function onMsg(e){
+  lastRx=Date.now();
   if(typeof e.data==='string'){
     let m; try{ m=JSON.parse(e.data); }catch(_){ return; }
     if(m&&typeof m==='object') handleCtl(m);
@@ -1830,7 +1833,10 @@ function handleCtl(m){
     case 'fin': { const t=outgoing.get(m.id); if(t){ t.fin=true; if(t.onFin){ const f=t.onFin; t.onFin=null; f(); } } break; }
     case 'abort': { const t=outgoing.get(m.id); if(t){ t.aborted=true; for(const k of ['onAck','onFin']){ if(t[k]){ const f=t[k]; t[k]=null; f(); } } } break; }
     case 'cancel': onRemoteCancel(m); break;
-    case 'ping': break;
+    case 'ping': sendCtl({t:'pong'}); break;
+    case 'pong': break;
+    case 'bg': remoteBgAt=Date.now(); dlogAdd('remote went to background'); break;
+    case 'fg': remoteBgAt=0; graceUntil=Date.now()+8000; if(unresp){ unresp=false; setBadge('متصل','ok'); } sendCtl({t:'ping'}); dlogAdd('remote back in foreground'); break;
     case 'bye': dlogAdd('remote said bye'); resetToStart('الجهاز الآخر قطع الاتصال.'); break;
     case 'end': finishIn(m); break;
     case 'msg': addMsg(String(m.text),'in'); break;
@@ -2198,9 +2204,11 @@ async function shortDecode(raw){
 })();
 
 
+$('#btnPre').onclick=()=>$('#preFiles').click();
+$('#preFiles').addEventListener('change',e=>{ const f=Array.from(e.target.files); e.target.value=''; if(!f.length) return; pendingShare=(pendingShare||[]).concat(f); updateShareNote(); });
 // ---------- keep-alive / session duration / disconnect ----------
 const dlog=[]; let weakMs=0, weakT=0, hb=0, limTick=0, connAt=0, lockRel=null, lockWant=false;
-const WEAK_LIMIT=120000;
+const WEAK_LIMIT=20000; let lastRx=0, lastBA=0, graceUntil=0, remoteBgAt=0, unresp=false;
 function dlogAdd(m){ try{ dlog.push(new Date().toLocaleTimeString('en-GB')+(document.visibilityState==='hidden'?' [bg] ':' ')+m); if(dlog.length>80) dlog.shift(); const b=$('#dlogBox'); if(b&&!b.hidden) b.textContent=dlog.join('\n'); }catch(_){} }
 function startWeak(){
   setBadge('الاتصال ضعيف… بنحاول','wait');
@@ -2212,11 +2220,25 @@ function startWeak(){
     if(weakMs>=WEAK_LIMIT){ stopWeak(); connLost('الاتصال ضعيف ولم يعد.'); }
   },2000);
 }
+function watchTick(){
+  if(!(sess&&sess.open&&!sess.lost)) return;
+  if(document.visibilityState!=='visible') return;
+  const now=Date.now(), ch=dc;
+  if(!ch||ch.readyState!=='open'){ connLost('انقطع الاتصال.'); return; }
+  if(ch.bufferedAmount<lastBA) lastRx=now; lastBA=ch.bufferedAmount;
+  if(now<graceUntil) return;
+  if(remoteBgAt&&now-remoteBgAt<5*60000){ if(!unresp){ unresp=true; setBadge('الجهاز الآخر في الخلفية','wait'); } return; }
+  const idle=now-lastRx;
+  if(idle>20000){ connLost('انقطع الاتصال: لا يوجد رد من الجهاز الآخر.'); }
+  else if(idle>6000){ if(!unresp){ unresp=true; setBadge('لا يوجد رد…','wait'); } }
+  else if(unresp){ unresp=false; setBadge('متصل','ok'); }
+}
 function stopWeak(){ clearInterval(weakT); weakT=0; weakMs=0; }
 function fmtClock(ms){ const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60; return (h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(x).padStart(2,'0'); }
 function fmtMin(m){ return m>=60?(m/60)+' ساعة':m+' دقيقة'; }
 function startLive(){
-  connAt=Date.now(); clearInterval(hb); hb=setInterval(()=>sendCtl({t:'ping'}),5000);
+  connAt=Date.now(); lastRx=Date.now(); lastBA=0; graceUntil=Date.now()+5000; remoteBgAt=0; unresp=false;
+  clearInterval(hb); hb=setInterval(()=>{ sendCtl({t:'ping'}); watchTick(); },2000);
   clearInterval(limTick); limTick=setInterval(liveTick,1000);
   lockWant=true;
   try{ if(navigator.locks&&!lockRel) navigator.locks.request('nx-share-live',()=>new Promise(res=>{ if(!lockWant) return res(); lockRel=res; })).catch(()=>{}); }catch(_){}
@@ -2250,7 +2272,12 @@ $('#optMax').value=String(settings.maxMin);
 if($('#optMax').value!==String(settings.maxMin)){ const o=document.createElement('option'); o.value=String(settings.maxMin); o.textContent=fmtMin(settings.maxMin); $('#optMax').appendChild(o); $('#optMax').value=String(settings.maxMin); }
 $('#optMax').onchange=e=>{ settings.maxMin=parseInt(e.target.value,10)||0; lsSet('ft.max',String(settings.maxMin)); liveTick(); };
 $('#btnDlog').onclick=()=>{ const b=$('#dlogBox'); b.hidden=!b.hidden; if(!b.hidden) b.textContent=dlog.join('\n')||'لا توجد أحداث بعد.'; };
-document.addEventListener('visibilitychange',()=>{ dlogAdd('page '+document.visibilityState); liveTick(); });
+document.addEventListener('visibilitychange',()=>{
+  dlogAdd('page '+document.visibilityState); liveTick();
+  if(!(sess&&sess.open&&!sess.lost)) return;
+  if(document.visibilityState==='hidden') sendCtl({t:'bg'});
+  else{ graceUntil=Date.now()+8000; sendCtl({t:'fg'}); sendCtl({t:'ping'}); }
+});
 document.addEventListener('freeze',()=>dlogAdd('FREEZE'));
 document.addEventListener('resume',()=>dlogAdd('resume'));
 window.addEventListener('online',()=>dlogAdd('network online'));
