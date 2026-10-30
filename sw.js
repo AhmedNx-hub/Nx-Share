@@ -1,43 +1,53 @@
-const CACHE='ft-v7', SHARE='ft-share';
+const CACHE='ft-v9', SHARE='ft-share';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{
-  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})))).then(()=>self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c=>Promise.all(ASSETS.map(a=>c.add(new Request(a,{cache:'reload'})).catch(()=>{})))).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',e=>{
   e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE&&k!==SHARE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
-async function notify(){
-  const cs=await self.clients.matchAll({includeUncontrolled:true});
-  cs.forEach(c=>c.postMessage({t:'update'}));
-}
-async function handleShare(req){
+
+// استقبال ملفات من قائمة المشاركة في أندرويد (Web Share Target)
+async function handleShare(r){
   try{
-    const fd=await req.formData();
+    const fd=await r.formData();
     await caches.delete(SHARE);
-    const c=await caches.open(SHARE), now=String(Date.now());
+    const c=await caches.open(SHARE), ts=String(Date.now());
     let i=0;
     for(const f of fd.getAll('files')){
-      if(!(f instanceof File)) continue;
-      await c.put(new Request('./shared/f'+String(i++).padStart(4,'0')),new Response(f,{headers:{'x-name':encodeURIComponent(f.name||'file'),'x-lm':String(f.lastModified||Date.now()),'x-ts':now,'content-type':f.type||'application/octet-stream'}}));
+      if(!f||typeof f!=='object'||!('name' in f)) continue;
+      await c.put(new Request('./shared/'+String(i++).padStart(4,'0')),new Response(f,{headers:{'x-name':encodeURIComponent(f.name||'file'),'x-lm':String(f.lastModified||''),'x-ts':ts,'content-type':f.type||'application/octet-stream'}}));
     }
-    const text=[fd.get('title'),fd.get('text'),fd.get('url')].filter(x=>typeof x==='string'&&x).join('\n');
-    if(text) await c.put(new Request('./shared/text'),new Response(text,{headers:{'x-ts':now,'content-type':'text/plain;charset=utf-8'}}));
+    const parts=['title','text','url'].map(k=>{ const v=fd.get(k); return typeof v==='string'?v:''; }).filter(Boolean);
+    if(parts.length) await c.put(new Request('./shared/text'),new Response(parts.join('\n'),{headers:{'x-ts':ts,'content-type':'text/plain;charset=utf-8'}}));
   }catch(_){}
-  return Response.redirect('./index.html?share=1',303);
+  return Response.redirect(new URL('./index.html?share=1',self.registration.scope).href,303);
 }
+
+let notified=false;
+function notifyUpdate(){
+  if(notified) return; notified=true;
+  self.clients.matchAll({type:'window'}).then(cs=>cs.forEach(c=>c.postMessage({t:'update'})));
+}
+
 self.addEventListener('fetch',e=>{
   const r=e.request, u=new URL(r.url);
   if(u.origin!==location.origin) return;
   if(r.method==='POST'&&u.pathname.endsWith('/share-target')){ e.respondWith(handleShare(r)); return; }
   if(r.method!=='GET') return;
+  const isDoc=r.mode==='navigate'||/\/(index\.html)?$/.test(u.pathname);
   e.respondWith((async()=>{
     const c=await caches.open(CACHE);
     const hit=await c.match(r,{ignoreSearch:true});
-    const isPage=r.mode==='navigate'||u.pathname.endsWith('/index.html');
-    const net=fetch(r).then(async res=>{
+    const old=hit&&isDoc?hit.clone():null;   // لازم ننسخها قبل ما نرجّع hit للصفحة (بعدها ما ينفعش نقرأ منها)
+    // بنعرض النسخة المحفوظة فورًا، وفي الخلفية بنجيب الجديدة. لو الصفحة اتغيّرت بنبلّغ المستخدم.
+    const net=fetch(r.url,{cache:'no-cache'}).then(async res=>{
       if(res&&res.ok){
-        if(isPage&&hit){ try{ const [a,b]=await Promise.all([hit.clone().text(),res.clone().text()]); if(a!==b) notify(); }catch(_){} }
-        await c.put(r.mode==='navigate'?new Request('./index.html'):r,res.clone());
+        const a=res.clone(), b=res.clone();
+        let changed=false;
+        if(old){ try{ changed=(await old.text())!==(await a.text()); }catch(_){} }
+        await c.put(r,b).catch(()=>{});
+        if(changed) notifyUpdate();
       }
       return res;
     }).catch(()=>null);
@@ -47,4 +57,9 @@ self.addEventListener('fetch',e=>{
     if(r.mode==='navigate'){ const p=await c.match('./index.html')||await c.match('./'); if(p) return p; }
     return new Response('offline',{status:503});
   })());
+});
+
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{ const c=cs[0]; return c?c.focus():self.clients.openWindow('./index.html'); }));
 });

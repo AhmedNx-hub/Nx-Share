@@ -379,6 +379,7 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
       <h3><svg class="i"><use href="#i-history"/></svg>الملفات المستلمة</h3>
       <div class="set box">
         <div class="btns" style="margin-top:0"><button id="btnLog"><svg class="i sm"><use href="#i-history"/></svg>عرض السجل</button><button id="btnLogClear" hidden>مسح السجل</button></div>
+        <input type="search" id="logQ" placeholder="بحث في السجل…" dir="auto" hidden style="margin-bottom:8px">
         <div id="logBox" class="log" hidden></div>
       </div>
     </div>
@@ -429,10 +430,10 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
   </div>
   <div id="resumeNote" class="warnbox" hidden></div>
   <div class="actions">
-    <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدء الاتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
+    <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدئ الإتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
     <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
     <input type="file" id="preFiles" multiple hidden>
-    <button id="btnJoin" class="act"><span class="ico"><svg class="i"><use href="#i-join"/></svg></span><span class="tx">الانضمام إلى اتصال<small>مسح أو إدخال رمز من الجهاز الآخر</small></span></button>
+    <button id="btnJoin" class="act"><span class="ico"><svg class="i"><use href="#i-join"/></svg></span><span class="tx">إنضمام إلى إتصال<small>مسح أو إدخال رمز من الجهاز الآخر</small></span></button>
   </div>
 </section>
 
@@ -1201,21 +1202,30 @@ function logAdd(entry){
     if(!$('#logBox').hidden) renderLog();
   }).catch(()=>{});
 }
+// كل مجلد حفظ بيتخزن في سجل لوحده (مش جوه مصفوفة السجل) لأن ده الشكل الأكتر ثباتًا في IndexedDB
+const rootsSeen=new Set();
+function rememberRoot(h){ if(!h||rootsSeen.has(h.name)) return; rootsSeen.add(h.name); idbSet('root:'+h.name,h).catch(()=>{ rootsSeen.delete(h.name); }); }
 async function logFile(e){
-  if(!e.root) throw new Error('الملف اتحفظ في التحميلات. افتحه من تطبيق الملفات.');
-  let p=await e.root.queryPermission({mode:'read'});
-  if(p!=='granted') p=await e.root.requestPermission({mode:'read'});
+  if(!e.rootName) throw new Error('الملف اتحفظ في التحميلات. افتحه من تطبيق الملفات.');
+  let root=(settings.dirHandle&&settings.dirHandle.name===e.rootName)?settings.dirHandle:null;
+  if(!root){ try{ root=await idbGet('root:'+e.rootName); }catch(_){} }
+  if(!root) throw new Error('مجلد الحفظ القديم مش متاح. اختاره تاني من الإعدادات.');
+  let p=await root.queryPermission({mode:'read'});
+  if(p!=='granted') p=await root.requestPermission({mode:'read'});
   if(p!=='granted') throw new Error('لازم تسمح بالوصول للمجلد.');
   try{
-    let d=e.root; for(const seg of String(e.path||'').split('/').filter(Boolean)) d=await d.getDirectoryHandle(seg);
+    let d=root; for(const seg of String(e.path||'').split('/').filter(Boolean)) d=await d.getDirectoryHandle(seg);
     return await (await d.getFileHandle(e.fname)).getFile();
   }catch(err){ throw new Error('الملف مش موجود (اتمسح أو اتنقل).'); }
 }
 async function renderLog(){
   const box=$('#logBox'); let arr=[]; try{ arr=(await idbGet('log'))||[]; }catch(_){}
   $('#btnLogClear').hidden=!arr.length;
+  const q=($('#logQ').value||'').trim().toLowerCase(); const total=arr.length;
+  if(q) arr=arr.filter(e=>((e.path?e.path+'/':'')+e.name).toLowerCase().includes(q));
+  $('#logQ').hidden=$('#logBox').hidden||!total;
   box.innerHTML='';
-  if(!arr.length){ box.textContent='لسه مفيش ملفات مستلمة.'; box.className='log muted'; return; }
+  if(!arr.length){ box.textContent=q?'مفيش نتائج.':'لسه مفيش ملفات مستلمة.'; box.className='log muted'; return; }
   box.className='log';
   for(const e of arr){
     const d=document.createElement('div'); d.className='logi';
@@ -1225,9 +1235,9 @@ async function renderLog(){
     r.append(nm,sz);
     const m=document.createElement('div'); m.className='muted';
     let when=''; try{ when=new Date(e.ts).toLocaleString('ar-EG'); }catch(_){ when=new Date(e.ts).toISOString(); }
-    m.textContent=when+' · '+(e.root?('مجلد «'+e.root.name+'»'):'التحميلات');
+    m.textContent=when+' · '+(e.rootName?('مجلد «'+e.rootName+'»'):'التحميلات');
     d.append(r,m);
-    if(e.root){
+    if(e.rootName){
       const b=document.createElement('div'); b.className='btns';
       const open=document.createElement('button'); open.textContent='فتح';
       open.onclick=async()=>{ try{ showErr(''); const f=await logFile(e), u=URL.createObjectURL(f); const w=window.open(u,'_blank'); if(!w) saveBlob(f,e.name); setTimeout(()=>URL.revokeObjectURL(u),120000); }catch(err){ showErr(err.message||String(err)); } };
@@ -1242,7 +1252,8 @@ async function renderLog(){
     box.append(d);
   }
 }
-$('#btnLog').onclick=()=>{ const b=$('#logBox'); b.hidden=!b.hidden; $('#btnLog').innerHTML='<svg class="i sm"><use href="#i-history"/></svg>'+(b.hidden?'عرض السجل':'إخفاء السجل'); if(!b.hidden) renderLog(); };
+$('#logQ').addEventListener('input',()=>renderLog());
+$('#btnLog').onclick=()=>{ const b=$('#logBox'); b.hidden=!b.hidden; if(b.hidden) $('#logQ').hidden=true; $('#btnLog').innerHTML='<svg class="i sm"><use href="#i-history"/></svg>'+(b.hidden?'عرض السجل':'إخفاء السجل'); if(!b.hidden) renderLog(); };
 $('#btnLogClear').onclick=async()=>{ try{ await idbDel('log'); }catch(_){} renderLog(); };
 let deferredInstall=null;
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstall=e; $('#btnInstall').hidden=false; });
@@ -1261,7 +1272,7 @@ $('#btnSaveApp').onclick=async()=>{
 };
 
 // ---------- connection ----------
-function keepAwake(){ return (async()=>{ try{ if('wakeLock' in navigator) wl=await navigator.wakeLock.request('screen'); }catch(e){} })(); }
+function keepAwake(){ return (async()=>{ try{ if('wakeLock' in navigator){ try{ wl&&wl.release(); }catch(_){} wl=await navigator.wakeLock.request('screen'); } }catch(e){} })(); }
 function releaseWake(){ try{ wl&&wl.release(); }catch(_){} wl=null; }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&sess&&sess.open&&!sess.lost) keepAwake();
@@ -1479,7 +1490,7 @@ function drawQR(id,text,msgId){
     g.fillStyle='#fff'; g.fillRect(0,0,W,W); g.fillStyle='#000';
     for(let y=0;y<q.size;y++) for(let x=0;x<q.size;x++) if(q.get(x,y)) g.fillRect((x+b)*scale,(y+b)*scale,scale,scale);
     cv.hidden=false;
-    msg.textContent=id==='offerQR'?'على الجهاز الآخر: الانضمام إلى اتصال ← تشغيل الكاميرا ← وجّهها نحو هذا الرمز.':'';
+    msg.textContent=id==='offerQR'?'على الجهاز الآخر: إنضمام إلى إتصال ← تشغيل الكاميرا ← وجّهها نحو هذا الرمز.':'';
   }catch(e){ cv.hidden=true; msg.textContent='الكود طويل جدًا للـQR. استخدم «كود نصي».'; }
 }
 let detP=null;
@@ -1646,12 +1657,20 @@ function allIdle(){
   return !sending&&!sendQueue.length&&!current&&!spd&&!pendingIn.size&&
     !Array.from(outgoing.values()).some(t=>t.state==='queued'||t.state==='offered'||t.state==='sending');
 }
+// إشعار نظام لما النقل يخلص والتطبيق مش قدامك (بيحتاج إذن إشعارات، بيتطلب مرة واحدة عند بدء الاتصال)
+function bgNotify(){
+  try{
+    if(document.visibilityState!=='hidden'||!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker) return;
+    navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification('Nx-Share',{body:'انتهى النقل ✓',icon:'icon-192.png',tag:'nx-done'})).catch(()=>{});
+  }catch(_){}
+}
+for(const id of ['btnHost','btnJoin']) $('#'+id).addEventListener('click',()=>{ try{ if(settings.alert&&'Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch(_){} });
 function noteDone(){
   clearTimeout(alertT);
   alertT=setTimeout(()=>{
     if(!settings.alert||!allIdle()) return;
     try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(_){}
-    beep();
+    beep(); bgNotify();
   },1500);
 }
 
@@ -1994,7 +2013,8 @@ async function finalize(r){
       try{ await blob.stream().pipeTo(w); }catch(e){ try{ await w.abort(); }catch(_){} throw e; }
       r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'» ✓');
       store.clear(r.key).catch(()=>{});
-      logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),root:settings.dirHandle,fname:fh.name});
+      rememberRoot(settings.dirHandle);
+      logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:settings.dirHandle.name,fname:fh.name});
       saved=true;
     }catch(e){
       console.warn('dir save failed',e);
@@ -2004,7 +2024,7 @@ async function finalize(r){
   if(!saved){
     const flat=(r.path?r.path.split('/').join('__')+'__':'')+r.name;
     saveBlob(blob,flat);
-    logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),root:null,fname:flat});
+    logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
     r.ui.done('تم الحفظ في التحميلات ✓'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
     r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]]);
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
@@ -2204,11 +2224,11 @@ async function shortDecode(raw){
 })();
 
 
-$('#btnPre').onclick=()=>$('#preFiles').click();
-$('#preFiles').addEventListener('change',e=>{ const f=Array.from(e.target.files); e.target.value=''; if(!f.length) return; pendingShare=(pendingShare||[]).concat(f); updateShareNote(); });
 // ---------- keep-alive / session duration / disconnect ----------
 const dlog=[]; let weakMs=0, weakT=0, hb=0, limTick=0, connAt=0, lockRel=null, lockWant=false;
-const WEAK_LIMIT=20000; let lastRx=0, lastBA=0, graceUntil=0, remoteBgAt=0, unresp=false;
+$('#btnPre').onclick=()=>$('#preFiles').click();
+$('#preFiles').addEventListener('change',e=>{ const f=Array.from(e.target.files); e.target.value=''; if(!f.length) return; pendingShare=(pendingShare||[]).concat(f); updateShareNote(); });
+const WEAK_LIMIT=60000; let lastRx=0, lastBA=0, graceUntil=0, remoteBgAt=0, unresp=false;
 function dlogAdd(m){ try{ dlog.push(new Date().toLocaleTimeString('en-GB')+(document.visibilityState==='hidden'?' [bg] ':' ')+m); if(dlog.length>80) dlog.shift(); const b=$('#dlogBox'); if(b&&!b.hidden) b.textContent=dlog.join('\n'); }catch(_){} }
 function startWeak(){
   setBadge('الاتصال ضعيف… بنحاول','wait');
@@ -2216,7 +2236,7 @@ function startWeak(){
   weakT=setInterval(()=>{
     const p=pc; if(!p||!(sess&&sess.open&&!sess.lost)){ stopWeak(); return; }
     if(p.connectionState==='connected'){ stopWeak(); setBadge('متصل','ok'); return; }
-    if(document.visibilityState==='visible') weakMs+=2000;
+    if(document.visibilityState==='visible'&&!(remoteBgAt&&Date.now()-remoteBgAt<5*60000)) weakMs+=2000;
     if(weakMs>=WEAK_LIMIT){ stopWeak(); connLost('الاتصال ضعيف ولم يعد.'); }
   },2000);
 }
@@ -2312,7 +2332,7 @@ window.addEventListener('offline',()=>dlogAdd('network offline'));
     grid.innerHTML='';
     for(const id of ['light','dark','neon']) grid.appendChild(chip(id,T.BUILT[id].name,T.BUILT[id]));
     const d=document.createElement('button'); d.className='tc'; d.setAttribute('aria-pressed',String(!des.hidden));
-    d.innerHTML='<span class="sw2 p">'+ic('palette')+'</span><span>مصمم خاص</span>';
+    d.innerHTML='<span class="sw2 p">'+ic('palette')+'</span><span>مصمم ثيم خاص</span>';
     d.onclick=()=>{ if(des.hidden){ const c=readCur(); for(const k in inp) inp[k].value=c[k]; $('#dName').value=''; des.hidden=false; } else{ cancelDesign(); } render(); };
     grid.appendChild(d);
     const list=T.customs();
@@ -2345,7 +2365,8 @@ window.addEventListener('offline',()=>dlogAdd('network offline'));
   $('#btnFs').onclick=async()=>{ if(document.fullscreenElement){ try{ await document.exitFullscreen(); }catch(_){} fsDone=true; } else goFs(); };
   document.addEventListener('fullscreenchange',fsIcon);
   const autoFs=()=>{ if(fsOk&&settings.fs&&!fsDone&&!document.fullscreenElement) goFs(); };
-  for(const ev of ['pointerup','click','touchend']) document.addEventListener(ev,autoFs,{capture:true,passive:true});
+  // بعد ما أزرار الصفحة تاخد حقها من اللمسة (اختيار ملفات/مجلد محتاج تفاعل المستخدم، وملء الشاشة كان بيستهلكه)
+document.addEventListener('click',()=>setTimeout(autoFs,0),{passive:true});
 
   // ripple
   document.addEventListener('pointerdown',e=>{
