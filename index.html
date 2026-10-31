@@ -1698,7 +1698,7 @@ function initScan(box){
   }};
   function onText(raw){
     const c=String(raw||'').replace(/\s+/g,'');
-    if(!/^(G1|F0|F1)\.[A-Za-z0-9_-]+$/.test(c)) return false;
+    if(!/^(G1|F0|F1)\.[A-Za-z0-9_-]+$/.test(c)&&!/^S[12]-?[0-9A-Za-z-]{20,80}$/.test(c)) return false;
     $('#'+box.dataset.target).value=c; S.stop(); say('تم قراءة الكود ✓');
     const go=$('#'+box.dataset.go); if(go) go.click();
     return true;
