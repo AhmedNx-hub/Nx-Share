@@ -319,6 +319,12 @@ button.icon{width:44px;height:44px}
 .item button,.listbar button,.erracts button{min-height:44px}
 .stage .srow{min-height:48px}
 .tabs button{min-height:44px}
+#sysNote{margin:10px 0 0;padding:12px 14px;border:1px solid var(--line);border-inline-start:4px solid var(--warn);border-radius:12px;background:var(--card);color:var(--text);font-size:.9rem;line-height:1.6}
+#sysNote[data-k=bad]{border-inline-start-color:var(--danger)}
+#sysNote[data-k=ok]{border-inline-start-color:var(--ok)}
+#qrZoom{position:fixed;inset:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+#qrZoom canvas{width:min(94vw,94vh);height:min(94vw,94vh);image-rendering:pixelated}
+#offerQR,#answerQR{cursor:zoom-in}
 .erracts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .erracts button{padding:7px 14px;font-size:.84rem;border-radius:10px}
 
@@ -380,6 +386,7 @@ button.icon{width:44px;height:44px}
     <span id="badge" class="badge" role="status" aria-live="polite">غير متصل</span>
   </div>
 </header>
+<div id="sysNote" role="status" hidden></div>
 
 <div id="menuBack" class="back" hidden></div>
 <aside id="menu" class="card" hidden role="dialog" aria-modal="true" aria-label="الإعدادات">
@@ -411,6 +418,7 @@ button.icon{width:44px;height:44px}
         <label class="sw"><span>تخطي الملفات الموجودة<small>يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.</small></span><input type="checkbox" id="optSkip"></label>
         <label class="sw"><span>ملء الشاشة تلقائيًا<small>يُفعَّل عند أول لمسة.</small></span><input type="checkbox" id="optFs"></label>
         <label class="sw"><span>اهتزاز خفيف عند الأحداث<small>عند الاتصال، وقبول ملف، وحدوث خطأ.</small></span><input type="checkbox" id="optHaptic"></label>
+        <label class="sw"><span>اسم جهازك<small>يظهر للجهاز الآخر بعد الاتصال.</small></span><input type="text" id="optName" maxlength="24" aria-label="اسم جهازك" placeholder="مثال: هاتف أحمد" style="max-width:150px;min-height:44px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit"></label>
         <label class="sw"><span>مراجعة الملفات قبل الإرسال<small>تظهر قائمة تحدد منها ما يُرسل أو يُلغى.</small></span><input type="checkbox" id="optReview"></label>
       </div>
     </div>
@@ -427,6 +435,7 @@ button.icon{width:44px;height:44px}
       <div class="set box">
         <div class="btns" style="margin-top:0"><button id="btnDlog">عرض سجل الاتصال</button><button id="btnDlogCopy"><svg class="i sm"><use href="#i-copy"/></svg>نسخ سجل التشخيص</button></div>
         <pre id="dlogBox" hidden></pre>
+        <div class="btns"><button id="btnBkExp">تصدير الإعدادات</button><button id="btnBkImp">استيراد الإعدادات</button><input type="file" id="bkFile" accept="application/json,.json" hidden></div>
       </div>
     </div>
     <div class="sec">
@@ -1493,7 +1502,7 @@ function connected(){ return !!(sess&&sess.open&&!sess.lost&&dc&&dc.readyState==
 function onConnected(){
   if(sess&&sess.open&&!sess.lost) return;
   clearTimeout(slowT); clearTimeout(discT);
-  sess={open:true,lost:false};
+  sess={open:true,lost:false}; peerName=''; netChangeAt=0; sysNoteHide('net'); sendHello(); realIpNote();
   showErr(''); setBadge('متصل','ok'); setStep('host',4); setStep('join',4); buzz([30,40,30]); view('s-xfer');
   $('#lost').hidden=true; $('#sumBox').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
   for(const t of outgoing.values()){
@@ -1510,7 +1519,7 @@ function onConnected(){
 }
 function connLost(msg){
   if(!sess||!sess.open||sess.lost) return;
-  sess.lost=true; clearTimeout(discT); releaseWake(); wakeNote(); stopLive(); $('#connBar').hidden=true; dlogAdd('LOST: '+(msg||''));
+  sess.lost=true; sysNoteHide('net'); clearTimeout(discT); releaseWake(); wakeNote(); stopLive(); $('#connBar').hidden=true; dlogAdd('LOST: '+(msg||''));
   setBadge('انقطع الاتصال','bad');
   sendQueue.length=0;
   for(const t of outgoing.values()){
@@ -1635,7 +1644,7 @@ function drawQR(id,text,msgId){
     const g=cv.getContext('2d');
     g.fillStyle='#fff'; g.fillRect(0,0,W,W); g.fillStyle='#000';
     for(let y=0;y<q.size;y++) for(let x=0;x<q.size;x++) if(q.get(x,y)) g.fillRect((x+b)*scale,(y+b)*scale,scale,scale);
-    cv.hidden=false;
+    cv.hidden=false; cv.title='اضغط للتكبير'; cv.onclick=()=>qrZoom(cv);
     msg.textContent=id==='offerQR'?'على الجهاز الآخر: إنضمام إلى إتصال ← تشغيل الكاميرا ← وجّهها نحو هذا الرمز.':'';
   }catch(e){ cv.hidden=true; msg.textContent='الكود طويل جدًا للـQR. استخدم «كود نصي».'; }
 }
@@ -2208,6 +2217,7 @@ function handleCtl(m){
     case 'fin': { const t=outgoing.get(m.id); if(t){ t.fin=true; if(t.onFin){ const f=t.onFin; t.onFin=null; f(); } } break; }
     case 'abort': { const t=outgoing.get(m.id); if(t){ t.aborted=true; for(const k of ['onAck','onFin']){ if(t[k]){ const f=t[k]; t[k]=null; f(); } } } break; }
     case 'cancel': onRemoteCancel(m); break;
+    case 'hello': peerName=cleanName(m.name); liveTick(); break;
     case 'ping': sendCtl({t:'pong'}); break;
     case 'pong': break;
     case 'ppause': { const o=outgoing.get(m.id); if(o&&o.state==='sending'){ o.rpaused=true; o.ui.hold='أوقف الجهاز الآخر الاستلام مؤقتًا'; o.ui.status(o.ui.hold); o.ui.el.querySelector('.st').className='st warn'; } break; }
@@ -2479,7 +2489,7 @@ async function finalize(r){
   if(r.direct){
     const fin=await directFinish(r);
     r.ui.thumb(fin.file); statIn(r);
-    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'» ✓');
+    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'» ✓'); r.ui.buttons(fileActs(fin.file));
     rememberRoot(r.direct.root);
     logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:r.direct.root.name,fname:fin.fname});
     inCards.delete(r.key); acceptedKeys.delete(r.key); dlogAdd('recv #'+r.id+' saved ok (direct)');
@@ -2513,7 +2523,7 @@ async function finalize(r){
     saveBlob(blob,flat);
     logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
     statIn(r); r.ui.done('تم الحفظ في التحميلات ✓'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
-    r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]]);
+    r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]].concat(fileActs(new File([blob],flat,{type:blob.type||'application/octet-stream'}))));
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
   }
   inCards.delete(r.key); finishedKeys.add(r.key); acceptedKeys.delete(r.key); dlogAdd('recv #'+r.id+' saved ok');
@@ -2625,7 +2635,7 @@ document.addEventListener('click',async e=>{
   const t=e.target; if(!t.closest) return;
   const sm=t.closest('[data-setmode]'); if(sm){ setMode(sm.dataset.setmode); return; }
   if(t.closest('[data-tips]')){ showTips(true); return; }
-  if(t.closest('[data-realip]')){ if(role==='host') startHost(true); else joinCreate(true); return; }
+  if(t.closest('[data-realip]')){ forcedReal=true; if(role==='host') startHost(true); else joinCreate(true); return; }
   if(t.closest('[data-back]')){ resetToStart(''); return; }
   const c=t.closest('[data-copy]');
   if(c){
@@ -2746,6 +2756,7 @@ function watchTick(){
   if(ch.bufferedAmount<lastBA) lastRx=now; lastBA=ch.bufferedAmount;
   if(now<graceUntil) return;
   if(remoteBgAt&&now-remoteBgAt<5*60000){ if(!unresp){ unresp=true; setBadge('الجهاز الآخر في الخلفية','wait'); } return; }
+  if(netChangeAt){ if(lastRx>netChangeAt){ netChangeAt=0; sysNoteHide('net'); } else if(now-netChangeAt>8000){ connLost('الشبكة اتغيّرت والاتصال وقع.'); return; } }
   const idle=now-lastRx;
   if(idle>20000){ connLost('انقطع الاتصال: لا يوجد رد من الجهاز الآخر.'); }
   else if(idle>6000){ if(!unresp){ unresp=true; setBadge('لا يوجد رد…','wait'); } }
@@ -2770,6 +2781,7 @@ function stopLive(){
 function liveTick(){
   if(!(sess&&sess.open&&!sess.lost)) return;
   const el=Date.now()-connAt, mx=settings.maxMin*60000;
+  $('#connBar b').textContent=peerName?'متصل بـ '+peerName:'متصل';
   let t='مدة الاتصال: '+fmtClock(el)+(mx?' · يتبقى '+fmtClock(mx-el):' · بلا حد زمني');
   if(mx&&el>=mx){
     if(allIdle()){ disconnectNow('انتهت مدة الاتصال المحددة ('+fmtMin(settings.maxMin)+').'); return; }
@@ -2918,6 +2930,97 @@ document.addEventListener('click',()=>setTimeout(autoFs,0),{passive:true});
   },{passive:true});
 })();
 
+
+// ---------- v7: stability / UX additions ----------
+let peerName='', netChangeAt=0, forcedReal=false, lastCrash=0;
+function cleanName(x){ return String(x==null?'':x).replace(/[\u0000-\u001f\u007f‎-‏‪-‮⁦-⁩]/g,'').replace(/\s+/g,' ').trim().slice(0,24); }
+settings.name=cleanName((()=>{ try{ return localStorage.getItem('ft.name'); }catch(_){ return ''; } })());
+function sendHello(){ if(settings.name) sendCtl({t:'hello',name:settings.name}); }
+function sysNote(key,text,acts,kind){
+  const el=$('#sysNote'); el.dataset.key=key; el.dataset.k=kind||'warn'; el.textContent=''; const sp=document.createElement('div'); sp.textContent=text; el.appendChild(sp);
+  if(acts&&acts.length){ const d=document.createElement('div'); d.className='erracts'; for(const [l,f] of acts){ const b=document.createElement('button'); b.textContent=l; b.onclick=()=>{ try{ f(); }catch(_){} }; d.appendChild(b); } el.appendChild(d); }
+  el.hidden=false;
+}
+function sysNoteHide(key){ const el=$('#sysNote'); if(el&&!el.hidden&&(!key||el.dataset.key===key)) el.hidden=true; }
+// network change
+function onNetEvent(why){
+  dlogAdd('network: '+why);
+  if(!(sess&&sess.open&&!sess.lost)) return;
+  if(!netChangeAt) netChangeAt=Date.now();
+  sysNote('net','الشبكة اتغيّرت، الاتصال ممكن يقع. لو الجهازين لسه على نفس الشبكة هيكمل لوحده.',[['إعادة الاتصال الآن',()=>{ sysNoteHide('net'); connLost('تغيّرت الشبكة.'); }]],'bad');
+}
+window.addEventListener('offline',()=>onNetEvent('offline'));
+window.addEventListener('online',()=>onNetEvent('online'));
+try{ const nc=navigator.connection; if(nc&&nc.addEventListener){ let ty=nc.type; nc.addEventListener('change',()=>{ if(nc.type!==ty){ ty=nc.type; onNetEvent('type '+ty); } }); } }catch(_){}
+// unexpected errors
+function crashNote(msg){
+  dlogAdd('ERROR: '+msg);
+  const now=Date.now(); if(now-lastCrash<30000) return; lastCrash=now;
+  const el=$('#sysNote'); if(!el.hidden&&el.dataset.key!=='crash'&&el.dataset.key!=='cap') return;
+  sysNote('crash','حصل خطأ غير متوقع. لو المشكلة اتكررت انسخ السجل وابعته.',[['نسخ السجل',()=>$('#btnDlogCopy').click()],['إخفاء',()=>sysNoteHide('crash')]],'bad');
+}
+window.addEventListener('error',e=>{ const m=String(e.message||''); if(/ResizeObserver|Script error\.?$/.test(m)) return; crashNote(m+(e.lineno?' @'+e.lineno:'')); });
+window.addEventListener('unhandledrejection',e=>{ const r=e.reason, n=r&&r.name, m=String((r&&r.message)||r||''); if(n==='AbortError'||n==='NotAllowedError'||/ResizeObserver/.test(m)) return; crashNote('promise: '+(n?n+': ':'')+m); });
+// capability check
+(function(){
+  const bad=[];
+  if(!window.RTCPeerConnection) bad.push('المتصفح ده مش بيدعم الاتصال المباشر (WebRTC). استخدم Chrome حديث.');
+  if(!window.isSecureContext) bad.push('الصفحة مش مفتوحة بشكل آمن (https). افتحها من الرابط الأصلي أو بعد التثبيت.');
+  if(!(window.crypto&&crypto.subtle)) bad.push('ميزة التشفير والتحقق غير متاحة في المتصفح.');
+  if(bad.length){ sysNote('cap',bad.join(' '),null,'bad'); dlogAdd('capability: '+bad.join(' | ')); }
+})();
+// real-IP memory
+function realIpNote(){
+  if(!forcedReal) return; forcedReal=false;
+  if(settings.realIp) return;
+  settings.realIp=true; lsSet('ft.ip','1'); const o=$('#optIp'); if(o) o.checked=true;
+  sysNote('rip','نجح الاتصال بالعناوين الحقيقية، فعّلناها تلقائيًا للمرات الجاية (ممكن تظهر رسالة كاميرا لحظية).',[['تراجع',()=>{ settings.realIp=false; lsSet('ft.ip','0'); if(o) o.checked=false; sysNoteHide('rip'); }],['تمام',()=>sysNoteHide('rip')]],'ok');
+}
+// open / share on received files
+function fileActs(file){
+  const a=[['فتح',()=>{ const u=URL.createObjectURL(file); const l=document.createElement('a'); l.href=u; l.target='_blank'; l.rel='noopener'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),120000); }]];
+  try{ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})) a.push(['مشاركة',async()=>{ try{ await navigator.share({files:[file]}); }catch(_){} }]); }catch(_){}
+  return a;
+}
+// QR zoom
+function qrZoom(cv){
+  if($('#qrZoom')) return;
+  const o=document.createElement('div'); o.id='qrZoom'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','رمز QR مكبّر');
+  const c=document.createElement('canvas'); c.width=cv.width; c.height=cv.height; c.getContext('2d').drawImage(cv,0,0); o.appendChild(c);
+  const close=()=>{ o.remove(); document.removeEventListener('keydown',kd); };
+  const kd=e=>{ if(e.key==='Escape') close(); };
+  o.onclick=close; document.addEventListener('keydown',kd); document.body.appendChild(o);
+}
+// device name + settings backup
+$('#optName').value=settings.name;
+$('#optName').onchange=e=>{ settings.name=cleanName(e.target.value); e.target.value=settings.name; lsSet('ft.name',settings.name); sendHello(); };
+const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review'];
+const HEXRX=/^#[0-9a-fA-F]{6}$/;
+$('#btnBkExp').onclick=()=>{
+  const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
+  saveBlob(new Blob([JSON.stringify({app:'nx-share',v:1,s:o},null,1)],{type:'application/json'}),'nx-share-settings.json');
+};
+$('#btnBkImp').onclick=()=>$('#bkFile').click();
+$('#bkFile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{
+    if(f.size>200000) throw new Error('big');
+    const j=JSON.parse(await f.text()); if(!j||j.app!=='nx-share'||!j.s||typeof j.s!=='object') throw new Error('fmt');
+    const out={}, S=j.s;
+    for(const k of BK_FLAG) if(S[k]==='0'||S[k]==='1') out[k]=S[k];
+    if(/^\d{1,5}$/.test(String(S['ft.max']))) out['ft.max']=String(Math.min(10080,parseInt(S['ft.max'],10)));
+    if(['qr','txt','short'].includes(S['ft.mode'])) out['ft.mode']=S['ft.mode'];
+    if(typeof S['ft.name']==='string') out['ft.name']=cleanName(S['ft.name']);
+    let themes=[];
+    try{ const a=JSON.parse(S['ft.themes']||'[]'); if(Array.isArray(a)) themes=a.filter(x=>x&&typeof x.name==='string'&&x.name.length<=40&&['bg','surface','text','accent'].every(k=>HEXRX.test(x[k]))).slice(-12).map(x=>({name:x.name,bg:x.bg,surface:x.surface,text:x.text,accent:x.accent})); }catch(_){}
+    out['ft.themes']=JSON.stringify(themes);
+    const th=S['ft.theme']; if(typeof th==='string'&&(NxTheme.BUILT[th]||(th.startsWith('c:')&&themes.some(x=>'c:'+x.name===th)))) out['ft.theme']=th;
+    const n=Object.keys(out).length; if(!n) throw new Error('empty');
+    for(const k in out) lsSet(k,out[k]);
+    dlogAdd('settings imported: '+n+' keys'); setTimeout(()=>location.reload(),300);
+    sysNote('bk','تم استيراد الإعدادات. جارٍ إعادة التحميل…',null,'ok');
+  }catch(_){ sysNote('bk','الملف مش ملف إعدادات Nx-Share صالح.',[['إخفاء',()=>sysNoteHide('bk')]],'bad'); }
+};
 })();
 
 </script>
