@@ -196,6 +196,8 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
 .item .btns{margin-top:8px}.item button{padding:6px 12px;font-size:.82rem;border-radius:10px}
 .msg{padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:8px;overflow-wrap:anywhere;animation:slideIn .4s var(--ease) both}
 .msg small{display:block;color:var(--muted);font-size:.75rem}
+#err,#lostMsg{white-space:pre-line}
+.sumbox,.lostsum{color:var(--muted);font-size:.86rem;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:8px 0;line-height:1.7}
 #err{color:var(--danger);margin:8px 0;font-size:.88rem;padding:10px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--danger) 45%,transparent);background:color-mix(in srgb,var(--danger) 8%,transparent);animation:shake .4s}
 @keyframes shake{25%{transform:translateX(5px)}75%{transform:translateX(-5px)}}
 .vcode{font:800 2.1rem/1.2 ui-monospace,Consolas,monospace;letter-spacing:.2em;direction:ltr;text-align:center;margin:8px 0;color:var(--accent);text-shadow:var(--glow)}
@@ -262,6 +264,55 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
 .designer input[type=text]{margin-top:10px;font-family:inherit}
 .sig{margin:26px 0 4px;text-align:center;direction:ltr;font-size:.95rem;letter-spacing:.5px;background:linear-gradient(90deg,var(--muted),var(--accent),var(--accent2),var(--muted));background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 6s linear infinite}
 @keyframes sheen{to{background-position:-240% 0}}
+/* ---- سلاسة وجمالية ---- */
+header{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:calc(50vw - 50% + 16px);padding-right:calc(50vw - 50% + 16px)}
+header .l{flex:none}header .r{min-width:0;flex:0 1 auto}button.icon{flex:none}
+.brand b,header .brand{white-space:nowrap}
+#badge{max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:360px){header{gap:6px}header .l,header .r{gap:6px}.brand b{font-size:1rem}#btnFs{display:none}#badge{max-width:36vw;padding:4px 9px;font-size:.72rem;gap:5px}.brand{gap:7px}.brand b{font-size:.95rem}}
+.cbar button{white-space:nowrap;padding:8px 14px;font-size:.84rem}
+.cbar>div{min-width:0}
+#connInfo{font-size:.8rem;line-height:1.5}
+.steps{list-style:none;display:flex;align-items:flex-start;justify-content:space-between;margin:0 0 16px;padding:0;position:relative}
+.steps::before{content:"";position:absolute;top:14px;inset-inline:14%;height:2px;background:var(--line)}
+.steps li{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.76rem;color:var(--muted);text-align:center;transition:color .3s}
+.steps li b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--card2);border:2px solid var(--line);font-size:.8rem;color:var(--muted);transition:all .35s var(--ease);position:relative;z-index:1}
+.steps li.on{color:var(--text);font-weight:600}
+.steps li.on b{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on);border-color:transparent;box-shadow:var(--glow);animation:pulse 1.8s infinite}
+.steps li.done{color:var(--accent)}
+.steps li.done b{background:var(--accent);color:var(--on);border-color:transparent}
+.steps li.done b{font-size:0}.steps li.done b::after{content:"✓";font-size:.85rem}
+main>section[data-d=f]:not([hidden]){animation:secF .4s var(--ease) both}
+main>section[data-d=b]:not([hidden]){animation:secB .4s var(--ease) both}
+@keyframes secF{from{opacity:0;transform:translateX(-26px)}}
+@keyframes secB{from{opacity:0;transform:translateX(26px)}}
+.fi{position:relative;flex:none;width:38px;height:38px;color:var(--accent)}
+.fi .fx{width:100%;height:100%;border-radius:11px;display:grid;place-items:center;overflow:hidden;background:color-mix(in srgb,currentColor 15%,transparent)}
+.fi .fx .i{width:20px;height:20px}
+.fi .fx img{width:100%;height:100%;object-fit:cover;display:block}
+.fi .db{position:absolute;inset-inline-end:-5px;bottom:-5px;width:17px;height:17px;border-radius:50%;background:var(--card);border:1.5px solid var(--line);display:grid;place-items:center;color:var(--accent);font-style:normal}
+.fi .db .i{width:10px;height:10px;stroke-width:3}
+.fi[data-k=img]{color:#8b5cf6}.fi[data-k=video]{color:#ec4899}.fi[data-k=audio]{color:#f59e0b}.fi[data-k=pdf]{color:#ef4444}.fi[data-k=archive]{color:#f97316}.fi[data-k=doc]{color:#3b82f6}
+.ovw{display:flex;align-items:center;gap:14px}.ovc{flex:1;min-width:0}
+.ringw{width:56px;height:56px;flex:none}
+.ring{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:4.5}
+.ring .rb{stroke:color-mix(in srgb,var(--text) 10%,transparent)}
+.ring .rf{stroke:url(#ringg);stroke-linecap:round;stroke-dasharray:113.1;stroke-dashoffset:113.1;transition:stroke-dashoffset .3s linear}
+.ringw{position:relative}.ringw span{position:absolute;inset:0;display:grid;place-items:center;font-size:.78rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.ov.busy .ringw{animation:ringPulse 1.8s ease-in-out infinite}
+@keyframes ringPulse{50%{filter:drop-shadow(0 0 8px var(--accent));transform:scale(1.05)}}
+.stage .srow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.stage .srow:last-child{border-bottom:0}
+.stage .srow input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.stage .srow .tx{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.9rem}
+#stageList{max-height:46vh;overflow:auto;margin:6px 0}
+.empty{text-align:center;padding:26px 18px;color:var(--muted)}
+.empty svg.art{width:120px;height:96px;margin-bottom:8px;animation:float 5s ease-in-out infinite}
+.empty b{display:block;color:var(--text);margin-bottom:4px}
+.erracts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.erracts button{padding:7px 14px;font-size:.84rem;border-radius:10px}
+
 .mb .sig{margin-top:28px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}html{scroll-behavior:auto}}
 </style>
@@ -279,6 +330,10 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
 <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></symbol>
 <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></symbol>
+<symbol id="i-audio" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+<symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></symbol>
 <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
 <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
 <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></symbol>
@@ -334,6 +389,7 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
           <label class="c">النص<input type="color" id="dText"></label>
           <label class="c">اللون الأساسي<input type="color" id="dAccent"></label>
         </div>
+        <div id="dWarn" class="warnbox" hidden></div>
         <input type="text" id="dName" maxlength="20" placeholder="اسم الثيم" dir="auto">
         <div class="btns"><button class="primary" id="dSave"><svg class="i sm"><use href="#i-save"/></svg>حفظ الثيم</button><button id="dCancel">إلغاء</button></div>
       </div>
@@ -345,6 +401,8 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
         <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
         <label class="sw"><span>تخطي الملفات الموجودة<small>يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.</small></span><input type="checkbox" id="optSkip"></label>
         <label class="sw"><span>ملء الشاشة تلقائيًا<small>يُفعَّل عند أول لمسة.</small></span><input type="checkbox" id="optFs"></label>
+        <label class="sw"><span>اهتزاز خفيف عند الأحداث<small>عند الاتصال، وقبول ملف، وحدوث خطأ.</small></span><input type="checkbox" id="optHaptic"></label>
+        <label class="sw"><span>مراجعة الملفات قبل الإرسال<small>تظهر قائمة تحدد منها ما يُرسل أو يُلغى.</small></span><input type="checkbox" id="optReview"></label>
       </div>
     </div>
     <div class="sec">
@@ -381,6 +439,10 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
         <div class="btns" style="margin-top:0"><button id="btnLog"><svg class="i sm"><use href="#i-history"/></svg>عرض السجل</button><button id="btnLogClear" hidden>مسح السجل</button></div>
         <input type="search" id="logQ" placeholder="بحث في السجل…" dir="auto" hidden style="margin-bottom:8px">
         <div id="logBox" class="log" hidden></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+          <div class="muted" id="tmpInfo" style="margin-bottom:8px"></div>
+          <button id="btnTmp" hidden><svg class="i sm"><use href="#i-close"/></svg>مسح الأجزاء المؤقتة</button>
+        </div>
       </div>
     </div>
     <div class="sec">
@@ -399,6 +461,7 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
 </aside>
 
 <div id="err" hidden></div>
+<div id="sumBox" class="sumbox" hidden></div>
 <div id="shareNote" class="warnbox" hidden></div>
 <details id="tips" class="card tips" hidden>
   <summary><svg class="i"><use href="#i-help"/></svg><b>تعذّر الاتصال؟ جرّب هذه الخطوات بالترتيب</b></summary>
@@ -508,6 +571,7 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
   <div id="lost" class="card lost" hidden>
     <b>انقطع الاتصال</b>
     <p class="muted" id="lostMsg" style="margin:4px 0"></p>
+    <div id="lostSum" class="lostsum" hidden></div>
     <p class="muted" style="margin:4px 0">ستُستكمل الملفات الناقصة من حيث توقفت عند عودة الاتصال، دون إغلاق الصفحة.</p>
     <button class="primary" id="btnReconnect"><svg class="i sm"><use href="#i-refresh"/></svg>إعادة الاتصال</button>
   </div>
@@ -531,9 +595,18 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
     <div class="msgrow"><input type="text" id="msgIn" placeholder="نص أو رابط لإرساله" dir="auto"><button id="msgSend" class="primary icon" aria-label="إرسال"><svg class="i"><use href="#i-send"/></svg></button></div>
     <div class="btns"><button id="btnSpeed"><svg class="i sm"><use href="#i-zap"/></svg>اختبار السرعة</button></div>
   </div>
-  <div id="ovOut" class="card ov" hidden><div class="row"><span class="ovt"><svg class="i"><use href="#i-up"/></svg><b></b></span><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
-  <div id="ovIn" class="card ov" hidden><div class="row"><span class="ovt"><svg class="i"><use href="#i-down"/></svg><b></b></span><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div>
+  <div id="stage" class="card stage" hidden>
+    <div class="row"><b>ملفات جاهزة للإرسال</b><span class="sz" id="stageCnt"></span></div>
+    <div id="stageList"></div>
+    <div class="btns"><button id="stSend" class="primary"><svg class="i sm"><use href="#i-send"/></svg>إرسال المحدد</button><button id="stDrop"><svg class="i sm"><use href="#i-trash"/></svg>إلغاء المحدد</button><button id="stAll">تحديد الكل</button></div>
+  </div>
+  <div id="ovOut" class="card ov" hidden><div class="ovw"><div class="ringw"><svg class="ring" viewBox="0 0 44 44"><defs><linearGradient id="ringg_ovOut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent2)"/></linearGradient></defs><circle class="rb" cx="22" cy="22" r="18"/><circle class="rf" cx="22" cy="22" r="18" style="stroke:url(#ringg_ovOut)"/></svg><span class="rp">0%</span></div><div class="ovc"><div class="row"><span class="ovt"><svg class="i"><use href="#i-up"/></svg><b></b></span><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div></div></div>
+  <div id="ovIn" class="card ov" hidden><div class="ovw"><div class="ringw"><svg class="ring" viewBox="0 0 44 44"><defs><linearGradient id="ringg_ovIn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent2)"/></linearGradient></defs><circle class="rb" cx="22" cy="22" r="18"/><circle class="rf" cx="22" cy="22" r="18" style="stroke:url(#ringg_ovIn)"/></svg><span class="rp">0%</span></div><div class="ovc"><div class="row"><span class="ovt"><svg class="i"><use href="#i-down"/></svg><b></b></span><span class="sz cnt"></span></div><div class="bar"><i></i></div><div class="st"></div></div></div></div>
   <div class="listbar" id="listBar" hidden><span class="muted" id="listCount"></span><button id="btnClear"><svg class="i sm"><use href="#i-trash"/></svg>مسح المنتهية</button></div>
+  <div id="emptyList" class="card empty">
+    <svg class="art" viewBox="0 0 120 96" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><rect x="22" y="28" width="76" height="52" rx="10" opacity=".35"/><path d="M22 44h76" opacity=".35"/><path d="M60 62V34M48 44l12-12 12 12"/><circle cx="18" cy="18" r="3" opacity=".5"/><circle cx="104" cy="14" r="2" opacity=".5"/><circle cx="108" cy="70" r="3" opacity=".35"/></svg>
+    <b>لسه مفيش ملفات</b>اختر ملفات أو مجلدًا من الأعلى، أو اسحبها هنا، وهتظهر هنا مع حالة كل واحد.
+  </div>
   <div id="list"></div>
   <div id="msgs"></div>
 </section>
@@ -976,8 +1049,9 @@ function randKey(){ const u=new Uint8Array(16); (window.crypto||{getRandomValues
 function fmtSize(n){
   const u=['B','KB','MB','GB','TB']; let i=0;
   while(n>=1024&&i<u.length-1){n/=1024;i++;}
-  return (i?n.toFixed(n<10?2:1):n.toFixed(0))+' '+u[i];
+  return '\u2066'+(i?n.toFixed(n<10?2:1):n.toFixed(0))+' '+u[i]+'\u2069';   // معزولة LTR عشان الرقم والوحدة ما يتعكسوش في الواجهة العربية
 }
+function fmtSpd(n){ return fmtSize(n).replace('\u2069','/s\u2069'); }
 function fmtTime(s){
   if(!isFinite(s)||s<=0) return '—';
   if(s<60) return Math.ceil(s)+' ث';
@@ -991,9 +1065,25 @@ function safeName(n){
   return s||'file';
 }
 function cleanPath(p){ return String(p||'').split('/').filter(x=>x&&x!=='.'&&x!=='..').map(safeName).slice(0,16).join('/'); }
-function showErr(t){ const e=$('#err'); e.textContent=t||''; e.hidden=!t; }
+let lastBuzz=0;
+function buzz(p){ try{ if(settings.haptic&&navigator.vibrate&&Date.now()-lastBuzz>400){ lastBuzz=Date.now(); navigator.vibrate(p); } }catch(_){} }
+function showErr(t,actions){
+  const e=$('#err'); e.textContent=t||''; e.hidden=!t;
+  if(t){ buzz([40,50,40]);
+    if(actions&&actions.length){ const d=document.createElement('div'); d.className='erracts';
+      for(const [l,f] of actions){ const b=document.createElement('button'); b.textContent=l; b.onclick=f; d.append(b); } e.append(d); } }
+}
+function connFailActions(){
+  const a=[['افتح المساعدة',()=>showTips(true)]];
+  if(settings.mode!=='txt') a.push(['جرّب الرمز النصي',()=>{ setMode('txt'); }]);
+  a.push(['ابدأ من جديد',()=>resetToStart('')]);
+  return a;
+}
+const VORD={'s-start':0,'s-host':1,'s-join':1,'s-xfer':2}; let curView='s-start';
 function view(id){
-  stopScans(); for(const s of $$('main > section')) s.hidden=(s.id!==id);
+  stopScans(); const dirn=(VORD[id]||0)>=(VORD[curView]||0)?'f':'b'; curView=id;
+  for(const s of $$('main > section')){ s.dataset.d=dirn; s.hidden=(s.id!==id); }
+  if(id==='s-host') setStep('host',1); else if(id==='s-join') setStep('join',1);
   if(id!=='s-host'&&id!=='s-join') $('#tips').hidden=true;
   try{ window.scrollTo({top:0}); }catch(_){}
 }
@@ -1006,11 +1096,11 @@ function saveBlob(blob,name){
 }
 
 // ---------- settings ----------
-const settings={auto:true,realIp:false,fs:true,maxMin:0,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
+const settings={haptic:true,review:false,auto:true,realIp:false,fs:true,maxMin:0,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
 try{
   settings.auto=localStorage.getItem('ft.auto')!=='0';
   settings.realIp=localStorage.getItem('ft.ip')==='1'; settings.fs=localStorage.getItem('ft.fs')!=='0'; settings.maxMin=Math.max(0,parseInt(localStorage.getItem('ft.max')||'0',10)||0);
-  settings.alert=localStorage.getItem('ft.alert')!=='0';
+  settings.alert=localStorage.getItem('ft.alert')!=='0'; settings.haptic=localStorage.getItem('ft.haptic')!=='0'; settings.review=localStorage.getItem('ft.review')==='1';
   settings.skip=localStorage.getItem('ft.skip')==='1';
   const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt'||m==='short') settings.mode=m;
 }catch(_){}
@@ -1126,6 +1216,24 @@ const store=(()=>{
         for(const n of names) await root.removeEntry(n).catch(()=>{});
       }else for(const n of Array.from(mem.keys())) if(n.startsWith(pre)) mem.delete(n);
     },
+    async usage(){
+      await init(); let n=0,sz=0;
+      if(root){ try{ for await(const [nm,h] of root.entries()){ if(!nm.startsWith('p-')||h.kind!=='file') continue; try{ sz+=(await h.getFile()).size; n++; }catch(_){} } }catch(_){} }
+      else for(const [nm,b] of mem) if(nm.startsWith('p-')){ n++; sz+=b.size||b.byteLength||0; }
+      return {n,sz};
+    },
+    async clearAll(skipKey){
+      await init(); const pre=skipKey?'p-'+skipKey+'-':null;
+      if(root){
+        // الأحدث من 11 دقيقة بيتحمي: ممكن يكون تحميل لسه شغال من الملفات دي
+        const names=[]; try{ for await(const [nm,h] of root.entries()){
+          if(!(nm.startsWith('p-')||nm.startsWith('tmp-'))||(pre&&nm.startsWith(pre))) continue;
+          try{ if(Date.now()-(await h.getFile()).lastModified<11*60000) continue; }catch(_){}
+          names.push(nm);
+        } }catch(_){}
+        for(const nm of names) await root.removeEntry(nm).catch(()=>{});
+      }else for(const nm of Array.from(mem.keys())) if(nm.startsWith('p-')&&!(pre&&nm.startsWith(pre))) mem.delete(nm);
+    },
     async sweep(maxAge){
       await init(); if(!root) return;
       try{
@@ -1222,12 +1330,18 @@ async function renderLog(){
   const box=$('#logBox'); let arr=[]; try{ arr=(await idbGet('log'))||[]; }catch(_){}
   $('#btnLogClear').hidden=!arr.length;
   const q=($('#logQ').value||'').trim().toLowerCase(); const total=arr.length;
-  if(q) arr=arr.filter(e=>((e.path?e.path+'/':'')+e.name).toLowerCase().includes(q));
+  if(q) arr=arr.filter(e=>(e.session?e.text:((e.path?e.path+'/':'')+e.name)).toLowerCase().includes(q));
   $('#logQ').hidden=$('#logBox').hidden||!total;
   box.innerHTML='';
   if(!arr.length){ box.textContent=q?'مفيش نتائج.':'لسه مفيش ملفات مستلمة.'; box.className='log muted'; return; }
   box.className='log';
   for(const e of arr){
+    if(e.session){
+      const d=document.createElement('div'); d.className='logi';
+      const m=document.createElement('div'); m.className='muted';
+      let when=''; try{ when=new Date(e.ts).toLocaleString('ar-EG'); }catch(_){ when=new Date(e.ts).toISOString(); }
+      m.textContent=when+' · '+e.text; d.append(m); box.append(d); continue;
+    }
     const d=document.createElement('div'); d.className='logi';
     const r=document.createElement('div'); r.className='row';
     const nm=document.createElement('b'); nm.className='nm'; nm.textContent=(e.path?e.path+'/':'')+e.name;
@@ -1252,6 +1366,19 @@ async function renderLog(){
     box.append(d);
   }
 }
+async function refreshTmp(){
+  try{
+    const u=await store.usage(), b=$('#btnTmp');
+    $('#tmpInfo').textContent=u.n?('أجزاء ملفات ناقصة محفوظة مؤقتًا: '+fmtSize(u.sz)+' (بتتمسح تلقائيًا بعد 3 أيام).'):'مفيش أجزاء مؤقتة محفوظة.';
+    b.hidden=!u.n;
+  }catch(_){}
+}
+$('#btnTmp').onclick=async()=>{
+  if(!confirm('مسح الأجزاء المؤقتة؟ أي ملف ناقص هتحتاج تبعته من الأول. (اللي اتكتب من أقل من 11 دقيقة بيتساب).')) return;
+  await store.clearAll(current&&!current.failed?current.key:null); refreshTmp();
+};
+$('#btnMenu').addEventListener('click',refreshTmp);
+setTimeout(refreshTmp,1500);
 $('#logQ').addEventListener('input',()=>renderLog());
 $('#btnLog').onclick=()=>{ const b=$('#logBox'); b.hidden=!b.hidden; if(b.hidden) $('#logQ').hidden=true; $('#btnLog').innerHTML='<svg class="i sm"><use href="#i-history"/></svg>'+(b.hidden?'عرض السجل':'إخفاء السجل'); if(!b.hidden) renderLog(); };
 $('#btnLogClear').onclick=async()=>{ try{ await idbDel('log'); }catch(_){} renderLog(); };
@@ -1313,7 +1440,7 @@ function makePC(){
     else if(st==='connecting') setBadge('جارٍ الاتصال…','wait');
     else if(st==='disconnected'||st==='failed'){
       if(live) startWeak();
-      else if(st==='failed'){ setBadge('فشل الاتصال','bad'); showErr('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.'); showTips(true); }
+      else if(st==='failed'){ setBadge('فشل الاتصال','bad'); showErr('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.',connFailActions()); showTips(true); }
     }
     else if(st==='closed'){ if(live) connLost('انقطع الاتصال.'); }
   };
@@ -1349,11 +1476,11 @@ function onConnected(){
   if(sess&&sess.open&&!sess.lost) return;
   clearTimeout(slowT); clearTimeout(discT);
   sess={open:true,lost:false};
-  showErr(''); setBadge('متصل','ok'); view('s-xfer');
-  $('#lost').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
+  showErr(''); setBadge('متصل','ok'); setStep('host',4); setStep('join',4); buzz([30,40,30]); view('s-xfer');
+  $('#lost').hidden=true; $('#sumBox').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
   for(const t of outgoing.values()){
     if(t.state==='interrupted'){
-      t.state='queued'; t.ui.status('بيكمل…'); t.ui.buttons([['إلغاء',()=>cancelOut(t)]]); sendQueue.push(t);
+      t.state='queued'; t.ui.status('بيكمل…'); t.ui.buttons(outBtns(t,'queued')); sendQueue.push(t);
     }
   }
   if(pendingShare){
@@ -1373,7 +1500,7 @@ function connLost(msg){
       t.state='interrupted';
       t.ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]);
       const a=t.onAnswer, k=t.onAck, f=t.onFin; t.onAnswer=t.onAck=t.onFin=null;
-      a&&a(null); k&&k(); f&&f();
+      a&&a(null); k&&k(); f&&f(); wake(t);
     }
   }
   if(current){
@@ -1385,7 +1512,7 @@ function connLost(msg){
   if(spd){ spd.ui.fail('انقطع الاتصال'); spd=null; }
   for(const [k,w] of Array.from(waiters)){ waiters.delete(k); w(null); }
   $('#vbox').hidden=true;
-  $('#lostMsg').textContent=msg||'';
+  $('#lostMsg').textContent=msg||''; const ss=statsText(); $('#lostSum').textContent=ss; $('#lostSum').hidden=!ss; if(ss){ logAdd({session:true,ts:Date.now(),text:ss}); resetStats(); }
   $('#lost').hidden=false; setPicker(false);
   if($('#s-xfer').hidden) view('s-xfer');
 }
@@ -1397,7 +1524,7 @@ function resetToStart(msg){
   $('#answerBox').hidden=true; $('#ipWarnH').hidden=true; $('#ipWarnJ').hidden=true;
   for(const id of ['offerQR','answerQR']){ const c=$('#'+id); c.hidden=true; }
   $('#offerInfo').textContent=''; $('#answerInfo').textContent='';
-  setBadge('غير متصل',''); showErr(msg||'');
+  setBadge('غير متصل',''); showErr(msg||''); $('#sumBox').hidden=true;
   const n=Array.from(outgoing.values()).filter(t=>t.state==='interrupted').length;
   const rn=$('#resumeNote');
   rn.hidden=!n; rn.textContent=n?('فيه '+n+' ملف ناقص هيكمل تلقائيًا أول ما الاتصال يتم.'):'';
@@ -1406,7 +1533,7 @@ function resetToStart(msg){
 
 function showCode(kind,code,desc){
   const isOffer=kind==='offer';
-  $(isOffer?'#offerOut':'#answerOut').value=code;
+  $(isOffer?'#offerOut':'#answerOut').value=code; setStep(isOffer?'host':'join',2);
   $(isOffer?'#offerInfo':'#answerInfo').textContent='طول الكود: '+code.length+' حرف';
   drawQR(isOffer?'offerQR':'answerQR',code,isOffer?'offerQRmsg':'answerQRmsg');
   $(isOffer?'#ipWarnH':'#ipWarnJ').hidden=!hasMdns(desc.sdp);
@@ -1438,7 +1565,7 @@ async function hostConnect(){
     const p=pc;
     await p.setRemoteDescription(d);
     clearTimeout(slowT);
-    slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr('الاتصال بياخد وقت. تأكد إن الجهازين على نفس الواي فاي، أو جرّب هوتسبوت من أحدهما.'); showTips(true); } },15000);
+    slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr('الاتصال بياخد وقت. تأكد إن الجهازين على نفس الواي فاي، أو جرّب هوتسبوت من أحدهما.',connFailActions()); showTips(true); } },15000);
   }catch(e){ showErr(e.message||String(e)); }
 }
 async function joinCreate(force){
@@ -1554,6 +1681,19 @@ function initScan(box){
 }
 $$('.scan').forEach(initScan);
 
+const FLOW={host:['عرض الرمز','استقبال الرد','متصل'],join:['استقبال الرمز','عرض الرد','متصل']};
+function buildSteps(){
+  for(const [flow,sec] of [['host','#s-host'],['join','#s-join']]){
+    const d=document.createElement('ol'); d.className='steps'; d.dataset.flow=flow;
+    d.innerHTML=FLOW[flow].map((l,i)=>'<li data-n="'+(i+1)+'"><b>'+(i+1)+'</b><span>'+l+'</span></li>').join('');
+    $(sec).prepend(d);
+  }
+}
+function setStep(flow,n){
+  const d=document.querySelector('.steps[data-flow='+flow+']'); if(!d) return;
+  d.querySelectorAll('li').forEach(li=>{ const k=+li.dataset.n; li.className=k<n?'done':(k===n?'on':''); });
+}
+buildSteps();
 function setMode(m){
   settings.mode=m; document.body.dataset.mode=m; lsSet('ft.mode',m);
   $$('[data-setmode]').forEach(b=>b.classList.toggle('on',b.dataset.setmode===m));
@@ -1563,9 +1703,14 @@ $$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm
 setMode(settings.mode);
 
 // ---------- cards ----------
+const KINDS={img:['jpg','jpeg','png','gif','webp','bmp','heic','heif','avif','svg'],video:['mp4','mkv','mov','avi','webm','3gp','m4v'],audio:['mp3','m4a','wav','ogg','flac','aac','opus','amr'],pdf:['pdf'],archive:['zip','rar','7z','tar','gz','apk','xz','bz2'],doc:['doc','docx','txt','xls','xlsx','ppt','pptx','csv','md','odt','rtf']};
+const KICON={img:'image',video:'video',audio:'audio',pdf:'pdf',archive:'archive',doc:'file',other:'file'};
+function fileKind(name){ const e=String(name).split('.').pop().toLowerCase(); for(const k in KINDS) if(KINDS[k].includes(e)) return {k,i:KICON[k]}; return {k:'other',i:'file'}; }
+const THUMB_MAX=12*1024*1024;
 function addCard(dir,name,size){
+  const K=fileKind(name);
   const el=document.createElement('div'); el.className='item';
-  el.innerHTML='<div class="row"><b class="nm"><svg class="i dir"><use href="#i-'+(dir==='in'?'down':'up')+'"/></svg><span class="tx"></span></b><span class="sz"></span></div><div class="bar"><i></i></div><div class="st"></div><div class="btns"></div>';
+  el.innerHTML='<div class="row"><b class="nm"><span class="fi" data-k="'+K.k+'"><span class="fx"><svg class="i"><use href="#i-'+K.i+'"/></svg></span><em class="db"><svg class="i"><use href="#i-'+(dir==='in'?'down':'up')+'"/></svg></em></span><span class="tx"></span></b><span class="sz"></span></div><div class="bar"><i></i></div><div class="st"></div><div class="btns"></div>';
   el.querySelector('.nm .tx').textContent=name;
   el.querySelector('.sz').textContent=fmtSize(size);
   $('#list').prepend(el);
@@ -1574,21 +1719,32 @@ function addCard(dir,name,size){
   const fin=v=>{ el.dataset.fin=v?'1':'0'; refreshListBar(); };
   fin(false);
   const api={
-    base:0, el,
+    base:0, el, hold:'',
+    thumb(blob){
+      try{
+        if(K.k!=='img'||!blob||blob.size>THUMB_MAX||el._turl) return;
+        const u=URL.createObjectURL(new Blob([blob],{type:/\.svg$/i.test(name)?'image/svg+xml':(blob.type||'image/*')})); el._turl=u;
+        const im=new Image(); im.alt=''; im.decoding='async';
+        im.onload=()=>{ const fx=el.querySelector('.fx'); if(fx){ fx.textContent=''; fx.append(im); } };
+        im.onerror=()=>{ URL.revokeObjectURL(u); el._turl=null; };
+        im.src=u;
+      }catch(_){}
+    },
     status(t){ st.textContent=t; st.className='st'; fin(false); },
     progress(done,total,start,force){
       const now=performance.now();
       if(!force&&now-last<120) return; last=now;
       const pct=total?done/total*100:100;
       bar.style.width=pct.toFixed(1)+'%';
+      if(api.hold){ st.textContent=api.hold; st.className='st warn'; return; }
       const sp=(done-api.base)/(((now-start)/1000)||0.001);
-      st.textContent=pct.toFixed(0)+'% · '+fmtSize(Math.max(0,sp))+'/ث · باقي '+fmtTime(sp>0?(total-done)/sp:0);
+      st.textContent=pct.toFixed(0)+'% · '+fmtSpd(Math.max(0,sp))+' · باقي '+fmtTime(sp>0?(total-done)/sp:0);
       st.className='st';
     },
-    done(t){ bar.style.width='100%'; st.textContent=t; st.className='st ok'; api.buttons([]); fin(true); },
-    fail(t,btns){ st.textContent=t; st.className='st bad'; api.buttons(btns||[]); fin(!(btns&&btns.length)); },
+    done(t){ api.hold=''; bar.style.width='100%'; st.textContent=t; st.className='st ok'; api.buttons([]); fin(true); },
+    fail(t,btns){ api.hold=''; st.textContent=t; st.className='st bad'; api.buttons(btns||[]); fin(!(btns&&btns.length)); },
     pause(t,btns){ st.textContent=t; st.className='st warn'; api.buttons(btns||[]); fin(false); },
-    reset(){ api.base=0; st.className='st'; api.buttons([]); fin(false); },
+    reset(){ api.base=0; api.hold=''; st.className='st'; api.buttons([]); fin(false); },
     buttons(list){
       bt.innerHTML='';
       for(const [label,fn,cls] of list){
@@ -1601,16 +1757,16 @@ function addCard(dir,name,size){
 function setPicker(on){ $('#pickCard').classList.toggle('off',!on); }
 function refreshListBar(){
   const n=$$('#list .item').length, f=$$('#list .item[data-fin="1"]').length;
-  $('#listBar').hidden=!n; $('#listCount').textContent=n?(f+' منتهي من '+n):''; $('#btnClear').disabled=!f;
+  $('#emptyList').hidden=n>0||!$('#stage').hidden; $('#listBar').hidden=!n; $('#listCount').textContent=n?(f+' منتهي من '+n):''; $('#btnClear').disabled=!f;
 }
 $('#btnClear').onclick=()=>{
-  $$('#list .item[data-fin="1"]').forEach(el=>{ if(el._rm) el._rm(); el.remove(); });
+  $$('#list .item[data-fin="1"]').forEach(el=>{ if(el._rm) el._rm(); if(el._turl){ try{ URL.revokeObjectURL(el._turl); }catch(_){} } el.remove(); });
   ovOut.clearIfOver(); ovIn.clearIfOver(); refreshListBar();
 };
 
 // ---------- overall progress (whole batch / folder) ----------
 function makeOverall(boxId,title){
-  const box=$('#'+boxId), cnt=box.querySelector('.cnt'), bar=box.querySelector('.bar i'), st=box.querySelector('.st');
+  const box=$('#'+boxId), cnt=box.querySelector('.cnt'), bar=box.querySelector('.bar i'), st=box.querySelector('.st'), rf=box.querySelector('.rf'), rp=box.querySelector('.rp');
   box.querySelector('b').textContent=title;
   const S={files:0,done:0,bytes:0,base:0,cur:0,start:0,last:0,over:true};
   const draw=force=>{
@@ -1619,9 +1775,12 @@ function makeOverall(boxId,title){
     const got=Math.min(S.bytes,S.base+S.cur), pct=S.bytes?got/S.bytes*100:100;
     cnt.textContent=S.done+' من '+S.files+' ملف';
     bar.style.width=pct.toFixed(1)+'%';
-    if(S.files&&S.done>=S.files){ st.textContent='تم ✓ '+fmtSize(S.bytes); st.className='st ok'; return; }
+    const fin=S.files&&S.done>=S.files;
+    box.classList.toggle('busy',!fin);
+    rf.style.strokeDashoffset=(113.1*(1-Math.min(1,pct/100))).toFixed(1); rp.textContent=fin?'✓':Math.floor(pct)+'%';
+    if(fin){ st.textContent='تم ✓ '+fmtSize(S.bytes); st.className='st ok'; return; }
     const sp=got/(((now-S.start)/1000)||0.001);
-    st.textContent=pct.toFixed(0)+'% · '+fmtSize(sp)+'/ث · باقي '+fmtTime(sp>0?(S.bytes-got)/sp:0);
+    st.textContent=pct.toFixed(0)+'% · '+fmtSpd(sp)+' · باقي '+fmtTime(sp>0?(S.bytes-got)/sp:0);
     st.className='st';
   };
   return {
@@ -1718,15 +1877,54 @@ async function runSpeed(){
 }
 
 // ---------- sending ----------
-function enqueue(items){
+let stageItems=[], stageSeq=0;
+function renderStage(){
+  const box=$('#stage'), L=$('#stageList');
+  box.hidden=!stageItems.length; L.textContent='';
+  const sel=stageItems.filter(x=>x.sel).length;
+  $('#stageCnt').textContent=sel+' محدد من '+stageItems.length;
+  $('#stAll').textContent=sel===stageItems.length?'إلغاء التحديد':'تحديد الكل';
+  $('#stSend').disabled=!sel; $('#stDrop').disabled=!sel;
+  for(const x of stageItems.slice(0,300)){
+    const row=document.createElement('label'); row.className='srow';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=x.sel;
+    cb.onchange=()=>{ x.sel=cb.checked; renderStageHead(); };
+    const K=fileKind(x.file.name);
+    const fi=document.createElement('span'); fi.className='fi'; fi.dataset.k=K.k; fi.style.cssText='width:30px;height:30px'; fi.innerHTML='<span class="fx"><svg class="i"><use href="#i-'+K.i+'"/></svg></span>';
+    const tx=document.createElement('span'); tx.className='tx'; tx.textContent=(x.path?x.path+'/':'')+x.file.name;
+    const sz=document.createElement('span'); sz.className='sz'; sz.textContent=fmtSize(x.file.size);
+    row.append(cb,fi,tx,sz); L.append(row);
+  }
+  if(stageItems.length>300){ const m=document.createElement('div'); m.className='muted'; m.textContent='… و'+(stageItems.length-300)+' ملف آخر (بيتحدد معاهم)'; L.append(m); }
+  refreshListBar();
+}
+function renderStageHead(){
+  const sel=stageItems.filter(x=>x.sel).length;
+  $('#stageCnt').textContent=sel+' محدد من '+stageItems.length;
+  $('#stAll').textContent=sel===stageItems.length?'إلغاء التحديد':'تحديد الكل';
+  $('#stSend').disabled=!sel; $('#stDrop').disabled=!sel;
+}
+$('#stAll').onclick=()=>{ const all=stageItems.every(x=>x.sel); stageItems.forEach(x=>x.sel=!all); renderStage(); };
+$('#stDrop').onclick=()=>{ stageItems=stageItems.filter(x=>!x.sel); renderStage(); };
+$('#stSend').onclick=()=>{
+  const go=stageItems.filter(x=>x.sel); if(!go.length) return;
   if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  stageItems=stageItems.filter(x=>!x.sel); renderStage();
+  enqueue(go.map(x=>({file:x.file,path:x.path})),true);
+};
+function enqueue(items,force){
+  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(settings.review&&!force){
+    for(const it of items){ if(stageItems.length>=MAXFILES) break; stageItems.push({file:it.file,path:cleanPath(it.path),sel:true,id:++stageSeq}); }
+    renderStage(); return;
+  }
   if(items.length>MAXFILES){ showErr('العدد كبير. هيتبعت أول '+MAXFILES+' ملف بس.'); items=items.slice(0,MAXFILES); }
   let bytes=0;
   for(const {file,path} of items){
     const p=cleanPath(path), id=nextId++;
-    const ui=addCard('out',(p?p+'/':'')+file.name,file.size); ui.status('في الانتظار…');
+    const ui=addCard('out',(p?p+'/':'')+file.name,file.size); ui.status('في الانتظار…'); ui.thumb(file);
     const t={id,file,path:p,key:fileKey(file,p),ui,acked:0,fin:false,aborted:false,state:'queued',counted:true,onAnswer:null,onAck:null,onFin:null};
-    ui.buttons([['إلغاء',()=>cancelOut(t)]]);
+    ui.buttons(outBtns(t,'queued'));
     ui.el._rm=()=>{ if(t.state==='done'||t.state==='cancelled'||t.state==='rejected'||t.state==='failed') outgoing.delete(id); };
     outgoing.set(id,t); sendQueue.push(t); bytes+=file.size;
   }
@@ -1738,6 +1936,39 @@ function announce(n,bytes){
   ovOut.add(n,bytes);
   sendCtl({t:'plan',n,bytes});
 }
+// ---- إيقاف مؤقت / أولوية / إحصائيات ----
+const stats={out:0,outB:0,in:0,inB:0,ms:0};
+function statOut(t,start){ stats.out++; stats.outB+=t.file.size; stats.ms+=Math.max(1,performance.now()-start); }
+function statIn(r){ stats.in++; stats.inB+=r.size; stats.ms+=Math.max(1,performance.now()-r.start); }
+function statsText(){
+  const n=stats.out+stats.in; if(!n) return '';
+  const b=stats.outB+stats.inB, sp=b/(stats.ms/1000);
+  let s='ملخص الجلسة: '+n+' ملف ('+fmtSize(b)+')';
+  if(stats.out&&stats.in) s+=' — أُرسل '+stats.out+' واستُلم '+stats.in;
+  else s+=stats.out?' أُرسلت':' استُلمت';
+  s+='، متوسط السرعة '+fmtSpd(sp);
+  if(connAt) s+='، مدة الجلسة '+fmtClock(Date.now()-connAt);
+  return s;
+}
+function resetStats(){ stats.out=stats.outB=stats.in=stats.inB=stats.ms=0; }
+function outBtns(t,mode){
+  const c=['إلغاء',()=>cancelOut(t)];
+  if(mode==='queued') return [['خليه التالي',()=>prioritize(t)],c];
+  return [[t.paused?'استئناف':'إيقاف مؤقت',()=>togglePause(t)],c];
+}
+function prioritize(t){
+  const i=sendQueue.indexOf(t); if(i<=0) return;
+  sendQueue.splice(i,1); sendQueue.unshift(t); $('#list').prepend(t.ui.el);
+  t.ui.status('هيتبعت بعد الملف الحالي مباشرةً ✓');
+}
+function togglePause(t){
+  if(t.state!=='sending') return;
+  t.paused=!t.paused;
+  t.ui.buttons(outBtns(t,'sending'));
+  if(t.paused){ t.ui.hold='متوقف مؤقتًا — اضغط استئناف للمتابعة'; t.ui.status(t.ui.hold); t.ui.el.querySelector('.st').className='st warn'; }
+  else{ t.ui.hold=t.rpaused?'أوقف الجهاز الآخر الاستلام مؤقتًا':''; wake(t); }
+}
+function wake(t){ const r=t.resume; t.resume=null; r&&r(); }
 function uncount(t){ if(t.counted){ t.counted=false; ovOut.gone(t.file.size); } }
 function recount(t){ if(!t.counted){ t.counted=true; announce(1,t.file.size); } }
 async function pump(){
@@ -1760,14 +1991,14 @@ function cancelOut(t){
   const i=sendQueue.indexOf(t); if(i>=0) sendQueue.splice(i,1);
   if(prev==='offered'||prev==='sending') sendCtl({t:'cancel',id:t.id});
   const a=t.onAnswer, k=t.onAck, f=t.onFin; t.onAnswer=t.onAck=t.onFin=null;
-  a&&a(null); k&&k(); f&&f();
+  a&&a(null); k&&k(); f&&f(); wake(t);
   uncount(t);
   t.ui.fail('تم الإلغاء');
 }
 function retryOut(t){
   if(!connected()){ t.state='interrupted'; t.ui.pause('هيكمل بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); recount(t); return; }
   recount(t);
-  t.state='queued'; t.ui.reset(); t.ui.status('في الانتظار…'); t.ui.buttons([['إلغاء',()=>cancelOut(t)]]);
+  t.state='queued'; t.ui.reset(); t.ui.status('في الانتظار…'); t.ui.buttons(outBtns(t,'queued'));
   sendQueue.push(t); pump();
 }
 async function sendFile(t){
@@ -1783,9 +2014,10 @@ async function sendFile(t){
   if(ans.skip){ t.state='done'; ui.done('الجهاز التاني عنده الملف بالفعل — اتخطى ✓'); if(t.counted){ t.counted=false; ovOut.done(t.file.size); } noteDone(); return; }
   const size=t.file.size, off=Math.min(Math.max(0,Number(ans.off)||0),size);
   t.state='sending'; t.acked=off; let sent=off;
-  const start=performance.now(); ui.base=off;
+  let start=performance.now(); ui.base=off; t.paused=false;
   ui.status(off?('بيكمل من '+fmtSize(off)+'…'):'جارٍ الإرسال…');
-  ui.buttons([['إلغاء',()=>cancelOut(t)]]);
+  ui.buttons(outBtns(t,'sending'));
+  const gate=async()=>{ if(!(t.paused||t.rpaused)) return; const t0=performance.now(); while(t.paused||t.rpaused){ alive(); await new Promise(r=>{ t.resume=r; }); alive(); } start+=performance.now()-t0; ui.hold=''; ui.status('جارٍ الإرسال…'); };
   const alive=()=>{
     if(t.state==='interrupted'||!dc||dc.readyState!=='open') throw LOST;
     if(t.state==='cancelled') throw new Error('تم الإلغاء');
@@ -1793,7 +2025,7 @@ async function sendFile(t){
   };
   try{
     for(let bo=off;bo<size;bo+=BLOCK){
-      alive();
+      alive(); await gate();
       const buf=await t.file.slice(bo,Math.min(bo+BLOCK,size)).arrayBuffer();
       alive();
       const h=subtle?hex(await sha256(buf)):null;
@@ -1802,7 +2034,7 @@ async function sendFile(t){
       for(let p=0;p<buf.byteLength;p+=CHUNK){
         while(dc.bufferedAmount>SEND_BUF){ alive(); await bufLow(); }
         while(sent-t.acked>WINDOW){ alive(); await waitAck(t); }
-        alive();
+        alive(); await gate();
         const len=Math.min(CHUNK,buf.byteLength-p);
         dc.send(new Uint8Array(buf,p,len));
         sent+=len;
@@ -1816,7 +2048,7 @@ async function sendFile(t){
     alive();
     if(!t.fin) throw new Error('تعذر تأكيد الاستلام');
     ui.progress(sent,size,start,true);
-    t.state='done'; ui.done('تم الإرسال ✓');
+    t.state='done'; statOut(t,start); ui.done('تم الإرسال ✓');
     if(t.counted){ t.counted=false; ovOut.done(size); }
     noteDone();
   }catch(e){
@@ -1854,6 +2086,8 @@ function handleCtl(m){
     case 'cancel': onRemoteCancel(m); break;
     case 'ping': sendCtl({t:'pong'}); break;
     case 'pong': break;
+    case 'ppause': { const o=outgoing.get(m.id); if(o&&o.state==='sending'){ o.rpaused=true; o.ui.hold='أوقف الجهاز الآخر الاستلام مؤقتًا'; o.ui.status(o.ui.hold); o.ui.el.querySelector('.st').className='st warn'; } break; }
+    case 'presume': { const o=outgoing.get(m.id); if(o){ o.rpaused=false; if(!o.paused) o.ui.hold=''; wake(o); } break; }
     case 'bg': remoteBgAt=Date.now(); dlogAdd('remote went to background'); break;
     case 'fg': remoteBgAt=0; graceUntil=Date.now()+8000; if(unresp){ unresp=false; setBadge('متصل','ok'); } sendCtl({t:'ping'}); dlogAdd('remote back in foreground'); break;
     case 'bye': dlogAdd('remote said bye'); resetToStart('الجهاز الآخر قطع الاتصال.'); break;
@@ -1949,7 +2183,8 @@ async function acceptIncoming(job){
     start:performance.now(),ui,failed:false,ended:false};
   current=r; acceptedKeys.add(key); ui.base=off;
   ui.status(off?('بيكمل من '+fmtSize(off)+'…'):'جارٍ الاستلام…');
-  ui.buttons([['إلغاء',()=>failIn(r,null,{msg:'تم الإلغاء'})]]);
+  const inBtns=()=>[[r.paused?'استئناف':'إيقاف مؤقت',()=>{ r.paused=!r.paused; if(r.paused) r.pAt=performance.now(); else if(r.pAt){ r.start+=performance.now()-r.pAt; r.pAt=0; } sendCtl({t:r.paused?'ppause':'presume',id}); if(r.paused){ ui.hold='متوقف مؤقتًا — يكمل الجزء الجاري ثم يثبت'; ui.status(ui.hold); ui.el.querySelector('.st').className='st warn'; } else ui.hold=''; ui.buttons(inBtns()); }],['إلغاء',()=>failIn(r,null,{msg:'تم الإلغاء'})]];
+  ui.buttons(inBtns()); buzz(20);
   sendCtl({t:'resp',id,ok:true,off});
 }
 function onBinary(buf){
@@ -2003,6 +2238,7 @@ async function finalize(r){
   r.ui.status('جارٍ الحفظ…'); r.ui.buttons([]);
   const blob=await store.assemble(r.key,Math.ceil(r.size/BLOCK));
   if(blob.size!==r.size) throw new Error('الملف المحفوظ ناقص');
+  r.ui.thumb(blob);
   let saved=false;
   if(settings.dirHandle&&await dirPerm(false)){
     let fh=null, dir=null;
@@ -2011,7 +2247,7 @@ async function finalize(r){
       fh=await uniqueFile(dir,r.name);
       const w=await fh.createWritable();
       try{ await blob.stream().pipeTo(w); }catch(e){ try{ await w.abort(); }catch(_){} throw e; }
-      r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'» ✓');
+      statIn(r); r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'» ✓');
       store.clear(r.key).catch(()=>{});
       rememberRoot(settings.dirHandle);
       logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:settings.dirHandle.name,fname:fh.name});
@@ -2025,7 +2261,7 @@ async function finalize(r){
     const flat=(r.path?r.path.split('/').join('__')+'__':'')+r.name;
     saveBlob(blob,flat);
     logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
-    r.ui.done('تم الحفظ في التحميلات ✓'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
+    statIn(r); r.ui.done('تم الحفظ في التحميلات ✓'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
     r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]]);
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
   }
@@ -2044,6 +2280,15 @@ function addMsg(text,dir){
     const b=document.createElement('button'); b.textContent='نسخ'; b.style.marginTop='6px';
     b.onclick=async()=>{ try{ await navigator.clipboard.writeText(text); b.textContent='تم ✓'; }catch(_){} };
     d.append(b);
+    const m=String(text).match(/https?:\/\/[^\s<>"']+/i);
+    if(m){
+      let u=null; try{ u=new URL(m[0]); }catch(_){}
+      if(u&&(u.protocol==='http:'||u.protocol==='https:')){
+        const o=document.createElement('button'); o.textContent='فتح الرابط'; o.style.margin='6px 6px 0 0';
+        o.onclick=()=>{ if(confirm('فتح هذا الرابط؟\n'+u.href)) window.open(u.href,'_blank','noopener,noreferrer'); };
+        d.append(o);
+      }
+    }
   }
   $('#msgs').prepend(d);
 }
@@ -2117,6 +2362,8 @@ document.addEventListener('drop',async e=>{
 $('#btnHost').onclick=()=>startHost(false);
 $('#btnJoin').onclick=()=>{ showErr(''); role='join'; view('s-join'); };
 $('#btnConnect').onclick=hostConnect;
+$('#btnConnect').addEventListener('click',()=>setStep('host',3));
+refreshListBar();
 $('#btnAnswer').onclick=()=>joinCreate(false);
 $('#btnReconnect').onclick=()=>resetToStart('');
 $('#msgSend').onclick=sendMsg;
@@ -2333,7 +2580,7 @@ window.addEventListener('offline',()=>dlogAdd('network offline'));
     for(const id of ['light','dark','neon']) grid.appendChild(chip(id,T.BUILT[id].name,T.BUILT[id]));
     const d=document.createElement('button'); d.className='tc'; d.setAttribute('aria-pressed',String(!des.hidden));
     d.innerHTML='<span class="sw2 p">'+ic('palette')+'</span><span>مصمم ثيم خاص</span>';
-    d.onclick=()=>{ if(des.hidden){ const c=readCur(); for(const k in inp) inp[k].value=c[k]; $('#dName').value=''; des.hidden=false; } else{ cancelDesign(); } render(); };
+    d.onclick=()=>{ if(des.hidden){ const c=readCur(); for(const k in inp) inp[k].value=c[k]; $('#dName').value=''; des.hidden=false; showWarn(); } else{ cancelDesign(); } render(); };
     grid.appendChild(d);
     const list=T.customs();
     if(list.length){
@@ -2342,13 +2589,26 @@ window.addEventListener('offline',()=>dlogAdd('network offline'));
       grid.appendChild(wrap);
     }
   }
-  function preview(){ T.apply('custom-preview',{bg:inp.bg.value,surface:inp.surface.value,text:inp.text.value,accent:inp.accent.value}); }
+  const lum=h=>{ const m=/^#?([0-9a-f]{6})$/i.exec(h||''); if(!m) return 0; const v=[0,2,4].map(i=>parseInt(m[1].substr(i,2),16)/255).map(c=>c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)); return .2126*v[0]+.7152*v[1]+.0722*v[2]; };
+  const ratio=(a,b)=>{ const x=lum(a),y=lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); };
+  function contrastIssue(){
+    const a=ratio(inp.text.value,inp.bg.value), b=ratio(inp.text.value,inp.surface.value);
+    const w=Math.min(a,b);
+    return w<3?{lvl:2,r:w}:(w<4.5?{lvl:1,r:w}:null);
+  }
+  function showWarn(){
+    const i=contrastIssue(), el=$('#dWarn');
+    el.hidden=!i;
+    if(i) el.textContent=(i.lvl===2?'تحذير: ':'تنبيه: ')+'التباين بين النص والخلفية '+(i.lvl===2?'ضعيف جدًا (':'منخفض (')+i.r.toFixed(1)+':1) — قد يصعب قراءة النص. يُفضَّل 4.5 أو أكثر.';
+  }
+  function preview(){ T.apply('custom-preview',{bg:inp.bg.value,surface:inp.surface.value,text:inp.text.value,accent:inp.accent.value}); showWarn(); }
   function cancelDesign(){ des.hidden=true; T.apply(savedId); }
   for(const k in inp) inp[k].addEventListener('input',preview);
   $('#dCancel').onclick=()=>{ cancelDesign(); render(); };
   $('#dSave').onclick=()=>{
     let name=$('#dName').value.trim().replace(/[<>]/g,'');
     if(!name){ $('#dName').focus(); $('#dName').placeholder='اكتب اسمًا للثيم أولًا'; return; }
+    const ci=contrastIssue(); if(ci&&ci.lvl===2&&!confirm('التباين بين النص والخلفية ضعيف جدًا وقد لا تقدر تقرأ الواجهة. تحفظ الثيم برضه؟')) return;
     const p={name,bg:inp.bg.value,surface:inp.surface.value,text:inp.text.value,accent:inp.accent.value};
     T.save(p); const id='c:'+name; T.apply(id); T.persist(id); savedId=id; des.hidden=true; render();
   };
@@ -2360,6 +2620,8 @@ window.addEventListener('offline',()=>dlogAdd('network offline'));
   let fsDone=false;
   async function goFs(){ try{ await document.documentElement.requestFullscreen({navigationUI:'hide'}); fsDone=true; }catch(_){} }
   $('#optFs').checked=settings.fs;
+  $('#optHaptic').checked=settings.haptic; $('#optHaptic').onchange=e=>{ settings.haptic=e.target.checked; lsSet('ft.haptic',settings.haptic?'1':'0'); if(settings.haptic){ lastBuzz=0; buzz(25); } };
+  $('#optReview').checked=settings.review; $('#optReview').onchange=e=>{ settings.review=e.target.checked; lsSet('ft.review',settings.review?'1':'0'); };
   $('#optFs').onchange=e=>{ settings.fs=e.target.checked; lsSet('ft.fs',settings.fs?'1':'0'); if(settings.fs&&!document.fullscreenElement) goFs(); };
   $('#btnFs').hidden=!fsOk;
   $('#btnFs').onclick=async()=>{ if(document.fullscreenElement){ try{ await document.exitFullscreen(); }catch(_){} fsDone=true; } else goFs(); };
