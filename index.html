@@ -157,7 +157,26 @@ body[data-mode=one] .m-txt{display:none!important}
 body[data-mode=one] .m-qr.st2{display:none!important}
 body.onearmed #s-host .step.later,body.onearmed #s-host .m-short,body.onearmed #s-host #btnConnect{display:none!important}
 body.oneflow #answerBox{display:none!important}
-@media(max-width:360px){.tabs button{padding:8px 2px;font-size:.78rem;gap:3px}.tabs button .i{display:none}}
+@media(max-width:430px){.tabs button:not(.on) span{display:none}.tabs button.on{flex:2.4}.tabs button{padding:8px 6px}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-inline-end:8px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:100000;background:var(--card2);color:var(--text);border:1px solid var(--line);padding:10px 18px;border-radius:999px;box-shadow:var(--shadow);font-size:.9rem;pointer-events:none}
+#okFlash{position:fixed;inset:0;z-index:99990;display:grid;place-items:center;pointer-events:none;background:color-mix(in srgb,var(--bg) 70%,transparent);animation:rise .3s var(--ease) both}
+#okFlash .okc{display:grid;gap:10px;justify-items:center;padding:26px 34px;border-radius:22px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+#okFlash .okc .tick{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff;animation:pop .5s var(--ease)}
+#okFlash .okc .tick .i{width:30px;height:30px}
+.codebig[role=button]{cursor:copy}
+#s-start .actions.row2{grid-template-columns:1fr 1fr}
+#s-start .actions.row2 .act{flex-direction:column;justify-content:center;text-align:center;gap:8px;padding:18px 8px}
+#s-start .actions.row2 .act small{font-size:.72rem}
+#s-start .actions.row2 #btnHost{order:1}#s-start .actions.row2 #btnJoin{order:2}
+#s-start .actions.row2 #btnPre{order:3;grid-column:1/-1;flex-direction:row;text-align:start;padding:12px 16px}
+.dev{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.dev:first-child{border-top:0}
+.dev .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.dev .nm small{display:block;font-weight:500;font-size:.76rem;opacity:.7}
+.dev button{min-height:44px;min-width:44px;padding:0 10px}
+.srow .fx img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
 .cbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
 .cbar b{display:flex;align-items:center;gap:8px}
 .cbar b::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
@@ -408,6 +427,10 @@ button.icon{width:44px;height:44px}
   </div>
   <div class="mb">
     <div class="sec">
+      <h3><svg class="i"><use href="#i-zap"/></svg>الأجهزة المقترنة</h3>
+      <div class="set box" id="devList" style="padding:6px 14px"></div>
+    </div>
+    <div class="sec">
       <h3><svg class="i"><use href="#i-palette"/></svg>المظهر</h3>
       <div class="themes" id="themeGrid"></div>
       <div id="designer" class="designer" hidden>
@@ -428,6 +451,7 @@ button.icon{width:44px;height:44px}
         <label class="sw"><span>استلام الملفات تلقائيًا<small>لو متوقف، هيطلب موافقتك على كل ملف.</small></span><input type="checkbox" id="optAuto"></label>
         <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
         <label class="sw"><span>أصوات الاتصال والانتهاء<small>نغمة قصيرة عند الاتصال وعند اكتمال النقل.</small></span><input type="checkbox" id="optSound"></label>
+        <label class="sw"><span>فتح الماسح تلقائيًا عند الانضمام<small>لو إذن الكاميرا مسموح أصلًا. لا يعمل عند إنشاء اتصال.</small></span><input type="checkbox" id="optAutoScan"></label>
         <label class="sw"><span>تنبيه عند وصول رابط<small>يظهر شريط فيه «فتح» بدل فتح الرابط تلقائيًا.</small></span><input type="checkbox" id="optLink"></label>
         <label class="sw"><span>تخطي رمز التحقق للأجهزة الموثوقة<small>الجهاز اللي اتحقّقت منه قبل كده بيتعرّف عليه تلقائيًا بشهادته.</small></span><input type="checkbox" id="optTrust"></label>
         <label class="sw"><span>تخطي الملفات الموجودة<small>يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.</small></span><input type="checkbox" id="optSkip"></label>
@@ -525,8 +549,7 @@ button.icon{width:44px;height:44px}
     </div>
   </div>
   <div id="resumeNote" class="warnbox" hidden></div>
-  <div class="actions">
-    <div id="quickBox" class="actions" hidden style="margin-bottom:0"></div>
+  <div class="actions row2">
     <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدئ الإتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
     <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
     <input type="file" id="preFiles" multiple hidden>
@@ -551,6 +574,7 @@ button.icon{width:44px;height:44px}
     <div class="btns"><button data-copy="offerOut"><svg class="i sm"><use href="#i-copy"/></svg>نسخ</button><button data-share="offerOut"><svg class="i sm"><use href="#i-share"/></svg>مشاركة</button></div>
   </div>
   <div id="offerInfo" class="muted"></div>
+  <div class="btns"><button id="btnLink" type="button"><svg class="i sm"><use href="#i-share"/></svg>مشاركة رابط الاتصال</button></div>
   <div id="ipWarnH" class="warnbox" hidden>
     يحتوي الرمز على عناوين مخفية (mDNS)، وقد يمنع ذلك الاتصال على بعض الشبكات.
     <br><button data-realip>جرّب عناوين حقيقية</button>
@@ -1130,6 +1154,7 @@ function view(id){
   if(id==='s-host') setStep('host',1); else if(id==='s-join') setStep('join',1);
   if(id!=='s-host'&&id!=='s-join') $('#tips').hidden=true;
   try{ window.scrollTo({top:0}); }catch(_){}
+  if(id==='s-join') autoScanSoon();
 }
 function showTips(open){ const t=$('#tips'); t.hidden=false; t.open=!!open; if(open) try{ t.scrollIntoView({block:'nearest'}); }catch(_){} }
 function setBadge(t,c){ const b=$('#badge'); b.textContent=t; b.className='badge '+(c||''); }
@@ -1483,7 +1508,7 @@ function releaseMedia(){ if(media){ try{ media.getTracks().forEach(t=>t.stop());
 function makePC(){
   const p=new RTCPeerConnection(myCert?{iceServers:[],certificates:[myCert]}:{iceServers:[]});
   pc=p;
-  p.oniceconnectionstatechange=()=>{ if(p===pc) dlogAdd('ice: '+p.iceConnectionState); };
+  p.oniceconnectionstatechange=()=>{ if(p===pc){ dlogAdd('ice: '+p.iceConnectionState); try{ oneIceWatch(p); }catch(_){} } };
   p.onconnectionstatechange=()=>{
     if(p!==pc) return;
     const st=p.connectionState; dlogAdd('conn: '+st);
@@ -1527,7 +1552,7 @@ function connected(){ return !!(sess&&sess.open&&!sess.lost&&dc&&dc.readyState==
 function onConnected(){
   if(sess&&sess.open&&!sess.lost) return;
   clearTimeout(slowT); clearTimeout(discT);
-  sess={open:true,lost:false}; peerName=''; netChangeAt=0; sysNoteHide('net'); sendHello(); realIpNote(); rateScale=1; nextReal=false; trustedPeer=false; secSent=false; secTmp=null; pendingSec=null; sysNoteHide('one'); document.body.classList.remove('oneflow'); setTimeout(()=>{ maybeSendSec(); touchPeer(); },1500); if(settings.sound){ unlockAudio(); beep(); }
+  sess={open:true,lost:false}; peerName=''; netChangeAt=0; sysNoteHide('net'); sendHello(); realIpNote(); rateScale=1; nextReal=false; trustedPeer=false; secSent=false; secTmp=null; pendingSec=null; sysNoteHide('one'); sysNoteHide('netdiff'); sysNoteHide('oneretry'); document.body.classList.remove('oneflow'); setTimeout(()=>{ maybeSendSec(); touchPeer(); },1500); setTimeout(rememberAddr,2500); oneTries=0; clearTimeout(oneT); setTimeout(showOkFlash,350); if(settings.sound){ unlockAudio(); beep(); }
   showErr(''); setBadge('متصل','ok'); setStep('host',4); setStep('join',4); buzz([30,40,30]); view('s-xfer');
   $('#lost').hidden=true; $('#sumBox').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
   for(const t of outgoing.values()){
@@ -1592,9 +1617,10 @@ function showCode(kind,code,desc){
   $(isOffer?'#ipWarnH':'#ipWarnJ').hidden=!hasMdns(desc.sdp);
   if(!countCands(desc.sdp)) showErr('مفيش عناوين شبكة متاحة. تأكد إن الواي فاي أو الهوتسبوت شغال وجرّب تاني.');
 }
-async function startHost(force){
+async function startHost(force,isRetry){
+  if(!isRetry) oneTries=0;
   showErr(''); role='host'; view('s-host'); closePC();
-  offerShort=null; offerCtx=null; oneWhy=''; document.body.classList.remove('onearmed'); $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').textContent='جارٍ إنشاء الكود…';
+  offerShort=null; offerCtx=null; oneWhy=''; document.body.classList.remove('onearmed'); $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').innerHTML='<span class="spin"></span>جارٍ إنشاء الكود…';
   $('#offerQR').hidden=true; $('#ipWarnH').hidden=true;
   try{
     const wantShort=(settings.mode==='short'||settings.mode==='one')&&certPersistent&&(await getPeers()).length>0;
@@ -1606,8 +1632,8 @@ async function startHost(force){
     if(settings.mode==='short'||oneMode){ try{ s3=await s3Peer(); }catch(_){ s3=null; } }
     if(s3){
       try{
-        const nonce=Array.from(crypto.getRandomValues(new Uint8Array(4))), c=await kdfIce(s3.sec,nonce,'o');
-        await p.setLocalDescription({type:'offer',sdp:mungeIce(off.sdp,c)}); offerCtx={peer:s3,nonce,one:false};
+        const nonce=Array.from(crypto.getRandomValues(new Uint8Array(3))), key=keysOf(s3)[0], c=await kdfIce(key.s,nonce,'o');
+        await p.setLocalDescription({type:'offer',sdp:mungeIce(off.sdp,c)}); offerCtx={peer:s3,nonce,key,one:false};
       }catch(e){ dlogAdd('S3 munge failed: '+(e&&e.message)); offerCtx=null; await p.setLocalDescription(off); }
     }else await p.setLocalDescription(off);
     await waitIce(p);
@@ -1615,7 +1641,7 @@ async function startHost(force){
     showCode('offer',await pack(p.localDescription),p.localDescription);
     if(oneMode&&offerCtx){
       try{
-        const c=await kdfIce(offerCtx.peer.sec,offerCtx.nonce,'a');
+        const c=await kdfIce(offerCtx.key.s,offerCtx.nonce,'a');
         const code=await shortEncodeOffer3(p.localDescription,'S5');
         if(code){
           await p.setRemoteDescription({type:'answer',sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:offerCtx.peer.fp,setup:'active',cands:[]})});
@@ -1624,7 +1650,7 @@ async function startHost(force){
         }
       }catch(e){ dlogAdd('one-code arm failed: '+(e&&e.message)); offerCtx.one=false; }
     }
-    if(oneMode&&!(offerCtx&&offerCtx.one)){ const pr=await getPeers(); oneWhy=!pr.length?'لازم تقترن بجهاز أولًا: اتصل بالكود العادي وبعدين اضغط «متطابق» على الجهازين.':(!pr.some(x=>x.sec)?'الأجهزة المقترنة لسه ما تبادلتش السر. اتصل بالجهاز ده مرة واحدة بأي وضع وبعدها هيشتغل.':'ما قدرناش نجهّز الكود الواحد، فده الرمز القصير العادي.'); }
+    if(oneMode&&!(offerCtx&&offerCtx.one)){ const pr=await getPeers(); oneWhy=!pr.length?'لازم تقترن بجهاز أولًا: اتصل بالكود العادي وبعدين اضغط «متطابق» على الجهازين.':(!pr.some(x=>keysOf(x).length)?'الأجهزة المقترنة لسه ما تبادلتش السر. اتصل بالجهاز ده مرة واحدة بأي وضع وبعدها هيشتغل.':'ما قدرناش نجهّز الكود الواحد، فده الرمز القصير العادي.'); }
     if(!offerShort){ try{ offerShort=(offerCtx&&await shortEncodeOffer3(p.localDescription))||await shortEncodeOffer(p.localDescription); }catch(_){ offerShort=null; } }
     await fillOfferPeers();
     renderOfferShort();
@@ -1667,6 +1693,7 @@ async function joinCreate(force){
     $('#answerBox').hidden=false;
     showCode('answer',await pack(p.localDescription),p.localDescription);
     setBadge('بانتظار الجهاز الأول','wait');
+    try{ const Lc=candIps(p.localDescription.sdp), Rc=candIps(p.remoteDescription.sdp); const pre=ip=>ip.split('.').slice(0,3).join('.'); if(Lc.v4.length&&Rc.v4.length&&!Rc.v4.some(ip=>Lc.v4.some(l=>pre(l)===pre(ip)))){ sysNote('netdiff','الجهازين ممكن يكونوا على شبكتين مختلفتين. لو الاتصال ما اكتملش وصّلهم بنفس الواي فاي أو استخدم هوتسبوت.',[['تمام',()=>sysNoteHide('netdiff')]],'bad'); dlogAdd('netdiff: different /24'); } }catch(_){}
     if(s3ok&&s3.one){ sysNote('one','بيتصل بالجهاز الأول… من غير ما تكتب أي رمز تاني.',null,'ok'); clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ sysNoteHide('one'); showErr(failText('الاتصال بالكود الواحد ما اكتملش. اطلب من الجهاز الأول يجرّب وضع «رمز قصير».'),connFailActions()); } },30000); }
     try{ const sc=(s3ok&&await shortEncodeAnswer4(p.localDescription))||await shortEncode(p.localDescription,p.remoteDescription.sdp); fillShort(sc,$('#answerOut').value); }catch(_){ fillShort(null,$('#answerOut').value); }
   }catch(e){ showErr(e.message||String(e)); }
@@ -1695,7 +1722,7 @@ function drawQR(id,text,msgId){
   const cv=$('#'+id), msg=$('#'+msgId);
   try{
     const q=QR.encode(text,text.length>400?'L':undefined);
-    const b=4, scale=Math.max(3,Math.min(8,Math.floor(340/(q.size+2*b))));
+    const b=4, maxW=Math.max(200,Math.min((window.innerWidth||360)-84,420)), scale=Math.max(3,Math.min(16,Math.floor(maxW/(q.size+2*b))));
     const W=(q.size+2*b)*scale;
     cv.width=cv.height=W; cv.style.width=W+'px';
     const g=cv.getContext('2d');
@@ -1785,7 +1812,7 @@ function setMode(m){
   if(m==='txt') stopScans();
   try{ if(role==='host'&&curView==='s-host'&&$('#offerOut').value&&prevMode!==m&&(prevMode==='one'||m==='one')) startHost(false); else renderOfferShort(); }catch(_){}
 }
-$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm"><use href="#i-qr"/></svg>رمز QR</button><button data-setmode="txt"><svg class="i sm"><use href="#i-type"/></svg>رمز نصي</button><button data-setmode="short"><svg class="i sm"><use href="#i-zap"/></svg>رمز قصير</button><button data-setmode="one"><svg class="i sm"><use href="#i-link"/></svg>كود واحد</button>'; });
+$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr" aria-label="رمز QR" title="رمز QR"><svg class="i sm"><use href="#i-qr"/></svg><span>رمز QR</span></button><button data-setmode="txt" aria-label="رمز نصي" title="رمز نصي"><svg class="i sm"><use href="#i-type"/></svg><span>رمز نصي</span></button><button data-setmode="short" aria-label="رمز قصير" title="رمز قصير"><svg class="i sm"><use href="#i-zap"/></svg><span>رمز قصير</span></button><button data-setmode="one" aria-label="كود واحد" title="كود واحد"><svg class="i sm"><use href="#i-link"/></svg><span>كود واحد</span></button>'; });
 setMode(settings.mode);
 
 // ---------- cards ----------
@@ -2058,8 +2085,10 @@ async function runSpeed(){
 
 // ---------- sending ----------
 let stageItems=[], stageSeq=0;
+let stageUrls=[];
 function renderStage(){
   const box=$('#stage'), L=$('#stageList');
+  stageUrls.forEach(u=>URL.revokeObjectURL(u)); stageUrls=[]; let stN=0;
   box.hidden=!stageItems.length; L.textContent='';
   const sel=stageItems.filter(x=>x.sel).length;
   $('#stageCnt').textContent=sel+' محدد من '+stageItems.length;
@@ -2071,6 +2100,7 @@ function renderStage(){
     cb.onchange=()=>{ x.sel=cb.checked; renderStageHead(); };
     const K=fileKind(x.file.name);
     const fi=document.createElement('span'); fi.className='fi'; fi.dataset.k=K.k; fi.style.cssText='width:30px;height:30px'; fi.innerHTML='<span class="fx"><svg class="i"><use href="#i-'+K.i+'"/></svg></span>';
+    if(K.k==='img'&&x.file.size<=8*1048576&&stN++<40){ try{ const u=URL.createObjectURL(x.file); stageUrls.push(u); const im=new Image(); im.alt=''; im.decoding='async'; im.onload=()=>{ const fx=fi.querySelector('.fx'); if(fx){ fx.textContent=''; fx.append(im); } }; im.src=u; fi.style.cssText='width:44px;height:44px'; }catch(_){} }
     const tx=document.createElement('span'); tx.className='tx'; tx.textContent=(x.path?x.path+'/':'')+x.file.name;
     const sz=document.createElement('span'); sz.className='sz'; sz.textContent=fmtSize(x.file.size);
     row.append(cb,fi,tx,sz); L.append(row);
@@ -2766,15 +2796,24 @@ async function pinPeer(fp){
 }
 async function refreshQuick(){
   try{
-    const box=$('#quickBox'); if(!box) return; box.textContent='';
-    const a=certPersistent?(await getPeers()).filter(x=>x.fp).sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0)).slice(0,3):[];
-    box.hidden=!a.length;
-    a.forEach((x,i)=>{ const b=document.createElement('button'); b.className='act'; const nm=x.name||('جهاز '+(i+1));
-      b.innerHTML='<span class="ico"><svg class="i"><use href="#i-zap"/></svg></span><span class="tx"></span>'; const tx=b.querySelector('.tx'); tx.textContent='اتصل بـ '+nm; const sm=document.createElement('small'); sm.textContent=!x.sec?'اتصل مرة واحدة كمان لتفعيل الرمز الأقصر':(settings.mode==='one'?'كود واحد جاهز':'رمز قصير جاهز'); tx.appendChild(sm);
-      b.onclick=()=>{ preferFp=x.fp; if(settings.mode!=='one'&&settings.mode!=='short') setMode('short'); startHost(false); }; box.appendChild(b); });
+    const box=$('#devList'); if(!box) return; box.textContent='';
+    const a=certPersistent?(await getPeers()).filter(x=>x.fp).sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0)):[];
+    if(!a.length){ const m=document.createElement('div'); m.className='muted'; m.style.padding='8px 0'; m.textContent='لسه مفيش أجهزة مقترنة. اتصل مرة بالكود العادي واضغط «متطابق» على الجهازين.'; box.appendChild(m); return; }
+    a.forEach((x,i)=>{
+      const row=document.createElement('div'); row.className='dev';
+      const nm=document.createElement('div'); nm.className='nm'; nm.textContent=x.name||('جهاز '+(i+1));
+      const sm=document.createElement('small'); sm.textContent=(x.primary?'الجهاز الأساسي · ':'')+(keysOf(x).length?'جاهز للكود الأقصر':'اتصل مرة كمان لتفعيل الكود الأقصر'); nm.appendChild(sm);
+      const go=document.createElement('button'); go.type='button'; go.className='primary'; go.setAttribute('aria-label','اتصل بـ '+(x.name||('جهاز '+(i+1)))); go.title='اتصل'; go.innerHTML='<svg class="i sm"><use href="#i-zap"/></svg>';
+      go.onclick=()=>{ $('#btnMenuClose').click(); preferFp=x.fp; if(settings.mode!=='one'&&settings.mode!=='short') setMode('short'); startHost(false); };
+      const st=document.createElement('button'); st.type='button'; st.setAttribute('aria-pressed',x.primary?'true':'false'); st.setAttribute('aria-label','جهاز أساسي'); st.title='جهاز أساسي'; st.textContent=x.primary?'★':'☆';
+      st.onclick=async()=>{ const arr=await getPeers(); arr.forEach(y=>{ y.primary=(y.fp===x.fp&&!x.primary); }); await idbSet('peers',arr); preferFp=''; refreshQuick(); };
+      const rm=document.createElement('button'); rm.type='button'; rm.setAttribute('aria-label','حذف الجهاز'); rm.title='حذف'; rm.innerHTML='<svg class="i sm"><use href="#i-trash"/></svg>';
+      rm.onclick=async()=>{ if(!confirm('حذف الاقتران مع «'+(x.name||'الجهاز')+'»؟')) return; const arr=(await getPeers()).filter(y=>y.fp!==x.fp); await idbSet('peers',arr); updatePairInfo(); };
+      row.append(nm,go,st,rm); box.appendChild(row);
+    });
   }catch(_){}
 }
-async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; const ns=(await getPeers()).filter(x=>x.sec).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · جاهز للرمز الأقصر وكود واحد: '+ns):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
+async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; const ns=(await getPeers()).filter(x=>keysOf(x).length).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · جاهز للرمز الأقصر وكود واحد: '+ns):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
 $('#btnUnpair').onclick=async()=>{ try{ await idbDel('peers'); }catch(_){} updatePairInfo(); };
 updatePairInfo();
 async function shortEncode(desc,remoteSdp){
@@ -3117,7 +3156,7 @@ function qrZoom(cv){
 // device name + settings backup
 $('#optName').value=settings.name;
 $('#optName').onchange=e=>{ settings.name=cleanName(e.target.value); e.target.value=settings.name; lsSet('ft.name',settings.name); sendHello(); };
-const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust'];
+const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan'];
 const HEXRX=/^#[0-9a-fA-F]{6}$/;
 $('#btnBkExp').onclick=()=>{
   const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
@@ -3169,9 +3208,9 @@ $('#msgClip').onclick=async()=>{
 // ---------- v9: stability & UX ----------
 let rateScale=1, nextReal=false, trustedPeer=false, batWarned=false, bat=null, lastProg=0;
 const hashRetry=new Map();
-settings.sound=false; settings.link=false; settings.trust=true;
-try{ settings.sound=localStorage.getItem('ft.sound')==='1'; settings.link=localStorage.getItem('ft.link')==='1'; settings.trust=localStorage.getItem('ft.trust')!=='0'; }catch(_){}
-for(const [id,k] of [['optSound','sound'],['optLink','link'],['optTrust','trust']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet('ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } }; }
+settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
+try{ settings.sound=localStorage.getItem('ft.sound')==='1'; settings.link=localStorage.getItem('ft.link')==='1'; settings.trust=localStorage.getItem('ft.trust')!=='0'; settings.autoScan=localStorage.getItem('ft.autoscan')!=='0'; }catch(_){}
+for(const [id,k] of [['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } }; }
 // network diagnosis from candidates
 function candIps(sdp){
   const r={v4:[],mdns:0,other:0};
@@ -3287,11 +3326,11 @@ async function kdfIce(secHex,nonce,label){
 function mungeIce(sdp,c){ return sdp.replace(/a=ice-ufrag:.*\r?\n/,'a=ice-ufrag:'+c.ufrag+'\r\n').replace(/a=ice-pwd:.*\r?\n/,'a=ice-pwd:'+c.pwd+'\r\n'); }
 async function s3Peer(){
   if(!certPersistent||!(window.crypto&&crypto.subtle)) return null;
-  const a=(await getPeers()).filter(x=>x.sec&&/^[0-9a-f]{32}$/.test(x.sec)); if(!a.length) return null;
-  return a.find(x=>x.fp===preferFp)||a.sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0))[0];
+  const a=(await getPeers()).filter(x=>keysOf(x).length); if(!a.length) return null;
+  return a.find(x=>x.fp===preferFp)||a.find(x=>x.primary)||a.sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0))[0];
 }
 async function fillOfferPeers(){
-  const sel=$('#offerPeer'); const a=(await getPeers()).filter(x=>x.sec);
+  const sel=$('#offerPeer'); const a=(await getPeers()).filter(x=>keysOf(x).length);
   sel.hidden=!(a.length>1&&offerCtx); sel.textContent='';
   a.forEach((x,i)=>{ const o=document.createElement('option'); o.value=x.fp; o.textContent=x.name||('جهاز '+(i+1)); if(offerCtx&&offerCtx.peer.fp===x.fp) o.selected=true; sel.appendChild(o); });
 }
@@ -3300,8 +3339,8 @@ function idBytes(fp){ return fp.split(':').slice(0,3).map(h=>parseInt(h,16)); }
 async function shortEncodeOffer3(desc,prefix){
   if(!offerCtx) return null;
   const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass') return null;
-  const c=p.cands.find(x=>ip4(x.addr)); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «استخدم عناوين حقيقية» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
-  const body=[...idBytes(p.fp),...offerCtx.nonce,...ip4(c.addr),c.port>>8,c.port&255];
+  const c=pickCand(p.cands,offerCtx.peer); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «استخدم عناوين حقيقية» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
+  const body=[...idBytes(p.fp),...offerCtx.nonce,offerCtx.key.k,...ip4(c.addr),c.port>>8,c.port&255];
   const crc=crc16(body); body.push(crc>>8,crc&255);
   return (prefix||'S3')+'-'+ckEnc(body).match(/.{1,4}/g).join('-');
 }
@@ -3320,33 +3359,101 @@ async function shortDecode34(kind,rest){
   const idHex=hexOf(body.slice(0,3)), peers=await getPeers();
   const match=x=>x.fp.split(':').slice(0,3).join('').toLowerCase()===idHex;
   if(kind==='S3'||kind==='S5'){
-    const peer=peers.find(x=>match(x)&&x.sec);
+    const peer=peers.find(x=>match(x)&&keysOf(x).length);
     if(!peer) throw new Error('الجهاز ده مش مقترن بالجهاز الأول بالرمز الأقصر. اطلب منه يغيّر الوضع واستخدم الرمز العادي (اتصال واحد بيكفي بعد كده).');
-    const nonce=body.slice(3,7), c=await kdfIce(peer.sec,nonce,'o');
-    return {type:'offer',s3:{sec:peer.sec,nonce,one:kind==='S5'},sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:peer.fp,setup:'actpass',cands:[{addr:body.slice(7,11).join('.'),port:(body[11]<<8)|body[12],prio:2113937151}]})};
+    const nonce=body.slice(3,6), key=keysOf(peer).find(x=>x.k===body[6]);
+    if(!key) throw new Error('مفتاح الاقتران مختلف بين الجهازين. اتصل مرة بالرمز العادي لتجديده.');
+    const c=await kdfIce(key.s,nonce,'o');
+    return {type:'offer',s3:{sec:key.s,nonce,one:kind==='S5'},sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:peer.fp,setup:'actpass',cands:[{addr:body.slice(7,11).join('.'),port:(body[11]<<8)|body[12],prio:2113937151}]})};
   }
   if(!offerCtx||!match(offerCtx.peer)) throw new Error('رمز الرد ده مش للرمز الحالي. ابدأ الاتصال من جديد وكرر.');
-  const c=await kdfIce(offerCtx.peer.sec,offerCtx.nonce,'a');
+  const c=await kdfIce(offerCtx.key.s,offerCtx.nonce,'a');
   return {type:'answer',sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:offerCtx.peer.fp,setup:'active',cands:[{addr:body.slice(3,7).join('.'),port:(body[7]<<8)|body[8],prio:2113937151}]})};
 }
 async function peerEntry(){ const rf=pc&&pc.remoteDescription&&fpOf(pc.remoteDescription.sdp); if(!rf) return null; const arr=await getPeers(); return {arr,e:arr.find(x=>x.fp===rf)||null}; }
+const keysOf=e=>Array.isArray(e.keys)&&e.keys.length?e.keys.filter(k=>k&&Number.isInteger(k.k)&&/^[0-9a-f]{32}$/.test(k.s)):((e.sec&&/^[0-9a-f]{32}$/.test(e.sec))?[{k:0,s:e.sec}]:[]);
+function addKey(e,k,s){ e.keys=[{k,s}].concat(keysOf(e).filter(x=>x.k!==k)).slice(0,3); e.sec=e.keys[0].s; }
 async function maybeSendSec(){
   if(role!=='host'||secSent||!connected()||!certPersistent||!(window.crypto&&crypto.getRandomValues)) return;
-  const pe=await peerEntry(); if(!pe||!pe.e||pe.e.sec) return;
-  secSent=true; secTmp=hexOf(crypto.getRandomValues(new Uint8Array(16))); sendCtl({t:'psec',s:secTmp});
+  const pe=await peerEntry(); if(!pe||!pe.e) return;
+  const used=new Set(keysOf(pe.e).map(x=>x.k)); let k=crypto.getRandomValues(new Uint8Array(1))[0], n=0; while(used.has(k)&&n++<300) k=(k+1)&255;
+  secSent=true; secTmp={s:hexOf(crypto.getRandomValues(new Uint8Array(16))),k}; sendCtl({t:'psec',s:secTmp.s,k});
 }
 async function onPsec(m){
-  const s=String(m.s||''); if(!/^[0-9a-f]{32}$/.test(s)) return;
+  const s=String(m.s||''); const k=m.k==null?0:Number(m.k); if(!/^[0-9a-f]{32}$/.test(s)||!Number.isInteger(k)||k<0||k>255) return;
   const pe=await peerEntry();
-  if(pe&&pe.e){ pe.e.sec=s; await idbSet('peers',pe.arr); sendCtl({t:'psack'}); updatePairInfo(); dlogAdd('pair secret stored'); } else pendingSec=s;
+  if(pe&&pe.e){ addKey(pe.e,k,s); await idbSet('peers',pe.arr); sendCtl({t:'psack'}); updatePairInfo(); dlogAdd('pair key stored'); } else pendingSec={s,k};
 }
 async function onPsack(){
   if(!secTmp) return; const pe=await peerEntry();
-  if(pe&&pe.e){ pe.e.sec=secTmp; await idbSet('peers',pe.arr); dlogAdd('pair secret stored (host)'); } secTmp=null; updatePairInfo();
+  if(pe&&pe.e){ addKey(pe.e,secTmp.k,secTmp.s); await idbSet('peers',pe.arr); dlogAdd('pair key stored (host)'); } secTmp=null; updatePairInfo();
 }
-async function applyPendingSec(){ if(!pendingSec) return; const v=pendingSec; pendingSec=null; await onPsec({s:v}); }
+async function applyPendingSec(){ if(!pendingSec) return; const v=pendingSec; pendingSec=null; await onPsec(v); }
+function pickCand(cands,e){ const v4=cands.filter(x=>ip4(x.addr)); return (e&&e.lastIp&&v4.find(x=>x.addr===e.lastIp))||v4[0]||null; }
+async function rememberAddr(){
+  try{
+    const p=pc; if(!p||!p.getStats) return; const rep=await p.getStats(); let pair=null;
+    rep.forEach(x=>{ if(x.type==='transport'&&x.selectedCandidatePairId) pair=rep.get(x.selectedCandidatePairId); });
+    if(!pair) return; const lc=rep.get(pair.localCandidateId); const a=lc&&(lc.address||lc.ip); if(!a||!/^\d{1,3}(\.\d{1,3}){3}$/.test(a)) return;
+    const pe=await peerEntry(); if(pe&&pe.e&&pe.e.lastIp!==a){ pe.e.lastIp=a; await idbSet('peers',pe.arr); }
+  }catch(_){}
+}
 setTimeout(()=>{ ensureCert().then(refreshQuick).catch(()=>{}); },300);
 async function touchPeer(){ try{ const pe=await peerEntry(); if(pe&&pe.e){ pe.e.last=Date.now(); await idbSet('peers',pe.arr); } }catch(_){} }
+
+// ---------- v11 ----------
+let oneT=0, oneTries=0, toastT=0, scanTried=0;
+function oneIceWatch(p){
+  if(!(offerCtx&&offerCtx.one)||(sess&&sess.open)) return;
+  const st=p.iceConnectionState; clearTimeout(oneT);
+  if(st==='checking') oneT=setTimeout(()=>oneRetry(p,'stuck'),10000);
+  else if(st==='failed') oneRetry(p,'failed');
+}
+function oneRetry(p,why){
+  if(p!==pc||(sess&&sess.open)||!(offerCtx&&offerCtx.one)||oneTries>=2) return;
+  oneTries++; dlogAdd('one-code auto retry ('+why+') #'+oneTries);
+  sysNote('oneretry','الاتصال ما اكتملش، جدّدنا الكود. امسحه تاني من الجهاز الآخر.',null,'bad');
+  startHost(false,true);
+}
+function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ el.hidden=true; },1600); }
+for(const id of ['offerShortOut','shortOut']){
+  const el=$('#'+id); if(!el) continue; el.setAttribute('role','button'); el.tabIndex=0; el.title='اضغط للنسخ';
+  const cp=async()=>{ const t=el.textContent.trim(); if(!/^S[1-5]-/.test(t)) return; try{ await navigator.clipboard.writeText(t); toast('تم النسخ ✓'); }catch(_){ toast('تعذر النسخ'); } };
+  el.addEventListener('click',cp); el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); cp(); } });
+}
+$('#btnLink').onclick=async()=>{
+  const code=(offerShort&&!$('#offerShortBox').hidden)?offerShort:$('#offerOut').value;
+  if(!code){ toast('لسه الكود بيتجهز'); return; }
+  const url=location.origin+location.pathname+'#nx='+encodeURIComponent(code);
+  try{ if(navigator.share){ await navigator.share({title:'Nx-Share',text:'افتح الرابط للاتصال',url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(url); toast('اتنسخ الرابط ✓'); }catch(_){ toast('تعذر نسخ الرابط'); }
+};
+(function(){
+  const m=/^#nx=(.+)$/.exec(location.hash||''); if(!m) return;
+  let code=''; try{ code=decodeURIComponent(m[1]).replace(/\s+/g,''); }catch(_){ return; }
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
+  if(!/^(G1|F0|F1)\.[A-Za-z0-9_-]+$/.test(code)&&!/^S[1-5]-?[0-9A-Za-z-]{10,80}$/.test(code)) return;
+  setTimeout(()=>{ role='join'; view('s-join'); $('#offerIn').value=code; $('#btnAnswer').click(); },600);
+})();
+function autoScanSoon(){
+  try{
+    if(!settings.autoScan||!navigator.permissions||!navigator.permissions.query||settings.mode==='txt'||/^#nx=/.test(location.hash||'')) return;
+    navigator.permissions.query({name:'camera'}).then(r=>{
+      if(r.state!=='granted') return;
+      setTimeout(()=>{ const b=document.querySelector('#s-join .scan [data-s=start]'); if(b&&!b.disabled&&b.offsetParent!==null&&curView==='s-join'&&!$('#offerIn').value) b.click(); },450);
+    }).catch(()=>{});
+  }catch(_){}
+}
+function showOkFlash(){
+  try{
+    if(!(sess&&sess.open&&!sess.lost)||$('#okFlash')) return;
+    const o=document.createElement('div'); o.id='okFlash'; o.setAttribute('role','status');
+    const c=document.createElement('div'); c.className='okc';
+    c.innerHTML='<div class="tick"><svg class="i"><use href="#i-check"/></svg></div><b></b>';
+    c.querySelector('b').textContent='اتصلت بـ '+(peerName||'الجهاز الآخر');
+    o.appendChild(c); document.body.appendChild(o); setTimeout(()=>o.remove(),1500);
+  }catch(_){}
+}
 })();
 
 </script>
