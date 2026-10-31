@@ -536,7 +536,7 @@ button.icon{width:44px;height:44px}
   </div>
   <div id="offerShortBox" hidden>
     <div class="codebig" id="offerShortOut" dir="ltr"></div>
-    <p class="muted" style="text-align:center">رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».</p>
+    <p class="muted" id="offerShortNote" style="text-align:center"></p>
   </div>
   <div class="m-txt">
     <textarea id="offerOut" readonly dir="ltr" rows="3" placeholder="جارٍ إنشاء الرمز…"></textarea>
@@ -1589,7 +1589,8 @@ async function startHost(force){
   offerShort=null; $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').textContent='جارٍ إنشاء الكود…';
   $('#offerQR').hidden=true; $('#ipWarnH').hidden=true;
   try{
-    if(settings.realIp||force||nextReal){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal); }
+    const wantShort=settings.mode==='short'&&certPersistent&&(await getPeers()).length>0;
+    if(settings.realIp||force||nextReal||wantShort){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal||wantShort); }
     await ensureCert();
     const p=makePC(); setupDC(p.createDataChannel('files'));
     await p.setLocalDescription(await p.createOffer());
@@ -1621,7 +1622,8 @@ async function joinCreate(force){
     const d=await unpack($('#offerIn').value);
     if(d.type!=='offer') throw new Error('ده مش كود بداية اتصال. الصق الكود من الجهاز الأول.');
     role='join'; closePC(); $('#answerBox').hidden=true; $('#answerQR').hidden=true; $('#ipWarnJ').hidden=true;
-    if(settings.realIp||force||nextReal){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal); }
+    const wantShort=settings.mode==='short'&&certPersistent&&(await getPeers()).length>0;
+    if(settings.realIp||force||nextReal||wantShort){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal||wantShort); }
     await ensureCert();
     const p=makePC();
     await p.setRemoteDescription(d);
@@ -2738,11 +2740,14 @@ async function shortEncode(desc,remoteSdp){
   const crc=crc16(body); body.push(crc>>8,crc&255);
   return 'S1-'+ckEnc(body).match(/.{1,4}/g).join('-');
 }
+let offerShortWhy='';
 async function shortEncodeOffer(desc){
-  if(!certPersistent||!desc||desc.type!=='offer'||!(await getPeers()).length) return null;
-  const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass') return null;
-  if(!/^[A-Za-z0-9+\/]{4}$/.test(p.ufrag)||!/^[A-Za-z0-9+\/]{24}$/.test(p.pwd)) return null;
-  const c=p.cands.find(x=>ip4(x.addr)); if(!c) return null;
+  offerShortWhy='';
+  if(!certPersistent){ offerShortWhy='المتصفح مش بيحفظ شهادة الجهاز.'; return null; }
+  if(!(await getPeers()).length){ offerShortWhy='لازم تتصل مرة بالرمز العادي وتضغط «متطابق» على الجهازين الأول.'; return null; }
+  const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass'){ offerShortWhy='شكل الكود مش مدعوم.'; return null; }
+  if(!/^[A-Za-z0-9+\/]{4}$/.test(p.ufrag)||!/^[A-Za-z0-9+\/]{24}$/.test(p.pwd)){ offerShortWhy='شكل الكود مش مدعوم.'; return null; }
+  const c=p.cands.find(x=>ip4(x.addr)); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «استخدم عناوين حقيقية» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
   const id=p.fp.split(':').slice(0,3).map(h=>parseInt(h,16));
   const body=[...id,...b64to(p.ufrag),...b64to(p.pwd),...ip4(c.addr),c.port>>8,c.port&255];
   const crc=crc16(body); body.push(crc>>8,crc&255);
@@ -2751,7 +2756,9 @@ async function shortEncodeOffer(desc){
 function renderOfferShort(){
   if(role!=='host'||!$('#offerOut').value) return;
   const on=settings.mode==='short'&&!!offerShort;
-  $('#offerShortBox').hidden=!on; $('#offerShortOut').textContent=on?offerShort:'';
+  const sh=settings.mode==='short';
+  $('#offerShortBox').hidden=!sh; $('#offerShortOut').textContent=on?offerShort:'';
+  $('#offerShortNote').textContent=on?'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».':('الرمز القصير مش متاح دلوقتي: '+offerShortWhy+' استخدم الـQR الظاهر تحت أو غيّر الوضع.');
   drawQR('offerQR',on?offerShort:$('#offerOut').value,'offerQRmsg');
 }
 function fillShort(sc,long){
