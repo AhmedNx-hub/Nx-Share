@@ -155,7 +155,7 @@ body[data-mode=short] .m-qr.st2{display:none!important}
 body[data-mode=one] .m-short{display:block;animation:rise .4s var(--ease) both}
 body[data-mode=one] .m-txt{display:none!important}
 body[data-mode=one] .m-qr.st2{display:none!important}
-body[data-mode=one] #s-host .step.later,body[data-mode=one] #s-host .m-short,body[data-mode=one] #s-host #btnConnect{display:none!important}
+body.onearmed #s-host .step.later,body.onearmed #s-host .m-short,body.onearmed #s-host #btnConnect{display:none!important}
 body.oneflow #answerBox{display:none!important}
 @media(max-width:360px){.tabs button{padding:8px 2px;font-size:.78rem;gap:3px}.tabs button .i{display:none}}
 .cbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
@@ -1594,7 +1594,7 @@ function showCode(kind,code,desc){
 }
 async function startHost(force){
   showErr(''); role='host'; view('s-host'); closePC();
-  offerShort=null; offerCtx=null; $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').textContent='جارٍ إنشاء الكود…';
+  offerShort=null; offerCtx=null; oneWhy=''; document.body.classList.remove('onearmed'); $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').textContent='جارٍ إنشاء الكود…';
   $('#offerQR').hidden=true; $('#ipWarnH').hidden=true;
   try{
     const wantShort=(settings.mode==='short'||settings.mode==='one')&&certPersistent&&(await getPeers()).length>0;
@@ -1619,11 +1619,12 @@ async function startHost(force){
         const code=await shortEncodeOffer3(p.localDescription,'S5');
         if(code){
           await p.setRemoteDescription({type:'answer',sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:offerCtx.peer.fp,setup:'active',cands:[]})});
-          offerCtx.one=true; offerShort=code; setBadge('بانتظار الجهاز التاني…','wait'); dlogAdd('one-code mode armed');
+          offerCtx.one=true; offerShort=code; document.body.classList.add('onearmed'); setBadge('بانتظار الجهاز التاني…','wait'); dlogAdd('one-code mode armed');
           clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('الاتصال بالكود الواحد ما اكتملش. جرّب وضع «رمز قصير» (بيطلب رمز رد) أو الكود العادي.'),[['وضع رمز قصير',()=>setMode('short')]].concat(connFailActions())); } },30000);
         }
       }catch(e){ dlogAdd('one-code arm failed: '+(e&&e.message)); offerCtx.one=false; }
     }
+    if(oneMode&&!(offerCtx&&offerCtx.one)){ const pr=await getPeers(); oneWhy=!pr.length?'لازم تقترن بجهاز أولًا: اتصل بالكود العادي وبعدين اضغط «متطابق» على الجهازين.':(!pr.some(x=>x.sec)?'الأجهزة المقترنة لسه ما تبادلتش السر. اتصل بالجهاز ده مرة واحدة بأي وضع وبعدها هيشتغل.':'ما قدرناش نجهّز الكود الواحد، فده الرمز القصير العادي.'); }
     if(!offerShort){ try{ offerShort=(offerCtx&&await shortEncodeOffer3(p.localDescription))||await shortEncodeOffer(p.localDescription); }catch(_){ offerShort=null; } }
     await fillOfferPeers();
     renderOfferShort();
@@ -2766,14 +2767,14 @@ async function pinPeer(fp){
 async function refreshQuick(){
   try{
     const box=$('#quickBox'); if(!box) return; box.textContent='';
-    const a=certPersistent?(await getPeers()).filter(x=>x.sec).sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0)).slice(0,3):[];
+    const a=certPersistent?(await getPeers()).filter(x=>x.fp).sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0)).slice(0,3):[];
     box.hidden=!a.length;
     a.forEach((x,i)=>{ const b=document.createElement('button'); b.className='act'; const nm=x.name||('جهاز '+(i+1));
-      b.innerHTML='<span class="ico"><svg class="i"><use href="#i-zap"/></svg></span><span class="tx"></span>'; const tx=b.querySelector('.tx'); tx.textContent='اتصل بـ '+nm; const sm=document.createElement('small'); sm.textContent=settings.mode==='one'?'كود واحد جاهز':'رمز قصير جاهز'; tx.appendChild(sm);
+      b.innerHTML='<span class="ico"><svg class="i"><use href="#i-zap"/></svg></span><span class="tx"></span>'; const tx=b.querySelector('.tx'); tx.textContent='اتصل بـ '+nm; const sm=document.createElement('small'); sm.textContent=!x.sec?'اتصل مرة واحدة كمان لتفعيل الرمز الأقصر':(settings.mode==='one'?'كود واحد جاهز':'رمز قصير جاهز'); tx.appendChild(sm);
       b.onclick=()=>{ preferFp=x.fp; if(settings.mode!=='one'&&settings.mode!=='short') setMode('short'); startHost(false); }; box.appendChild(b); });
   }catch(_){}
 }
-async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · يفعّل الرمز القصير'):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
+async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; const ns=(await getPeers()).filter(x=>x.sec).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · جاهز للرمز الأقصر وكود واحد: '+ns):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
 $('#btnUnpair').onclick=async()=>{ try{ await idbDel('peers'); }catch(_){} updatePairInfo(); };
 updatePairInfo();
 async function shortEncode(desc,remoteSdp){
@@ -2787,7 +2788,7 @@ async function shortEncode(desc,remoteSdp){
   const crc=crc16(body); body.push(crc>>8,crc&255);
   return 'S1-'+ckEnc(body).match(/.{1,4}/g).join('-');
 }
-let offerShortWhy='';
+let offerShortWhy='', oneWhy='';
 async function shortEncodeOffer(desc){
   offerShortWhy='';
   if(!certPersistent){ offerShortWhy='المتصفح مش بيحفظ شهادة الجهاز.'; return null; }
@@ -2803,10 +2804,10 @@ async function shortEncodeOffer(desc){
 function renderOfferShort(){
   if(role!=='host'||!$('#offerOut').value) return;
   const sh=settings.mode==='short'||settings.mode==='one';
-  const on=sh&&!!offerShort&&((settings.mode==='one')===!!(offerCtx&&offerCtx.one));
+  const on=sh&&!!offerShort;
   $('#offerShortBox').hidden=!sh; $('#offerShortOut').textContent=on?offerShort:'';
   if(on) $('#offerInfo').textContent='طول الرمز القصير: '+(offerShort.replace(/[^0-9A-Z]/g,'').length-2)+' حرف (من غير الشرطات)';
-  $('#offerShortNote').textContent=on?(offerCtx&&offerCtx.one?'كود واحد: اكتبه أو امسحه على الجهاز الآخر وهيتصل لوحده من غير رمز رد. لو ما اشتغلش جرّب وضع «رمز قصير».':'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».'):('الرمز القصير مش متاح دلوقتي: '+offerShortWhy+' استخدم الـQR الظاهر تحت أو غيّر الوضع.');
+  $('#offerShortNote').textContent=on?(offerCtx&&offerCtx.one?'كود واحد: اكتبه أو امسحه على الجهاز الآخر وهيتصل لوحده من غير رمز رد. لو ما اشتغلش جرّب وضع «رمز قصير».':(oneWhy&&settings.mode==='one'?'كود واحد مش متاح دلوقتي. '+oneWhy+' ده الرمز القصير العادي: الجهاز التاني هيعرض رمز رد تكتبه هنا في الخانة اللي تحت.':'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».')):('الرمز القصير مش متاح دلوقتي: '+offerShortWhy+' استخدم الـQR الظاهر تحت أو غيّر الوضع.');
   drawQR('offerQR',on?offerShort:$('#offerOut').value,'offerQRmsg');
 }
 function fillShort(sc,long){
