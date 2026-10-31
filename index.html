@@ -152,6 +152,12 @@ body[data-mode=qr] .m-txt{display:none!important}
 body[data-mode=short] .m-short{display:block;animation:rise .4s var(--ease) both}
 body[data-mode=short] .m-txt{display:none!important}
 body[data-mode=short] .m-qr.st2{display:none!important}
+body[data-mode=one] .m-short{display:block;animation:rise .4s var(--ease) both}
+body[data-mode=one] .m-txt{display:none!important}
+body[data-mode=one] .m-qr.st2{display:none!important}
+body[data-mode=one] #s-host .step.later,body[data-mode=one] #s-host .m-short,body[data-mode=one] #s-host #btnConnect{display:none!important}
+body.oneflow #answerBox{display:none!important}
+@media(max-width:360px){.tabs button{padding:8px 2px;font-size:.78rem;gap:3px}.tabs button .i{display:none}}
 .cbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
 .cbar b{display:flex;align-items:center;gap:8px}
 .cbar b::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
@@ -520,6 +526,7 @@ button.icon{width:44px;height:44px}
   </div>
   <div id="resumeNote" class="warnbox" hidden></div>
   <div class="actions">
+    <div id="quickBox" class="actions" hidden style="margin-bottom:0"></div>
     <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدئ الإتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
     <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
     <input type="file" id="preFiles" multiple hidden>
@@ -1004,7 +1011,7 @@ async function pack(desc){
 }
 async function unpack(code){
   code=String(code).replace(/\s+/g,'');
-  if(/^S[1-4]/i.test(code)) return shortDecode(code);
+  if(/^S[1-5]/i.test(code)) return shortDecode(code);
   const m=code.match(/^(G1|F0|F1)\.([A-Za-z0-9_-]+)$/);
   if(!m) throw new Error('الكود غير صحيح. تأكد إنك نسخته كامل.');
   try{
@@ -1139,7 +1146,7 @@ try{
   settings.realIp=localStorage.getItem('ft.ip')==='1'; settings.fs=localStorage.getItem('ft.fs')!=='0'; settings.maxMin=Math.max(0,parseInt(localStorage.getItem('ft.max')||'0',10)||0);
   settings.alert=localStorage.getItem('ft.alert')!=='0'; settings.haptic=localStorage.getItem('ft.haptic')!=='0'; settings.review=localStorage.getItem('ft.review')==='1';
   settings.skip=localStorage.getItem('ft.skip')==='1';
-  const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt'||m==='short') settings.mode=m;
+  const m=localStorage.getItem('ft.mode'); if(m==='qr'||m==='txt'||m==='short'||m==='one') settings.mode=m;
 }catch(_){}
 const lsSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(_){} };
 function idb(){
@@ -1520,7 +1527,7 @@ function connected(){ return !!(sess&&sess.open&&!sess.lost&&dc&&dc.readyState==
 function onConnected(){
   if(sess&&sess.open&&!sess.lost) return;
   clearTimeout(slowT); clearTimeout(discT);
-  sess={open:true,lost:false}; peerName=''; netChangeAt=0; sysNoteHide('net'); sendHello(); realIpNote(); rateScale=1; nextReal=false; trustedPeer=false; secSent=false; secTmp=null; pendingSec=null; setTimeout(()=>{ maybeSendSec(); touchPeer(); },1500); if(settings.sound){ unlockAudio(); beep(); }
+  sess={open:true,lost:false}; peerName=''; netChangeAt=0; sysNoteHide('net'); sendHello(); realIpNote(); rateScale=1; nextReal=false; trustedPeer=false; secSent=false; secTmp=null; pendingSec=null; sysNoteHide('one'); document.body.classList.remove('oneflow'); setTimeout(()=>{ maybeSendSec(); touchPeer(); },1500); if(settings.sound){ unlockAudio(); beep(); }
   showErr(''); setBadge('متصل','ok'); setStep('host',4); setStep('join',4); buzz([30,40,30]); view('s-xfer');
   $('#lost').hidden=true; $('#sumBox').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
   for(const t of outgoing.values()){
@@ -1590,22 +1597,34 @@ async function startHost(force){
   offerShort=null; offerCtx=null; $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').textContent='جارٍ إنشاء الكود…';
   $('#offerQR').hidden=true; $('#ipWarnH').hidden=true;
   try{
-    const wantShort=settings.mode==='short'&&certPersistent&&(await getPeers()).length>0;
+    const wantShort=(settings.mode==='short'||settings.mode==='one')&&certPersistent&&(await getPeers()).length>0;
     if(settings.realIp||force||nextReal||wantShort){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal||wantShort); }
     await ensureCert();
     const p=makePC(); setupDC(p.createDataChannel('files'));
     let off=await p.createOffer(), s3=null; offerCtx=null;
-    if(settings.mode==='short'){ try{ s3=await s3Peer(); }catch(_){ s3=null; } }
+    const oneMode=settings.mode==='one';
+    if(settings.mode==='short'||oneMode){ try{ s3=await s3Peer(); }catch(_){ s3=null; } }
     if(s3){
       try{
         const nonce=Array.from(crypto.getRandomValues(new Uint8Array(4))), c=await kdfIce(s3.sec,nonce,'o');
-        await p.setLocalDescription({type:'offer',sdp:mungeIce(off.sdp,c)}); offerCtx={peer:s3,nonce};
+        await p.setLocalDescription({type:'offer',sdp:mungeIce(off.sdp,c)}); offerCtx={peer:s3,nonce,one:false};
       }catch(e){ dlogAdd('S3 munge failed: '+(e&&e.message)); offerCtx=null; await p.setLocalDescription(off); }
     }else await p.setLocalDescription(off);
     await waitIce(p);
     if(p!==pc) return;
     showCode('offer',await pack(p.localDescription),p.localDescription);
-    try{ offerShort=(offerCtx&&await shortEncodeOffer3(p.localDescription))||await shortEncodeOffer(p.localDescription); }catch(_){ offerShort=null; }
+    if(oneMode&&offerCtx){
+      try{
+        const c=await kdfIce(offerCtx.peer.sec,offerCtx.nonce,'a');
+        const code=await shortEncodeOffer3(p.localDescription,'S5');
+        if(code){
+          await p.setRemoteDescription({type:'answer',sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:offerCtx.peer.fp,setup:'active',cands:[]})});
+          offerCtx.one=true; offerShort=code; setBadge('بانتظار الجهاز التاني…','wait'); dlogAdd('one-code mode armed');
+          clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('الاتصال بالكود الواحد ما اكتملش. جرّب وضع «رمز قصير» (بيطلب رمز رد) أو الكود العادي.'),[['وضع رمز قصير',()=>setMode('short')]].concat(connFailActions())); } },30000);
+        }
+      }catch(e){ dlogAdd('one-code arm failed: '+(e&&e.message)); offerCtx.one=false; }
+    }
+    if(!offerShort){ try{ offerShort=(offerCtx&&await shortEncodeOffer3(p.localDescription))||await shortEncodeOffer(p.localDescription); }catch(_){ offerShort=null; } }
     await fillOfferPeers();
     renderOfferShort();
   }catch(e){ showErr('حصل خطأ: '+(e&&e.message||e)); }
@@ -1615,6 +1634,7 @@ async function hostConnect(){
   showErr('');
   try{
     if(!pc) throw new Error('ابدأ الاتصال من جديد.');
+    if(offerCtx&&offerCtx.one) throw new Error('وضع «كود واحد» مفيهوش رمز رد. استنى الاتصال، أو غيّر الوضع.');
     const d=await unpack($('#answerIn').value);
     if(d.type!=='answer') throw new Error('ده مش كود رد. الصق الكود اللي رجع من الجهاز التاني.');
     if(pc.signalingState!=='have-local-offer') return;
@@ -1628,10 +1648,10 @@ async function hostConnect(){
 async function joinCreate(force){
   showErr('');
   try{
-    const d=await unpack($('#offerIn').value); const s3=d.s3; delete d.s3;
+    const d=await unpack($('#offerIn').value); const s3=d.s3; delete d.s3; document.body.classList.toggle('oneflow',!!(s3&&s3.one));
     if(d.type!=='offer') throw new Error('ده مش كود بداية اتصال. الصق الكود من الجهاز الأول.');
     role='join'; closePC(); $('#answerBox').hidden=true; $('#answerQR').hidden=true; $('#ipWarnJ').hidden=true;
-    const wantShort=settings.mode==='short'&&certPersistent&&(await getPeers()).length>0;
+    const wantShort=(settings.mode==='short'||settings.mode==='one')&&certPersistent&&(await getPeers()).length>0;
     if(settings.realIp||force||nextReal||wantShort){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal||wantShort); }
     await ensureCert();
     const p=makePC();
@@ -1646,6 +1666,7 @@ async function joinCreate(force){
     $('#answerBox').hidden=false;
     showCode('answer',await pack(p.localDescription),p.localDescription);
     setBadge('بانتظار الجهاز الأول','wait');
+    if(s3ok&&s3.one){ sysNote('one','بيتصل بالجهاز الأول… من غير ما تكتب أي رمز تاني.',null,'ok'); clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ sysNoteHide('one'); showErr(failText('الاتصال بالكود الواحد ما اكتملش. اطلب من الجهاز الأول يجرّب وضع «رمز قصير».'),connFailActions()); } },30000); }
     try{ const sc=(s3ok&&await shortEncodeAnswer4(p.localDescription))||await shortEncode(p.localDescription,p.remoteDescription.sdp); fillShort(sc,$('#answerOut').value); }catch(_){ fillShort(null,$('#answerOut').value); }
   }catch(e){ showErr(e.message||String(e)); }
   finally{ releaseMedia(); }
@@ -1711,7 +1732,7 @@ function initScan(box){
   }};
   function onText(raw){
     const c=String(raw||'').replace(/\s+/g,'');
-    if(!/^(G1|F0|F1)\.[A-Za-z0-9_-]+$/.test(c)&&!/^S[1-4]-?[0-9A-Za-z-]{10,80}$/.test(c)) return false;
+    if(!/^(G1|F0|F1)\.[A-Za-z0-9_-]+$/.test(c)&&!/^S[1-5]-?[0-9A-Za-z-]{10,80}$/.test(c)) return false;
     $('#'+box.dataset.target).value=c; S.stop(); say('تم قراءة الكود ✓');
     const go=$('#'+box.dataset.go); if(go) go.click();
     return true;
@@ -1758,12 +1779,12 @@ function setStep(flow,n){
 }
 buildSteps();
 function setMode(m){
-  settings.mode=m; document.body.dataset.mode=m; lsSet('ft.mode',m);
+  const prevMode=settings.mode; settings.mode=m; document.body.dataset.mode=m; lsSet('ft.mode',m);
   $$('[data-setmode]').forEach(b=>b.classList.toggle('on',b.dataset.setmode===m));
   if(m==='txt') stopScans();
-  try{ renderOfferShort(); }catch(_){}
+  try{ if(role==='host'&&curView==='s-host'&&$('#offerOut').value&&prevMode!==m&&(prevMode==='one'||m==='one')) startHost(false); else renderOfferShort(); }catch(_){}
 }
-$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm"><use href="#i-qr"/></svg>رمز QR</button><button data-setmode="txt"><svg class="i sm"><use href="#i-type"/></svg>رمز نصي</button><button data-setmode="short"><svg class="i sm"><use href="#i-zap"/></svg>رمز قصير</button>'; });
+$$('.tabs').forEach(t=>{ t.innerHTML='<button data-setmode="qr"><svg class="i sm"><use href="#i-qr"/></svg>رمز QR</button><button data-setmode="txt"><svg class="i sm"><use href="#i-type"/></svg>رمز نصي</button><button data-setmode="short"><svg class="i sm"><use href="#i-zap"/></svg>رمز قصير</button><button data-setmode="one"><svg class="i sm"><use href="#i-link"/></svg>كود واحد</button>'; });
 setMode(settings.mode);
 
 // ---------- cards ----------
@@ -2723,8 +2744,8 @@ function bytesToB64(b){ let s='',acc=0,bits=0; for(const v of b){ acc=(acc<<8)|v
 function ckEnc(bytes){ let s='',acc=0,bits=0; for(const v of bytes){ acc=(acc<<8)|v; bits+=8; while(bits>=5){ bits-=5; s+=CK[(acc>>bits)&31]; } acc&=(1<<bits)-1; } if(bits) s+=CK[(acc<<(5-bits))&31]; return s; }
 function ckDec(s){ const out=[]; let acc=0,bits=0; for(const ch of s){ const v=CK.indexOf(ch); if(v<0) return null; acc=(acc<<5)|v; bits+=5; if(bits>=8){ bits-=8; out.push((acc>>bits)&255); } acc&=(1<<bits)-1; } return out; }
 function normShort(raw){ return String(raw).toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V'); }
-const SHORT_LEN={S1:52,S2:52,S3:24,S4:18};
-function fmtShort(raw){ const n=normShort(raw); if(!/^S[1-4]/.test(n)) return null; const need=SHORT_LEN[n.slice(0,2)], rest=n.slice(2,2+need); return {text:n.slice(0,2)+(rest?'-'+rest.match(/.{1,4}/g).join('-'):'-'),len:rest.length,need}; }
+const SHORT_LEN={S1:52,S2:52,S3:24,S4:18,S5:24};
+function fmtShort(raw){ const n=normShort(raw); if(!/^S[1-5]/.test(n)) return null; const need=SHORT_LEN[n.slice(0,2)], rest=n.slice(2,2+need); return {text:n.slice(0,2)+(rest?'-'+rest.match(/.{1,4}/g).join('-'):'-'),len:rest.length,need}; }
 async function ensureCert(){
   if(myCert||!window.RTCPeerConnection||!RTCPeerConnection.generateCertificate) return;
   try{
@@ -2742,7 +2763,17 @@ async function pinPeer(fp){
   arr.push({fp,ts:Date.now()}); try{ await idbSet('peers',arr.slice(-50)); }catch(_){}
   updatePairInfo();
 }
-async function updatePairInfo(){ const n=(await getPeers()).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · يفعّل الرمز القصير'):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
+async function refreshQuick(){
+  try{
+    const box=$('#quickBox'); if(!box) return; box.textContent='';
+    const a=certPersistent?(await getPeers()).filter(x=>x.sec).sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0)).slice(0,3):[];
+    box.hidden=!a.length;
+    a.forEach((x,i)=>{ const b=document.createElement('button'); b.className='act'; const nm=x.name||('جهاز '+(i+1));
+      b.innerHTML='<span class="ico"><svg class="i"><use href="#i-zap"/></svg></span><span class="tx"></span>'; const tx=b.querySelector('.tx'); tx.textContent='اتصل بـ '+nm; const sm=document.createElement('small'); sm.textContent=settings.mode==='one'?'كود واحد جاهز':'رمز قصير جاهز'; tx.appendChild(sm);
+      b.onclick=()=>{ preferFp=x.fp; if(settings.mode!=='one'&&settings.mode!=='short') setMode('short'); startHost(false); }; box.appendChild(b); });
+  }catch(_){}
+}
+async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · يفعّل الرمز القصير'):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
 $('#btnUnpair').onclick=async()=>{ try{ await idbDel('peers'); }catch(_){} updatePairInfo(); };
 updatePairInfo();
 async function shortEncode(desc,remoteSdp){
@@ -2771,11 +2802,11 @@ async function shortEncodeOffer(desc){
 }
 function renderOfferShort(){
   if(role!=='host'||!$('#offerOut').value) return;
-  const on=settings.mode==='short'&&!!offerShort;
-  const sh=settings.mode==='short';
+  const sh=settings.mode==='short'||settings.mode==='one';
+  const on=sh&&!!offerShort&&((settings.mode==='one')===!!(offerCtx&&offerCtx.one));
   $('#offerShortBox').hidden=!sh; $('#offerShortOut').textContent=on?offerShort:'';
   if(on) $('#offerInfo').textContent='طول الرمز القصير: '+(offerShort.replace(/[^0-9A-Z]/g,'').length-2)+' حرف (من غير الشرطات)';
-  $('#offerShortNote').textContent=on?'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».':('الرمز القصير مش متاح دلوقتي: '+offerShortWhy+' استخدم الـQR الظاهر تحت أو غيّر الوضع.');
+  $('#offerShortNote').textContent=on?(offerCtx&&offerCtx.one?'كود واحد: اكتبه أو امسحه على الجهاز الآخر وهيتصل لوحده من غير رمز رد. لو ما اشتغلش جرّب وضع «رمز قصير».':'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».'):('الرمز القصير مش متاح دلوقتي: '+offerShortWhy+' استخدم الـQR الظاهر تحت أو غيّر الوضع.');
   drawQR('offerQR',on?offerShort:$('#offerOut').value,'offerQRmsg');
 }
 function fillShort(sc,long){
@@ -2785,7 +2816,7 @@ function fillShort(sc,long){
     :'الرمز القصير غير متاح الآن. يتفعّل بعد أول اتصال ناجح مع الضغط على «متطابق» في الجهازين. يمكنك كتابة هذا الرمز (الحروف الكبيرة والصغيرة تفرق).';
 }
 async function shortDecode(raw){
-  { const k=normShort(raw).slice(0,2); if(k==='S3'||k==='S4') return shortDecode34(k,normShort(raw).slice(2)); }
+  { const k=normShort(raw).slice(0,2); if(k==='S3'||k==='S4'||k==='S5') return shortDecode34(k,normShort(raw).slice(2)); }
   const rest=normShort(raw).slice(2);
   if(rest.length!==52) throw new Error('الرمز القصير 52 حرفًا، المكتوب '+rest.length+'.');
   const b=ckDec(rest); if(!b||b.length<32) throw new Error('الرمز القصير فيه حرف غير صحيح.');
@@ -3100,7 +3131,7 @@ $('#bkFile').onchange=async e=>{
     const out={}, S=j.s;
     for(const k of BK_FLAG) if(S[k]==='0'||S[k]==='1') out[k]=S[k];
     if(/^\d{1,5}$/.test(String(S['ft.max']))) out['ft.max']=String(Math.min(10080,parseInt(S['ft.max'],10)));
-    if(['qr','txt','short'].includes(S['ft.mode'])) out['ft.mode']=S['ft.mode'];
+    if(['qr','txt','short','one'].includes(S['ft.mode'])) out['ft.mode']=S['ft.mode'];
     if(typeof S['ft.name']==='string') out['ft.name']=cleanName(S['ft.name']);
     let themes=[];
     try{ const a=JSON.parse(S['ft.themes']||'[]'); if(Array.isArray(a)) themes=a.filter(x=>x&&typeof x.name==='string'&&x.name.length<=40&&['bg','surface','text','accent'].every(k=>HEXRX.test(x[k]))).slice(-12).map(x=>({name:x.name,bg:x.bg,surface:x.surface,text:x.text,accent:x.accent})); }catch(_){}
@@ -3265,13 +3296,13 @@ async function fillOfferPeers(){
 }
 $('#offerPeer').onchange=e=>{ preferFp=e.target.value; startHost(false); };
 function idBytes(fp){ return fp.split(':').slice(0,3).map(h=>parseInt(h,16)); }
-async function shortEncodeOffer3(desc){
+async function shortEncodeOffer3(desc,prefix){
   if(!offerCtx) return null;
   const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass') return null;
   const c=p.cands.find(x=>ip4(x.addr)); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «استخدم عناوين حقيقية» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
   const body=[...idBytes(p.fp),...offerCtx.nonce,...ip4(c.addr),c.port>>8,c.port&255];
   const crc=crc16(body); body.push(crc>>8,crc&255);
-  return 'S3-'+ckEnc(body).match(/.{1,4}/g).join('-');
+  return (prefix||'S3')+'-'+ckEnc(body).match(/.{1,4}/g).join('-');
 }
 async function shortEncodeAnswer4(desc){
   const p=parseSDP(desc.sdp); if(!p||p.setup!=='active') return null;
@@ -3282,16 +3313,16 @@ async function shortEncodeAnswer4(desc){
 }
 async function shortDecode34(kind,rest){
   const need=SHORT_LEN[kind]; if(rest.length!==need) throw new Error('الرمز القصير '+need+' حرفًا، المكتوب '+rest.length+'.');
-  const b=ckDec(rest); const n=kind==='S3'?15:11; if(!b||b.length<n) throw new Error('الرمز القصير فيه حرف غير صحيح.');
+  const b=ckDec(rest); const n=kind==='S4'?11:15; if(!b||b.length<n) throw new Error('الرمز القصير فيه حرف غير صحيح.');
   const body=b.slice(0,n);
   if(crc16(body.slice(0,n-2))!==((body[n-2]<<8)|body[n-1])) throw new Error('يوجد خطأ في كتابة الرمز القصير. راجع الحروف.');
   const idHex=hexOf(body.slice(0,3)), peers=await getPeers();
   const match=x=>x.fp.split(':').slice(0,3).join('').toLowerCase()===idHex;
-  if(kind==='S3'){
+  if(kind==='S3'||kind==='S5'){
     const peer=peers.find(x=>match(x)&&x.sec);
     if(!peer) throw new Error('الجهاز ده مش مقترن بالجهاز الأول بالرمز الأقصر. اطلب منه يغيّر الوضع واستخدم الرمز العادي (اتصال واحد بيكفي بعد كده).');
     const nonce=body.slice(3,7), c=await kdfIce(peer.sec,nonce,'o');
-    return {type:'offer',s3:{sec:peer.sec,nonce},sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:peer.fp,setup:'actpass',cands:[{addr:body.slice(7,11).join('.'),port:(body[11]<<8)|body[12],prio:2113937151}]})};
+    return {type:'offer',s3:{sec:peer.sec,nonce,one:kind==='S5'},sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:peer.fp,setup:'actpass',cands:[{addr:body.slice(7,11).join('.'),port:(body[11]<<8)|body[12],prio:2113937151}]})};
   }
   if(!offerCtx||!match(offerCtx.peer)) throw new Error('رمز الرد ده مش للرمز الحالي. ابدأ الاتصال من جديد وكرر.');
   const c=await kdfIce(offerCtx.peer.sec,offerCtx.nonce,'a');
@@ -3313,6 +3344,7 @@ async function onPsack(){
   if(pe&&pe.e){ pe.e.sec=secTmp; await idbSet('peers',pe.arr); dlogAdd('pair secret stored (host)'); } secTmp=null; updatePairInfo();
 }
 async function applyPendingSec(){ if(!pendingSec) return; const v=pendingSec; pendingSec=null; await onPsec({s:v}); }
+setTimeout(()=>{ ensureCert().then(refreshQuick).catch(()=>{}); },300);
 async function touchPeer(){ try{ const pe=await peerEntry(); if(pe&&pe.e){ pe.e.last=Date.now(); await idbSet('peers',pe.arr); } }catch(_){} }
 })();
 
