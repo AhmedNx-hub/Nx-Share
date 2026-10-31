@@ -611,7 +611,7 @@ button.icon{width:44px;height:44px}
       </div>
       <input type="file" id="pickDir" webkitdirectory hidden>
     </div>
-    <div class="msgrow"><input type="text" id="msgIn" placeholder="نص أو رابط لإرساله" dir="auto"><button id="msgSend" class="primary icon" aria-label="إرسال"><svg class="i"><use href="#i-send"/></svg></button></div>
+    <div class="msgrow"><input type="text" id="msgIn" placeholder="نص أو رابط لإرساله" dir="auto"><button id="msgSend" class="primary icon" aria-label="إرسال"><svg class="i"><use href="#i-send"/></svg></button><button id="msgClip" class="icon" aria-label="لصق من الحافظة وإرسال" title="لصق من الحافظة وإرسال"><svg class="i"><use href="#i-copy"/></svg></button></div>
     <div class="btns"><button id="btnSpeed"><svg class="i sm"><use href="#i-zap"/></svg>اختبار السرعة</button></div>
   </div>
   <div id="stage" class="card stage" hidden>
@@ -1368,7 +1368,7 @@ async function renderLog(){
     r.append(nm,sz);
     const m=document.createElement('div'); m.className='muted';
     let when=''; try{ when=new Date(e.ts).toLocaleString('ar-EG'); }catch(_){ when=new Date(e.ts).toISOString(); }
-    m.textContent=when+' · '+(e.rootName?('مجلد «'+e.rootName+'»'):'التحميلات');
+    m.textContent=when+' · '+(e.rootName?('مجلد «'+e.rootName+'»'):'التحميلات')+(e.peer?' · من «'+e.peer+'»':'');
     d.append(r,m);
     if(e.rootName){
       const b=document.createElement('div'); b.className='btns';
@@ -2489,9 +2489,9 @@ async function finalize(r){
   if(r.direct){
     const fin=await directFinish(r);
     r.ui.thumb(fin.file); statIn(r);
-    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'» ✓'); r.ui.buttons(fileActs(fin.file));
+    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'» ✓'); r.ui.buttons(fileActs(fin.file).concat([['حذف الملف',()=>delSaved(r,fin)]]));
     rememberRoot(r.direct.root);
-    logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:r.direct.root.name,fname:fin.fname});
+    logAdd({peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:r.direct.root.name,fname:fin.fname});
     inCards.delete(r.key); acceptedKeys.delete(r.key); dlogAdd('recv #'+r.id+' saved ok (direct)');
     sendCtl({t:'fin',id:r.id});
     ovIn.done(r.size); noteDone();
@@ -2511,7 +2511,7 @@ async function finalize(r){
       statIn(r); r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'» ✓');
       store.clear(r.key).catch(()=>{});
       rememberRoot(settings.dirHandle);
-      logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:settings.dirHandle.name,fname:fh.name});
+      logAdd({peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:settings.dirHandle.name,fname:fh.name});
       saved=true;
     }catch(e){
       console.warn('dir save failed',e);
@@ -2521,7 +2521,7 @@ async function finalize(r){
   if(!saved){
     const flat=(r.path?r.path.split('/').join('__')+'__':'')+r.name;
     saveBlob(blob,flat);
-    logAdd({name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
+    logAdd({peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
     statIn(r); r.ui.done('تم الحفظ في التحميلات ✓'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
     r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]].concat(fileActs(new File([blob],flat,{type:blob.type||'application/octet-stream'}))));
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
@@ -3013,13 +3013,34 @@ $('#bkFile').onchange=async e=>{
     if(typeof S['ft.name']==='string') out['ft.name']=cleanName(S['ft.name']);
     let themes=[];
     try{ const a=JSON.parse(S['ft.themes']||'[]'); if(Array.isArray(a)) themes=a.filter(x=>x&&typeof x.name==='string'&&x.name.length<=40&&['bg','surface','text','accent'].every(k=>HEXRX.test(x[k]))).slice(-12).map(x=>({name:x.name,bg:x.bg,surface:x.surface,text:x.text,accent:x.accent})); }catch(_){}
-    out['ft.themes']=JSON.stringify(themes);
-    const th=S['ft.theme']; if(typeof th==='string'&&(NxTheme.BUILT[th]||(th.startsWith('c:')&&themes.some(x=>'c:'+x.name===th)))) out['ft.theme']=th;
+    const merged=NxTheme.customs().filter(x=>!themes.some(y=>y.name===x.name)).concat(themes).slice(-12);
+    if(themes.length) out['ft.themes']=JSON.stringify(merged);
+    const th=S['ft.theme']; if(typeof th==='string'&&(NxTheme.BUILT[th]||(th.startsWith('c:')&&merged.some(x=>'c:'+x.name===th)))) out['ft.theme']=th;
+    if(out['ft.name']==='') delete out['ft.name'];
     const n=Object.keys(out).length; if(!n) throw new Error('empty');
     for(const k in out) lsSet(k,out[k]);
     dlogAdd('settings imported: '+n+' keys'); setTimeout(()=>location.reload(),300);
-    sysNote('bk','تم استيراد الإعدادات. جارٍ إعادة التحميل…',null,'ok');
+    sysNote('bk','تم دمج الإعدادات ('+n+' عنصر'+(themes.length?'، '+themes.length+' ثيم':'')+') وأبقينا ثيماتك الحالية. جارٍ إعادة التحميل…',null,'ok');
   }catch(_){ sysNote('bk','الملف مش ملف إعدادات Nx-Share صالح.',[['إخفاء',()=>sysNoteHide('bk')]],'bad'); }
+};
+
+// ---------- v8 ----------
+async function delSaved(r,fin){
+  if(!confirm('حذف الملف «'+fin.fname+'» من الجهاز؟ مش هيرجع.')) return;
+  try{
+    await r.direct.dir.removeEntry(fin.fname);
+    r.ui.done('تم حذف الملف'); r.ui.buttons([]);
+    try{ const arr=(await idbGet('log'))||[]; const k=arr.filter(e=>!(e.fname===fin.fname&&e.rootName===r.direct.root.name&&(e.path||'')===(r.path||''))); await idbSet('log',k); if(!$('#logBox').hidden) renderLog(); }catch(_){}
+    dlogAdd('deleted saved file');
+  }catch(e){ showErr('تعذر حذف الملف: '+((e&&e.message)||e)); }
+}
+$('#msgClip').onclick=async()=>{
+  if(!connected()) return;
+  try{
+    const t=String(await navigator.clipboard.readText()||'').trim().slice(0,20000);
+    if(!t){ showErr('الحافظة فاضية.'); return; }
+    showErr(''); sendCtl({t:'msg',text:t}); addMsg(t,'out'); buzz(20);
+  }catch(_){ showErr('مقدرناش نقرأ الحافظة. اسمح بالوصول للحافظة أو الصق النص يدويًا.'); }
 };
 })();
 
