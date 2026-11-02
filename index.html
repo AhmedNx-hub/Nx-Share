@@ -191,7 +191,7 @@ body.oneflow #answerBox{display:none!important}
 #okFlash .okc{display:grid;gap:10px;justify-items:center;padding:26px 34px;border-radius:22px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
 #okFlash .okc .tick{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff;animation:pop .5s var(--ease)}
 #okFlash .okc .tick .i{width:30px;height:30px}
-.codebig[role=button]{cursor:copy}
+.codebig[role=button]{cursor:copy;min-height:44px}
 #s-start .actions.row2{grid-template-columns:1fr 1fr}
 #s-start .actions.row2 .act{flex-direction:column;justify-content:center;text-align:center;gap:8px;padding:18px 8px}
 #s-start .actions.row2 .act small{font-size:.72rem}
@@ -1684,9 +1684,18 @@ async function hostConnect(){
     if(offerCtx&&offerCtx.one) throw new Error('وضع «كود واحد» مفيهوش رمز رد. استنى الاتصال، أو غيّر الوضع.');
     const d=await unpack($('#answerIn').value);
     if(d.type!=='answer') throw new Error('ده مش كود رد. الصق الكود اللي رجع من الجهاز التاني.');
-    if(pc.signalingState!=='have-local-offer') return;
+    if(pc.signalingState!=='have-local-offer'){
+      if(pc.__ans===d.sdp) return;
+      throw new Error('اتطبق رد قبل كده على الكود ده. لو الاتصال مش بيتم، اضغط «ابدأ من جديد» وابدأ من أول.');
+    }
+    const au=(String(d.sdp).match(/a=ice-ufrag:(.*)\r?\n/)||[])[1]||'';
+    if(au.length===4&&/^[FG][01]\./.test(String($('#answerIn').value).replace(/\s+/g,''))){
+      const want=await offerTag(pc.localDescription.sdp);
+      if(au.slice(2)!==want&&!confirm('الرد ده شكله مش بتاع الكود اللي ظاهر عندك (ممكن يكون من جهاز تاني، أو من نسخة قديمة من التطبيق). تكمل برضه؟')) throw new Error('الرد ده مش بتاع الكود اللي ظاهر عندك. اتأكد إنك نسخت الرد من الجهاز اللي كتب أو مسح الكود ده بالذات.');
+    }
     setBadge('جارٍ الاتصال…','wait');
     const p=pc;
+    p.__ans=d.sdp;
     await p.setRemoteDescription(d);
     clearTimeout(slowT);
     slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('الاتصال بياخد وقت. تأكد إن الجهازين على نفس الواي فاي، أو جرّب هوتسبوت من أحدهما.'),connFailActions()); showTips(true); } },15000);
@@ -1707,6 +1716,9 @@ async function joinCreate(force){
     if(s3){
       try{ const c=await kdfIce(s3.sec,s3.nonce,'a'); await p.setLocalDescription({type:'answer',sdp:mungeIce(ans.sdp,c)}); s3ok=true; }
       catch(e){ dlogAdd('S3 answer munge failed: '+(e&&e.message)); await p.setLocalDescription(ans); }
+    }else if(!wantShort&&!/^S[1-5]/i.test(String($('#offerIn').value).replace(/\s+/g,''))){
+      try{ const tag=await offerTag(d.sdp); const pw=(ans.sdp.match(/a=ice-pwd:(.*)\r?\n/)||[])[1], uf=(ans.sdp.match(/a=ice-ufrag:(.*)\r?\n/)||[])[1]||'xxxx'; if(uf.length!==4) throw new Error('ufrag len'); await p.setLocalDescription({type:'answer',sdp:mungeIce(ans.sdp,{ufrag:uf.slice(0,2)+tag,pwd:pw})}); }
+      catch(e){ dlogAdd('answer tag munge failed: '+(e&&e.message)); await p.setLocalDescription(ans); }
     }else await p.setLocalDescription(ans);
     await waitIce(p);
     if(p!==pc) return;
@@ -2207,7 +2219,7 @@ function outBtns(t,mode){
 function prioritize(t){
   const i=sendQueue.indexOf(t); if(i<=0) return;
   let at=0; while(at<sendQueue.length&&sendQueue[at].pre) at++;
-  if(sendQueue[i].pre) return;
+  if(sendQueue[i].pre){ t.ui.status('الملف ده اتجهز عند الجهاز التاني بالفعل وهيتنقل في دوره'); return; }
   sendQueue.splice(i,1); sendQueue.splice(at,0,t); $('#list').prepend(t.ui.el._g||t.ui.el);
   t.ui.status('هيتبعت بعد الملف الحالي مباشرةً');
 }
@@ -3235,10 +3247,10 @@ function qrZoom(cv){
 // device name + settings backup
 $('#optName').value=settings.name;
 $('#optName').onchange=e=>{ settings.name=cleanName(e.target.value); e.target.value=settings.name; lsSet('ft.name',settings.name); sendHello(); };
-const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan'];
+const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow'];
 const HEXRX=/^#[0-9a-fA-F]{6}$/;
 $('#btnBkExp').onclick=()=>{
-  const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
+  const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name','ft.autodel'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
   saveBlob(new Blob([JSON.stringify({app:'nx-share',v:1,s:o},null,1)],{type:'application/json'}),'nx-share-settings.json');
 };
 $('#btnBkImp').onclick=()=>$('#bkFile').click();
@@ -3249,6 +3261,7 @@ $('#bkFile').onchange=async e=>{
     const j=JSON.parse(await f.text()); if(!j||j.app!=='nx-share'||!j.s||typeof j.s!=='object') throw new Error('fmt');
     const out={}, S=j.s;
     for(const k of BK_FLAG) if(S[k]==='0'||S[k]==='1') out[k]=S[k];
+    if(['0','1','7','30'].includes(String(S['ft.autodel']))) out['ft.autodel']=String(S['ft.autodel']);
     if(/^\d{1,5}$/.test(String(S['ft.max']))) out['ft.max']=String(Math.min(10080,parseInt(S['ft.max'],10)));
     if(['qr','txt','short','one'].includes(S['ft.mode'])) out['ft.mode']=S['ft.mode'];
     if(typeof S['ft.name']==='string') out['ft.name']=cleanName(S['ft.name']);
@@ -3271,7 +3284,7 @@ async function delSaved(r,fin){
   try{
     await r.direct.dir.removeEntry(fin.fname);
     r.ui.done('تم حذف الملف'); r.ui.buttons([]);
-    try{ const arr=(await idbGet('log'))||[]; const k=arr.filter(e=>!(e.fname===fin.fname&&e.rootName===r.direct.root.name&&(e.path||'')===(r.path||''))); await idbSet('log',k); if($('#logOv')) renderLog(); }catch(_){}
+    logUpdate(a=>{ const x=a.find(e=>e.fname===fin.fname&&e.rootName===r.direct.root.name&&(e.path||'')===(r.path||'')&&!e.deleted); if(x){ x.deleted=true; x.delAt=Date.now(); } return a; });
     dlogAdd('deleted saved file');
   }catch(e){ showErr('تعذر حذف الملف: '+((e&&e.message)||e)); }
 }
@@ -3401,6 +3414,11 @@ async function kdfIce(secHex,nonce,label){
   const m=await crypto.subtle.sign('HMAC',key,new Uint8Array([...enc.encode('nx-ice|'+label+'|'),...nonce]));
   const b=Array.from(new Uint8Array(m));
   return {ufrag:bytesToB64(b.slice(0,3)),pwd:bytesToB64(b.slice(3,21))};
+}
+async function offerTag(sdp){
+  const g=r=>(String(sdp).match(r)||[])[1]||'';
+  const h=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('nxtag|'+g(/a=ice-ufrag:(.*)\r?\n/)+'|'+g(/a=ice-pwd:(.*)\r?\n/))));
+  return btoa(String.fromCharCode(h[0],h[1],h[2])).slice(0,2);
 }
 function mungeIce(sdp,c){ return sdp.replace(/a=ice-ufrag:.*\r?\n/,'a=ice-ufrag:'+c.ufrag+'\r\n').replace(/a=ice-pwd:.*\r?\n/,'a=ice-pwd:'+c.pwd+'\r\n'); }
 async function s3Peer(){
@@ -3644,13 +3662,14 @@ function openDetails(d){
   const rows=[['المسار',d.path||'—'],['الحجم',fmtSize(d.size)],['النوع',(d.name.split('.').length>1?d.name.split('.').pop().toUpperCase():'—')],['اتحفظ في',d.where],['وقت الاستلام',(()=>{ try{ return new Date(d.ts).toLocaleString('ar-EG'); }catch(_){ return new Date(d.ts).toISOString(); } })()],['المدة',fmtTime(d.dur)],['متوسط السرعة',fmtSpd(d.size/Math.max(0.001,d.dur))],['التحقق من السلامة',d.verified?(d.verified+' من '+d.blocks+' جزء (SHA-256)'):'غير متاح'],['من',d.from||'—']].concat(d.note?[['ملاحظة',d.note]]:[]);
   for(const [a,b] of rows){ const r=document.createElement('div'); r.className='dr'; const x=document.createElement('b'); x.textContent=a; const y=document.createElement('span'); y.textContent=b; y.dir='auto'; r.append(x,y); c.appendChild(r); }
   const bt=document.createElement('div'); bt.className='btns';
-  const close=()=>{ o.remove(); document.removeEventListener('keydown',kd); };
+  let rel=()=>{};
+  const close=()=>{ rel(); o.remove(); document.removeEventListener('keydown',kd); };
   const kd=e=>{ if(e.key==='Escape') close(); };
   for(const [l,f] of fileActs(d.file)){ const b=document.createElement('button'); b.type='button'; b.textContent=l; b.onclick=f; bt.appendChild(b); }
   if(d.del){ const b=document.createElement('button'); b.type='button'; b.className='danger'; b.textContent='حذف الملف'; b.onclick=async()=>{ close(); await d.del(); }; bt.appendChild(b); }
   const x=document.createElement('button'); x.type='button'; x.className='primary'; x.textContent='إغلاق'; x.onclick=close; bt.appendChild(x);
   c.appendChild(bt); o.appendChild(c); o.addEventListener('click',e=>{ if(e.target===o) close(); });
-  document.addEventListener('keydown',kd); document.body.appendChild(o); x.focus();
+  document.addEventListener('keydown',kd); document.body.appendChild(o); rel=modalTrap(o); x.focus();
 }
 $('#list').addEventListener('click',e=>{ if(e.target.closest('button,a,input,select')) return; const it=e.target.closest('.item'); if(it&&it._det) openDetails(it._det); });
 
@@ -3738,6 +3757,11 @@ try{ settings.autoDel=Number(localStorage.getItem('ft.autodel'))||0; settings.al
 $('#optAutoDel').value=String(settings.autoDel);
 $('#optAutoDel').onchange=e=>{ settings.autoDel=Number(e.target.value)||0; lsSet('ft.autodel',String(settings.autoDel)); sweepDel(false); };
 $('#optOw').checked=settings.allowOw; $('#optOw').onchange=e=>{ settings.allowOw=e.target.checked; lsSet('ft.ow',settings.allowOw?'1':'0'); };
+function modalTrap(o){
+  const prev=document.activeElement, rest=Array.from(document.body.children).filter(c=>c!==o&&!/^(SCRIPT|STYLE)$/.test(c.tagName)&&!c.inert);
+  rest.forEach(c=>{ c.inert=true; });
+  return ()=>{ rest.forEach(c=>{ c.inert=false; }); try{ if(prev&&prev.focus&&document.contains(prev)) prev.focus(); }catch(_){} };
+}
 // ----- history overlay -----
 const logUi={q:'',dir:'',dev:'',lim:150};
 function dayLabel(ts){
@@ -3749,8 +3773,8 @@ function openLog(){
   if($('#logOv')) return; Object.assign(logUi,{q:'',dir:'',dev:'',lim:150});
   const o=document.createElement('div'); o.id='logOv'; o.setAttribute('role','dialog'); o.setAttribute('aria-modal','true'); o.setAttribute('aria-label','السجل');
   o.innerHTML='<div class="lh"><h3><svg class="i"><use href="#i-history"/></svg>السجل</h3><button type="button" id="logX" class="icon" aria-label="إغلاق"><svg class="i"><use href="#i-close"/></svg></button></div><div class="lc"><input type="search" id="lgQ" placeholder="بحث بالاسم أو الملاحظة…" dir="auto" aria-label="بحث"><select id="lgDir" aria-label="النوع"><option value="">الكل</option><option value="in">مستلم</option><option value="out">مرسل</option></select><select id="lgDev" aria-label="الجهاز"><option value="">كل الأجهزة</option></select></div><div class="row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="muted" id="lgCnt"></span><button type="button" id="lgClr" class="danger">مسح السجل</button></div><div id="logList"></div>';
-  document.body.appendChild(o);
-  const close=()=>{ o.remove(); document.removeEventListener('keydown',kd); }, kd=e=>{ if(e.key==='Escape') close(); };
+  document.body.appendChild(o); const rel=modalTrap(o);
+  const close=()=>{ rel(); o.remove(); document.removeEventListener('keydown',kd); }, kd=e=>{ if(e.key==='Escape') close(); };
   document.addEventListener('keydown',kd); $('#logX').onclick=close;
   $('#lgQ').oninput=e=>{ logUi.q=e.target.value; logUi.lim=150; renderLog(); };
   $('#lgDir').onchange=e=>{ logUi.dir=e.target.value; logUi.lim=150; renderLog(); };
@@ -3871,6 +3895,28 @@ $('#pickSync').addEventListener('change',e=>{
   e.target.value=''; if(!items.length) return;
   const root=(items[0].path||items[0].file.name).split('/')[0]; startSync(items,root);
 });
+
+// ---------- v15: housekeeping ----------
+async function janitor(){
+  try{
+    const h=settings.dirHandle; if(!h||!(await dirPerm(false))) return;
+    if(current&&!current.failed) return;
+    let last=0; try{ last=Number(localStorage.getItem('ft.jan')||0); }catch(_){}
+    if(Date.now()-last<12*3600e3) return; lsSet('ft.jan',String(Date.now()));
+    let seen=0, rm=0, age=3*864e5; try{ const o=Number(localStorage.getItem('ft.janAge')); if(o>0) age=o; }catch(_){}
+    const walk=async(d,depth)=>{
+      if(depth>8||seen>6000) return; const ents=[];
+      try{ for await(const e of d.entries()){ ents.push(e); if(ents.length>3000) break; } }catch(_){ return; }
+      for(const [n,e] of ents){
+        if(++seen>6000) return;
+        if(e.kind==='directory'){ await walk(e,depth+1); continue; }
+        if(/^\.nx-[0-9a-f]{16}\.part$/.test(n)||/^\.nxprobe-/.test(n)){ try{ const f=await e.getFile(); if(Date.now()-f.lastModified>age){ await d.removeEntry(n); rm++; } }catch(_){} }
+      }
+    };
+    await walk(h,0); if(rm) dlogAdd('janitor removed '+rm+' stale temp files');
+  }catch(e){ dlogAdd('janitor err '+(e&&e.message)); }
+}
+setTimeout(janitor,8000); setInterval(janitor,6*3600e3);
 })();
 
 </script>
