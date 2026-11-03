@@ -123,6 +123,8 @@ textarea,input[type=text]{width:100%;font:15px/1.5 ui-monospace,Consolas,monospa
 textarea:focus,input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);outline:none}
 textarea{resize:vertical;word-break:break-all}
 /* hero / start */
+.more{margin-top:14px}.more>summary{cursor:pointer;text-align:center;color:var(--muted);padding:10px;min-height:44px;list-style:none;border-radius:12px}.more>summary::-webkit-details-marker{display:none}.more>summary::after{content:" ▾"}.more[open]>summary::after{content:" ▴"}.more .actions{margin-top:8px}
+#list .item,.lent{content-visibility:auto;contain-intrinsic-size:auto 96px}
 .hero{text-align:center;padding:22px 6px 6px}
 .hero .big{width:76px;height:76px;margin:0 auto 14px;border-radius:24px;display:grid;place-items:center;color:var(--on);background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--pglow);animation:float 4.5s ease-in-out infinite}
 .hero .big .i{width:38px;height:38px;stroke-width:2.2}
@@ -489,6 +491,7 @@ button.icon{width:44px;height:44px}
     <div class="sec">
       <h3><svg class="i"><use href="#i-sliders"/></svg>عام</h3>
       <div class="set">
+        <label class="sw"><span>استمرار النقل في الخلفية<small>بيشغّل صوت صامت وإشعار صغير عشان الأندرويد ما يوقفش النقل لما تفتح تطبيق تاني.</small></span><input type="checkbox" id="optBg"></label>
         <label class="sw"><span>استلام الملفات تلقائيًا<small>لو متوقف، هيطلب موافقتك على كل ملف.</small></span><input type="checkbox" id="optAuto"></label>
         <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
         <label class="sw"><span>أصوات الاتصال والانتهاء<small>نغمة قصيرة عند الاتصال وعند اكتمال النقل.</small></span><input type="checkbox" id="optSound"></label>
@@ -595,10 +598,16 @@ button.icon{width:44px;height:44px}
   <div id="resumeNote" class="warnbox" hidden></div>
   <div class="actions row2">
     <button id="btnHost" class="primary act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">بدئ الإتصال<small>إنشاء رمز وعرضه على الجهاز الآخر</small></span></button>
-    <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
-    <input type="file" id="preFiles" multiple hidden>
-    <button id="btnJoin" class="act"><span class="ico"><svg class="i"><use href="#i-join"/></svg></span><span class="tx">إنضمام إلى إتصال<small>مسح أو إدخال رمز من الجهاز الآخر</small></span></button>
+        <button id="btnJoin" class="act"><span class="ico"><svg class="i"><use href="#i-join"/></svg></span><span class="tx">إنضمام إلى إتصال<small>مسح أو إدخال رمز من الجهاز الآخر</small></span></button>
   </div>
+  <details class="more" id="moreHome"><summary>المزيد</summary>
+    <div class="actions">
+    <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
+      <input type="file" id="preFiles" multiple hidden>
+      <button id="btnHomeLog" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">سجل الملفات<small>اللي اتبعت واتستلم قبل كده</small></span></button>
+      <button id="btnHomeDev" class="act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">الأجهزة المقترنة<small>اتصال سريع بجهاز اتصلت بيه قبل كده</small></span></button>
+    </div>
+  </details>
 </section>
 
 <section id="s-host" class="card" hidden>
@@ -1084,7 +1093,7 @@ async function pack(desc){
   return 'F0.'+toB64(raw);
 }
 async function unpack(code){
-  code=String(code).replace(/\s+/g,'');
+  code=String(code).replace(/[\u200b-\u200f\u202a-\u202e\u2060\ufeff\u00a0]/g,'').replace(/[\u2010-\u2015\u2212]/g,'-').replace(/["'`«»“”‘’]/g,'').replace(/\s+/g,'');
   if(/^S[1-5]/i.test(code)) return shortDecode(code);
   const m=code.match(/^(G1|F0|F1)\.([A-Za-z0-9_-]+)$/);
   if(!m) throw new Error('الكود غير صحيح. تأكد إنك نسخته كامل.');
@@ -1495,7 +1504,43 @@ function keepAwake(){ return (async()=>{
   }catch(e){ wakeOk=false; dlogAdd('wakeLock: refused '+(e&&e.name||'')); }
   wakeNote();
 })(); }
-function releaseWake(){ try{ wl&&wl.release(); }catch(_){} wl=null; }
+
+// ---------- background keep-alive ----------
+// 1) timer that runs in a Worker (not throttled like page timers) 2) silent looping audio + media session so Android keeps the page running
+let hbW=null, bgAudio=null, bgUrl='';
+function tickEvery(fn,ms){
+  try{
+    hbStop();
+    const w=new Worker(URL.createObjectURL(new Blob(['let t=setInterval(()=>postMessage(1),'+ms+');onmessage=()=>clearInterval(t)'],{type:'text/javascript'})));
+    w.onmessage=()=>{ try{ fn(); }catch(_){} }; hbW=w; return 0;
+  }catch(_){ return setInterval(fn,ms); }
+}
+function hbStop(){ try{ if(hbW){ hbW.postMessage(0); hbW.terminate(); } }catch(_){} hbW=null; }
+function silentWav(){
+  const n=8000, b=new Uint8Array(44+n), dv=new DataView(b.buffer), w=(o,t)=>{ for(let i=0;i<t.length;i++) b[o+i]=t.charCodeAt(i); };
+  w(0,'RIFF'); dv.setUint32(4,36+n,true); w(8,'WAVEfmt '); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true); dv.setUint32(24,8000,true); dv.setUint32(28,8000,true); dv.setUint16(32,1,true); dv.setUint16(34,8,true); w(36,'data'); dv.setUint32(40,n,true);
+  for(let i=0;i<n;i++) b[44+i]=128+(i&1);
+  return URL.createObjectURL(new Blob([b],{type:'audio/wav'}));
+}
+function bgStart(){
+  if(settings.bg===false||bgAudio) return;
+  try{
+    bgUrl=silentWav(); const a=new Audio(bgUrl); a.loop=true; bgAudio=a;
+    const pr=a.play(); if(pr&&pr.catch) pr.catch(e=>{ dlogAdd('bg audio blocked: '+(e&&e.name)); });
+    if('mediaSession' in navigator){
+      navigator.mediaSession.metadata=new MediaMetadata({title:'Nx-Share',artist:'النقل شغال في الخلفية'});
+      navigator.mediaSession.playbackState='playing';
+      for(const k of ['pause','stop']) try{ navigator.mediaSession.setActionHandler(k,()=>{ try{ a.play(); }catch(_){} }); }catch(_){}
+    }
+    dlogAdd('bg keep-alive on');
+  }catch(e){ dlogAdd('bg keep-alive failed: '+((e&&e.message)||e)); bgAudio=null; }
+}
+function bgStop(){
+  try{ if(bgAudio){ bgAudio.pause(); bgAudio.src=''; } if(bgUrl) URL.revokeObjectURL(bgUrl); if('mediaSession' in navigator){ navigator.mediaSession.playbackState='none'; navigator.mediaSession.metadata=null; } }catch(_){}
+  bgAudio=null; bgUrl='';
+}
+document.addEventListener('visibilitychange',()=>{ try{ if(bgAudio&&bgAudio.paused&&sess&&sess.open&&!sess.lost) bgAudio.play().catch(()=>{}); }catch(_){} });
+function releaseWake(){ try{ wl&&wl.release(); }catch(_){} wl=null; bgStop(); }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&sess&&sess.open&&!sess.lost) keepAwake();
   if(document.visibilityState==='hidden') stopScans();
@@ -1572,7 +1617,7 @@ function onConnected(){
   clearTimeout(slowT); clearTimeout(discT);
   sess={open:true,lost:false}; peerName=''; netChangeAt=0; sysNoteHide('net'); sendHello(); realIpNote(); rateScale=1; nextReal=false; trustedPeer=false; secSent=false; secTmp=null; pendingSec=null; sysNoteHide('one'); sysNoteHide('netdiff'); sysNoteHide('oneretry'); document.body.classList.remove('oneflow'); setTimeout(()=>{ maybeSendSec(); touchPeer(); },1500); setTimeout(rememberAddr,2500); setTimeout(qualityProbe,2200); qualText=''; peerPl=false; oneTries=0; clearTimeout(oneT); setTimeout(showOkFlash,350); if(settings.sound){ unlockAudio(); beep(); }
   showErr(''); setBadge('متصل','ok'); setStep('host',4); setStep('join',4); buzz([30,40,30]); view('s-xfer');
-  $('#lost').hidden=true; $('#sumBox').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); dlogAdd('session opened');
+  $('#lost').hidden=true; $('#sumBox').hidden=true; setPicker(true); keepAwake(); showVerify(); startLive(); bgStart(); dlogAdd('session opened');
   for(const t of outgoing.values()){
     if(t.state==='interrupted'){
       if(t.restored){ t.restored=false; recount(t); }
@@ -1618,7 +1663,7 @@ function connLost(msg){
 }
 function resetToStart(msg){
   if(sess&&sess.open&&!sess.lost) connLost(msg||'تم قطع الاتصال.');
-  stopLive(); $('#connBar').hidden=true; closePC(); releaseMedia(); sess=null; role=null;
+  stopLive(); $('#connBar').hidden=true; closePC(); releaseMedia(); bgStop(); hbStop(); sess=null; role=null;
   for(const id of ['offerOut','answerIn','offerIn','answerOut','shortIn']) $('#'+id).value='';
   $('#shortOut').textContent=''; $('#shortCount').textContent=SHORT_HINT;
   $('#answerBox').hidden=true; $('#ipWarnH').hidden=true; $('#ipWarnJ').hidden=true;
@@ -2681,7 +2726,7 @@ async function finalize(r){
     const fin=await directFinish(r);
     await verifyDirect(r,fin);
     r.ui.thumb(fin.file); galAdd(r.name,fin.file); statIn(r);
-    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'»'); { const det=mkDet(r,fin.file,'مجلد «'+r.direct.root.name+'»',()=>delSaved(r,fin)); r.ui.el._det=det; r.ui.buttons(fileActs(fin.file).concat([['تفاصيل',()=>openDetails(det)],['حذف الملف',()=>delSaved(r,fin)]])); }
+    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'»'+(r.vN>0?' · ✓ متحقق منه':'')); { const det=mkDet(r,fin.file,'مجلد «'+r.direct.root.name+'»',()=>delSaved(r,fin)); r.ui.el._det=det; r.ui.buttons(fileActs(fin.file).concat([['تفاصيل',()=>openDetails(det)],['حذف الملف',()=>delSaved(r,fin)]])); }
     rememberRoot(r.direct.root);
     logAdd({dir:'in',note:r.note,peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:r.direct.root.name,fname:fin.fname});
     inCards.delete(r.key); acceptedKeys.delete(r.key); dlogAdd('recv #'+r.id+' saved ok (direct)');
@@ -2701,7 +2746,7 @@ async function finalize(r){
       fh=await uniqueFile(dir,r.name);
       const w=await fh.createWritable();
       try{ await blob.stream().pipeTo(w); }catch(e){ try{ await w.abort(); }catch(_){} throw e; }
-      statIn(r); r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'»');
+      statIn(r); r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'»'+(r.vN>0?' · ✓ متحقق منه':''));
       store.clear(r.key).catch(()=>{});
       rememberRoot(settings.dirHandle);
       logAdd({dir:'in',note:r.note,peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:settings.dirHandle.name,fname:fh.name});
@@ -2715,7 +2760,7 @@ async function finalize(r){
     const flat=(r.path?r.path.split('/').join('__')+'__':'')+r.name;
     saveBlob(blob,flat);
     logAdd({dir:'in',note:r.note,peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
-    statIn(r); r.ui.done('تم الحفظ في التحميلات'+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
+    statIn(r); r.ui.done('تم الحفظ في التحميلات'+(r.vN>0?' · ✓ متحقق منه':'')+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
     { const ff=new File([blob],flat,{type:blob.type||'application/octet-stream'}); const det=mkDet(r,ff,'التحميلات',null); r.ui.el._det=det; r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]].concat(fileActs(ff)).concat([['تفاصيل',()=>openDetails(det)]])); }
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
   }
@@ -2793,6 +2838,18 @@ $('#btnFolder').onclick=async()=>{
     }catch(e){ if(!e||e.name!=='AbortError') showErr('تعذر فتح المجلد: '+(e&&e.message||e)); }
   }else $('#pickDir').click();
 };
+
+$('#btnHomeLog').onclick=()=>$('#btnLog').click();
+$('#btnHomeDev').onclick=()=>$('#btnMenu').click();
+document.addEventListener('paste',e=>{
+  try{
+    if(/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
+    const fl=Array.from((e.clipboardData&&e.clipboardData.files)||[]); if(!fl.length) return;
+    e.preventDefault();
+    if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+    enqueue(fl.map(file=>({file,path:''})));
+  }catch(_){}
+});
 const dz=$('#dropZone');
 document.addEventListener('dragover',e=>{ e.preventDefault(); if(connected()) dz.classList.add('over'); });
 document.addEventListener('dragleave',e=>{ if(!e.relatedTarget) dz.classList.remove('over'); });
@@ -3018,14 +3075,14 @@ function fmtClock(ms){ const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/36
 function fmtMin(m){ return m>=60?(m/60)+' ساعة':m+' دقيقة'; }
 function startLive(){
   connAt=Date.now(); lastRx=Date.now(); lastBA=0; graceUntil=Date.now()+5000; remoteBgAt=0; unresp=false;
-  clearInterval(hb); hb=setInterval(()=>{ sendCtl({t:'ping'}); watchTick(); probeNet(); batTick(); bgProgress(); lockTick(); memTick(); savePend(false); },2000);
+  clearInterval(hb); hbStop(); hb=tickEvery(()=>{ sendCtl({t:'ping'}); watchTick(); probeNet(); batTick(); bgProgress(); lockTick(); memTick(); savePend(false); },2000);
   clearInterval(limTick); limTick=setInterval(liveTick,1000);
   lockWant=true;
   try{ if(navigator.locks&&!lockRel) navigator.locks.request('nx-share-live',()=>new Promise(res=>{ if(!lockWant) return res(); lockRel=res; })).catch(()=>{}); }catch(_){}
   $('#connBar').hidden=false; liveTick();
 }
 function stopLive(){
-  clearInterval(hb); clearInterval(limTick); hb=limTick=0; lockWant=false;
+  clearInterval(hb); hbStop(); clearInterval(limTick); hb=limTick=0; lockWant=false;
   if(lockRel){ const r=lockRel; lockRel=null; r(); }
   stopWeak();
 }
@@ -3247,7 +3304,7 @@ function qrZoom(cv){
 // device name + settings backup
 $('#optName').value=settings.name;
 $('#optName').onchange=e=>{ settings.name=cleanName(e.target.value); e.target.value=settings.name; lsSet('ft.name',settings.name); sendHello(); };
-const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow'];
+const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow','ft.bg'];
 const HEXRX=/^#[0-9a-fA-F]{6}$/;
 $('#btnBkExp').onclick=()=>{
   const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name','ft.autodel'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
@@ -3300,9 +3357,9 @@ $('#msgClip').onclick=async()=>{
 // ---------- v9: stability & UX ----------
 let rateScale=1, nextReal=false, trustedPeer=false, batWarned=false, bat=null, lastProg=0;
 const hashRetry=new Map();
-settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
+settings.bg=localStorage.getItem('ft.bg')!=='0'; settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
 try{ settings.sound=localStorage.getItem('ft.sound')==='1'; settings.link=localStorage.getItem('ft.link')==='1'; settings.trust=localStorage.getItem('ft.trust')!=='0'; settings.autoScan=localStorage.getItem('ft.autoscan')!=='0'; }catch(_){}
-for(const [id,k] of [['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } }; }
+for(const [id,k] of [['optBg','bg'],['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } if(k==='bg'){ if(settings.bg&&sess&&sess.open&&!sess.lost) bgStart(); else if(!settings.bg) bgStop(); } }; }
 // network diagnosis from candidates
 function candIps(sdp){
   const r={v4:[],mdns:0,other:0};
