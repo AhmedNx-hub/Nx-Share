@@ -491,7 +491,9 @@ button.icon{width:44px;height:44px}
     <div class="sec">
       <h3><svg class="i"><use href="#i-sliders"/></svg>عام</h3>
       <div class="set">
-        <label class="sw"><span>استمرار النقل في الخلفية<small>بيشغّل صوت صامت وإشعار صغير عشان الأندرويد ما يوقفش النقل لما تفتح تطبيق تاني.</small></span><input type="checkbox" id="optBg"></label>
+        <label class="sw"><span>استمرار النقل في الخلفية (تجريبي)<small>بيشغّل صوت صامت تمامًا وإشعار صغير أثناء الاتصال، وممكن مايمنعش الأندرويد يوقف النقل. متوقف افتراضيًا.</small></span><input type="checkbox" id="optBg"></label>
+        <label class="sw"><span>قفل الخلفية (تجريبي)<small>بيمسك قفل متصفح أثناء الاتصال عشان يقلل احتمال تجميد الصفحة. تأثيره على الأندرويد ضعيف وملوش ضرر.</small></span><input type="checkbox" id="optLock"></label>
+        <label class="sw"><span>استئناف سريع عند الرجوع<small>أول ما ترجع للتطبيق يتأكد من الاتصال فورًا ويكمّل النقل من مكانه.</small></span><input type="checkbox" id="optFast"></label>
         <label class="sw"><span>استلام الملفات تلقائيًا<small>لو متوقف، هيطلب موافقتك على كل ملف.</small></span><input type="checkbox" id="optAuto"></label>
         <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
         <label class="sw"><span>أصوات الاتصال والانتهاء<small>نغمة قصيرة عند الاتصال وعند اكتمال النقل.</small></span><input type="checkbox" id="optSound"></label>
@@ -1519,7 +1521,7 @@ function hbStop(){ try{ if(hbW){ hbW.postMessage(0); hbW.terminate(); } }catch(_
 function silentWav(){
   const n=8000, b=new Uint8Array(44+n), dv=new DataView(b.buffer), w=(o,t)=>{ for(let i=0;i<t.length;i++) b[o+i]=t.charCodeAt(i); };
   w(0,'RIFF'); dv.setUint32(4,36+n,true); w(8,'WAVEfmt '); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true); dv.setUint32(24,8000,true); dv.setUint32(28,8000,true); dv.setUint16(32,1,true); dv.setUint16(34,8,true); w(36,'data'); dv.setUint32(40,n,true);
-  for(let i=0;i<n;i++) b[44+i]=128+(i&1);
+  b.fill(128,44);
   return URL.createObjectURL(new Blob([b],{type:'audio/wav'}));
 }
 function bgStart(){
@@ -1540,7 +1542,27 @@ function bgStop(){
   bgAudio=null; bgUrl='';
 }
 document.addEventListener('visibilitychange',()=>{ try{ if(bgAudio&&bgAudio.paused&&sess&&sess.open&&!sess.lost) bgAudio.play().catch(()=>{}); }catch(_){} });
-function releaseWake(){ try{ wl&&wl.release(); }catch(_){} wl=null; bgStop(); }
+
+// ---------- web lock + fast resume ----------
+function bgLock(){
+  if(!settings.lock||lockRel||!(navigator.locks&&navigator.locks.request)) return;
+  lockWant=true;
+  try{ navigator.locks.request('nx-share-live',()=>new Promise(res=>{ if(!lockWant) return res(); lockRel=res; })).catch(()=>{}); dlogAdd('web lock held'); }catch(_){ dlogAdd('web lock failed'); }
+}
+function bgUnlock(){ lockWant=false; try{ if(lockRel) lockRel(); }catch(_){} lockRel=null; }
+function resumeKick(){
+  try{
+    if(!settings.fast||!(sess&&sess.open&&!sess.lost)) return;
+    const ch=dc; if(!ch||ch.readyState!=='open'){ connLost('انقطع الاتصال.'); return; }
+    graceUntil=Date.now()+8000; setBadge('بنأكّد الاتصال…','wait'); dlogAdd('resume check');
+    sendCtl({t:'fg'}); sendCtl({t:'ping'});
+    setTimeout(()=>{ try{ watchTick(); if(pc&&pc.connectionState==='connected'&&dc&&dc.readyState==='open'&&sess&&sess.open&&!sess.lost) setBadge('متصل','ok'); }catch(_){} },1500);
+  }catch(_){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') resumeKick(); });
+document.addEventListener('resume',resumeKick);
+window.addEventListener('pageshow',e=>{ if(e.persisted) resumeKick(); });
+function releaseWake(){ try{ wl&&wl.release(); }catch(_){} wl=null; bgStop(); bgUnlock(); }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&sess&&sess.open&&!sess.lost) keepAwake();
   if(document.visibilityState==='hidden') stopScans();
@@ -1663,7 +1685,7 @@ function connLost(msg){
 }
 function resetToStart(msg){
   if(sess&&sess.open&&!sess.lost) connLost(msg||'تم قطع الاتصال.');
-  stopLive(); $('#connBar').hidden=true; closePC(); releaseMedia(); bgStop(); hbStop(); sess=null; role=null;
+  stopLive(); $('#connBar').hidden=true; closePC(); releaseMedia(); bgStop(); bgUnlock(); hbStop(); sess=null; role=null;
   for(const id of ['offerOut','answerIn','offerIn','answerOut','shortIn']) $('#'+id).value='';
   $('#shortOut').textContent=''; $('#shortCount').textContent=SHORT_HINT;
   $('#answerBox').hidden=true; $('#ipWarnH').hidden=true; $('#ipWarnJ').hidden=true;
@@ -3077,12 +3099,11 @@ function startLive(){
   connAt=Date.now(); lastRx=Date.now(); lastBA=0; graceUntil=Date.now()+5000; remoteBgAt=0; unresp=false;
   clearInterval(hb); hbStop(); hb=tickEvery(()=>{ sendCtl({t:'ping'}); watchTick(); probeNet(); batTick(); bgProgress(); lockTick(); memTick(); savePend(false); },2000);
   clearInterval(limTick); limTick=setInterval(liveTick,1000);
-  lockWant=true;
-  try{ if(navigator.locks&&!lockRel) navigator.locks.request('nx-share-live',()=>new Promise(res=>{ if(!lockWant) return res(); lockRel=res; })).catch(()=>{}); }catch(_){}
+  bgLock();
   $('#connBar').hidden=false; liveTick();
 }
 function stopLive(){
-  clearInterval(hb); hbStop(); clearInterval(limTick); hb=limTick=0; lockWant=false;
+  clearInterval(hb); hbStop(); bgStop(); bgUnlock(); clearInterval(limTick); hb=limTick=0;
   if(lockRel){ const r=lockRel; lockRel=null; r(); }
   stopWeak();
 }
@@ -3304,7 +3325,7 @@ function qrZoom(cv){
 // device name + settings backup
 $('#optName').value=settings.name;
 $('#optName').onchange=e=>{ settings.name=cleanName(e.target.value); e.target.value=settings.name; lsSet('ft.name',settings.name); sendHello(); };
-const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow','ft.bg'];
+const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow','ft.bg','ft.lock','ft.fast'];
 const HEXRX=/^#[0-9a-fA-F]{6}$/;
 $('#btnBkExp').onclick=()=>{
   const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name','ft.autodel'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
@@ -3357,9 +3378,9 @@ $('#msgClip').onclick=async()=>{
 // ---------- v9: stability & UX ----------
 let rateScale=1, nextReal=false, trustedPeer=false, batWarned=false, bat=null, lastProg=0;
 const hashRetry=new Map();
-settings.bg=localStorage.getItem('ft.bg')!=='0'; settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
+settings.bg=localStorage.getItem('ft.bg')==='1'; settings.lock=localStorage.getItem('ft.lock')!=='0'; settings.fast=localStorage.getItem('ft.fast')!=='0'; settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
 try{ settings.sound=localStorage.getItem('ft.sound')==='1'; settings.link=localStorage.getItem('ft.link')==='1'; settings.trust=localStorage.getItem('ft.trust')!=='0'; settings.autoScan=localStorage.getItem('ft.autoscan')!=='0'; }catch(_){}
-for(const [id,k] of [['optBg','bg'],['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } if(k==='bg'){ if(settings.bg&&sess&&sess.open&&!sess.lost) bgStart(); else if(!settings.bg) bgStop(); } }; }
+for(const [id,k] of [['optBg','bg'],['optLock','lock'],['optFast','fast'],['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } if(k==='lock'){ if(settings.lock&&sess&&sess.open&&!sess.lost) bgLock(); else bgUnlock(); } if(k==='bg'){ if(settings.bg&&sess&&sess.open&&!sess.lost) bgStart(); else if(!settings.bg) bgStop(); } }; }
 // network diagnosis from candidates
 function candIps(sdp){
   const r={v4:[],mdns:0,other:0};
