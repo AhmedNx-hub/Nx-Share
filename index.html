@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
+<meta name="application-name" content="Nx-Share">
+<meta name="apple-mobile-web-app-title" content="Nx-Share">
 <meta name="color-scheme" content="light dark">
 <title>Nx-Share</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -93,7 +95,7 @@ header .l,header .r{display:flex;align-items:center;gap:10px}
 .logo .i{width:20px;height:20px;stroke-width:2.4}
 .brand b{background:linear-gradient(90deg,var(--text),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 :root[data-theme=neon] .brand b{text-shadow:var(--glow)}
-.badge{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;padding:4px 12px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;background:var(--card);transition:all .3s}
+.badge{min-width:0;max-width:52vw;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:7px;font-size:.78rem;padding:4px 12px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;background:var(--card);transition:all .3s}
 .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.8}
 .badge.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 55%,transparent)}
 .badge.ok::before{animation:pulse 1.8s infinite}
@@ -123,6 +125,11 @@ textarea,input[type=text]{width:100%;font:15px/1.5 ui-monospace,Consolas,monospa
 textarea:focus,input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);outline:none}
 textarea{resize:vertical;word-break:break-all}
 /* hero / start */
+.badge.ok[data-q=g]::before{background:#16a34a;opacity:1}.badge.ok[data-q=y]::before{background:#d97706;opacity:1}.badge.ok[data-q=r]::before{background:#dc2626;opacity:1}
+.cbar button{flex:none}
+html[lang=en] header .l,html[lang=en] header .r{gap:6px}
+html[lang=en] .brand b{font-size:1rem}
+html[lang=en] .badge{padding:4px 9px;gap:5px;font-size:.74rem}
 .more{margin-top:14px}.more>summary{cursor:pointer;text-align:center;color:var(--muted);padding:10px;min-height:44px;list-style:none;border-radius:12px}.more>summary::-webkit-details-marker{display:none}.more>summary::after{content:" ▾"}.more[open]>summary::after{content:" ▴"}.more .actions{margin-top:8px}
 #list .item,.lent{content-visibility:auto;contain-intrinsic-size:auto 96px}
 .hero{text-align:center;padding:22px 6px 6px}
@@ -276,6 +283,13 @@ select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1
 @keyframes drawer{from{transform:translateX(100%)}}
 .mh{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 18px 12px;position:sticky;top:0;background:var(--card);z-index:2;border-bottom:1px solid var(--line)}
 .mh .brand{font-size:1.05rem}
+.mh{flex-wrap:wrap}
+.stabs{flex:0 0 calc(100% + 36px);margin:8px -18px -12px;display:flex;gap:6px;overflow-x:auto;padding:6px 14px 8px;scrollbar-width:none}
+.stabs::-webkit-scrollbar{display:none}
+.stabs button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;min-height:52px;padding:7px 10px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer}
+.stabs button .i{width:20px;height:20px}
+.stabs button[aria-selected=true]{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);font-weight:700}
+.tpanel[hidden]{display:none}
 .mb{padding:6px 18px 22px;flex:1}
 .sec{margin-top:20px}
 .sec>h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:.78rem;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase}
@@ -462,18 +476,109 @@ button.icon{width:44px;height:44px}
   <div class="mh">
     <div class="brand"><span class="logo"><svg class="i"><use href="#i-swap"/></svg></span><b>الإعدادات</b></div>
     <button id="btnMenuClose" class="icon" aria-label="إغلاق"><svg class="i"><use href="#i-close"/></svg></button>
+    <nav class="stabs" id="setTabs" role="tablist" aria-label="أقسام الإعدادات"><button type="button" role="tab" id="tab-dev" data-tab="dev" aria-selected="false" aria-controls="tp-dev"><svg class="i"><use href="#i-users"/></svg><span>الأجهزة</span></button><button type="button" role="tab" id="tab-xfer" data-tab="xfer" aria-selected="false" aria-controls="tp-xfer"><svg class="i"><use href="#i-swap"/></svg><span>النقل</span></button><button type="button" role="tab" id="tab-conn" data-tab="conn" aria-selected="false" aria-controls="tp-conn"><svg class="i"><use href="#i-wifi"/></svg><span>الاتصال</span></button><button type="button" role="tab" id="tab-note" data-tab="note" aria-selected="false" aria-controls="tp-note"><svg class="i"><use href="#i-bell"/></svg><span>التنبيهات</span></button><button type="button" role="tab" id="tab-store" data-tab="store" aria-selected="false" aria-controls="tp-store"><svg class="i"><use href="#i-folder"/></svg><span>التخزين</span></button><button type="button" role="tab" id="tab-look" data-tab="look" aria-selected="false" aria-controls="tp-look"><svg class="i"><use href="#i-palette"/></svg><span>المظهر</span></button><button type="button" role="tab" id="tab-more" data-tab="more" aria-selected="false" aria-controls="tp-more"><svg class="i"><use href="#i-sliders"/></svg><span>المزيد</span></button></nav>
   </div>
   <div class="mb">
-    <div class="sec">
+    <div class="tpanel" role="tabpanel" id="tp-dev" data-tab="dev" aria-labelledby="tab-dev" hidden>
+<div class="sec">
       <h3><svg class="i"><use href="#i-zap"/></svg>الأجهزة المقترنة</h3>
       <div class="set box" id="devList" style="padding:6px 14px"></div>
     </div>
     <div class="sec">
-      <h3><svg class="i"><use href="#i-chart"/></svg>إحصائيات</h3>
-      <div class="set box" id="totBox" style="padding:6px 14px"></div>
-      <div class="btns"><button id="btnTotReset" type="button">تصفير الإحصائيات</button></div>
+      <h3><svg class="i"><use href="#i-shield"/></svg>هذا الجهاز</h3>
+      <div class="set">
+        <label class="sw"><span>اسم جهازك<small>يظهر للجهاز الآخر بعد الاتصال.</small></span><input type="text" id="optName" maxlength="24" aria-label="اسم جهازك" placeholder="مثال: هاتف أحمد" style="max-width:150px;min-height:44px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit"></label>
+        <div class="sw" style="cursor:default"><span>الأجهزة المقترنة<small id="pairInfo">—</small></span><button id="btnUnpair" type="button">مسح</button></div>
+        <label class="sw"><span>تخطي رمز التحقق للأجهزة الموثوقة<small>يُتعرَّف تلقائيًا على الجهاز الذي سبق التحقق منه عبر شهادته.</small></span><input type="checkbox" id="optTrust"></label>
+      </div>
+    </div>
+    </div>
+    <div class="tpanel" role="tabpanel" id="tp-xfer" data-tab="xfer" aria-labelledby="tab-xfer" hidden>
+<div class="sec">
+      <h3><svg class="i"><use href="#i-down"/></svg>الاستلام</h3>
+      <div class="set">
+        <label class="sw"><span>استلام الملفات تلقائيًا<small>عند إيقافه، يُطلب موافقتك على كل ملف.</small></span><input type="checkbox" id="optAuto"></label>
+        <label class="sw"><span>تخطي الملفات الموجودة<small>يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.</small></span><input type="checkbox" id="optSkip"></label>
+        <label class="sw" style="margin-top:12px"><span>السماح للنسخ الاحتياطية بالاستبدال<small>إذا أرسل الجهاز الآخر نسخة احتياطية لمجلد، تحلّ الملفات المتغيرة محلّ القديمة بدل تكرارها.</small></span><input type="checkbox" id="optOw"></label>
+      </div>
+    </div><div class="sec">
+      <h3><svg class="i"><use href="#i-up"/></svg>الإرسال</h3>
+      <div class="set">
+        <label class="sw"><span>مراجعة الملفات قبل الإرسال<small>تظهر قائمة تحدد منها ما يُرسل أو يُلغى.</small></span><input type="checkbox" id="optReview"></label>
+        <label class="sw"><span>ابدأ بالملفات الصغيرة<small>ترتيب دفعة الملفات من الأصغر إلى الأكبر لتظهر النتائج الأولى بسرعة.</small></span><input type="checkbox" id="optSmall"></label>
+        <label class="sw"><span>ضغط الملفات النصية الكبيرة<small>ضغط تلقائي قبل الإرسال إذا كان سيُقلّل الحجم فعلًا.</small></span><input type="checkbox" id="optZip"></label>
+      </div>
+    </div>
+    </div>
+    <div class="tpanel" role="tabpanel" id="tp-conn" data-tab="conn" aria-labelledby="tab-conn" hidden>
+<div class="sec">
+      <h3><svg class="i"><use href="#i-wifi"/></svg>الاتصال</h3>
+      <div class="set">
+        <label class="sw"><span>مدة الاتصال<small>يُقطع الاتصال تلقائيًا بعد المدة المحددة، وينتظر انتهاء أي نقل جارٍ. الافتراضي: يبقى حتى تقطعه.</small></span><select id="optMax"><option value="0">بلا حد</option><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="60">ساعة</option><option value="180">3 ساعات</option><option value="480">8 ساعات</option></select></label>
+        <label class="sw"><span>تحسين التوافق<small>يطلب إذن الكاميرا لحظيًا لإظهار عنوان الجهاز الحقيقي (يخفيه كروم). يُفيد عند تعذّر الاتصال فقط، ولا يُلتقط أي تصوير.</small></span><input type="checkbox" id="optIp"></label>
+        <label class="sw"><span>فتح الماسح تلقائيًا عند الانضمام<small>إذا كان إذن الكاميرا ممنوحًا مسبقًا. لا يعمل عند إنشاء اتصال.</small></span><input type="checkbox" id="optAutoScan"></label>
+      </div>
+    </div><div class="sec">
+      <h3><svg class="i"><use href="#i-clock"/></svg>الاستمرار في الخلفية</h3>
+      <div class="set">
+        <label class="sw"><span>استئناف سريع عند الرجوع<small>عند عودتك إلى التطبيق يتحقق من الاتصال فورًا ويُكمل النقل من موضعه.</small></span><input type="checkbox" id="optFast"></label>
+        <label class="sw"><span>تنبيه لما النقل يقف في الخلفية<small>إشعار يذكّرك بفتح التطبيق إذا توقف النقل وأنت في تطبيق آخر. يتطلب إذن الإشعارات.</small></span><input type="checkbox" id="optStall"></label>
+        <label class="sw"><span>قفل الخلفية (تجريبي)<small>يمسك قفل متصفح أثناء الاتصال لتقليل احتمال تجميد الصفحة. تأثيره على أندرويد ضعيف ولا ضرر منه.</small></span><input type="checkbox" id="optLock"></label>
+        <label class="sw"><span>مواصلة النقل في الخلفية (تجريبي)<small>يشغّل صوتًا صامتًا تمامًا وإشعارًا صغيرًا أثناء الاتصال، وقد لا يمنع أندرويد من إيقاف النقل. متوقف افتراضيًا.</small></span><input type="checkbox" id="optBg"></label>
+<details class="more bgguide"><summary>دليل: كيف يستمر النقل في الخلفية؟</summary>
+          <ol class="muted" style="margin:8px 0 0;padding-inline-start:20px;line-height:1.8">
+            <li>إعدادات الهاتف ← التطبيقات ← Chrome (أو التطبيق إن كان مثبّتًا) ← البطارية ← «غير مقيّد».</li>
+            <li>أوقف «توفير الطاقة» و«تحسين البطارية التكيّفي» أثناء النقل الكبير.</li>
+            <li>ثبّت التطبيق على الشاشة الرئيسية (إضافة إلى الشاشة الرئيسية) بدل التبويب العادي.</li>
+            <li>على أجهزة سامسونج وشاومي وأوبو: ثبّت التطبيق في قائمة التطبيقات الأخيرة (قفل) وفعّل «التشغيل في الخلفية».</li>
+            <li>استخدم الواي فاي بدل بيانات الجوال، ولا تفتح تطبيقات ثقيلة أثناء النقل.</li>
+            <li>إذا توقف النقل: ارجع إلى التطبيق وسيُكمل من الموضع نفسه تلقائيًا.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+    </div>
+    <div class="tpanel" role="tabpanel" id="tp-note" data-tab="note" aria-labelledby="tab-note" hidden>
+<div class="sec">
+      <h3><svg class="i"><use href="#i-bell"/></svg>التنبيهات</h3>
+      <div class="set">
+        <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
+        <label class="sw"><span>أصوات الاتصال والانتهاء<small>نغمة قصيرة عند الاتصال وعند اكتمال النقل.</small></span><input type="checkbox" id="optSound"></label>
+        <label class="sw"><span>اهتزاز خفيف عند الأحداث<small>عند الاتصال وقبول ملف وحدوث خطأ.</small></span><input type="checkbox" id="optHaptic"></label>
+        <label class="sw"><span>تنبيه عند وصول رابط<small>يظهر شريط فيه «فتح» بدل فتح الرابط تلقائيًا.</small></span><input type="checkbox" id="optLink"></label>
+      </div>
+    </div>
+    </div>
+    <div class="tpanel" role="tabpanel" id="tp-store" data-tab="store" aria-labelledby="tab-store" hidden>
+<div class="sec">
+      <h3><svg class="i"><use href="#i-folder"/></svg>مكان الحفظ</h3>
+      <div class="set box">
+        <div id="locName"></div>
+        <div class="btns">
+          <button id="btnLoc" hidden><svg class="i sm"><use href="#i-folder"/></svg>تغيير المجلد</button>
+          <button id="btnLocPerm" hidden>تفعيل المجلد</button>
+          <button id="btnLocReset" hidden>الرجوع للتحميلات</button>
+        </div>
+        <p id="locNoteDir" class="muted" hidden>قد يمنع أندرويد اختيار مجلد التحميلات نفسه أو الذاكرة الرئيسية، فاختر مجلدًا فرعيًا أو أنشئ مجلدًا جديدًا. اختيار مجلد يحفظ المجلدات المستلمة بهيكلها.</p>
+        <p id="locNoteChrome" class="muted">الافتراضي: مجلد التحميلات.</p>
+      </div>
     </div>
     <div class="sec">
+      <h3><svg class="i"><use href="#i-history"/></svg>الملفات المستلمة</h3>
+      <div class="set box">
+        <div class="btns" style="margin-top:0"><button id="btnLog"><svg class="i sm"><use href="#i-history"/></svg>فتح السجل (المرسل والمستلم)</button></div>
+        <label class="sw" style="margin-top:12px"><span>حذف الملفات المستلمة تلقائيًا<small>يحذف الملفات المحفوظة في مجلد الحفظ المخصص بعد هذه المدة، وفقط إذا لم يُعدَّل الملف. لا يعمل على ما في التحميلات.</small></span><select id="optAutoDel" aria-label="مدة الحذف التلقائي"><option value="0">أبدًا</option><option value="1">بعد يوم</option><option value="7">بعد أسبوع</option><option value="30">بعد شهر</option></select></label>
+        <div id="delNote" class="warnbox" hidden></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+          <div class="muted" id="tmpInfo" style="margin-bottom:8px"></div>
+          <button id="btnTmp" hidden><svg class="i sm"><use href="#i-close"/></svg>مسح الأجزاء المؤقتة</button>
+        </div>
+      </div>
+    </div>
+    
+    </div>
+    <div class="tpanel" role="tabpanel" id="tp-look" data-tab="look" aria-labelledby="tab-look" hidden>
+<div class="sec">
       <h3><svg class="i"><use href="#i-palette"/></svg>المظهر</h3>
       <div class="themes" id="themeGrid"></div>
       <div id="designer" class="designer" hidden>
@@ -489,33 +594,22 @@ button.icon{width:44px;height:44px}
       </div>
     </div>
     <div class="sec">
-      <h3><svg class="i"><use href="#i-sliders"/></svg>عام</h3>
+      <h3><svg class="i"><use href="#i-max"/></svg>العرض</h3>
       <div class="set">
-        <label class="sw"><span>استمرار النقل في الخلفية (تجريبي)<small>بيشغّل صوت صامت تمامًا وإشعار صغير أثناء الاتصال، وممكن مايمنعش الأندرويد يوقف النقل. متوقف افتراضيًا.</small></span><input type="checkbox" id="optBg"></label>
-        <label class="sw"><span>قفل الخلفية (تجريبي)<small>بيمسك قفل متصفح أثناء الاتصال عشان يقلل احتمال تجميد الصفحة. تأثيره على الأندرويد ضعيف وملوش ضرر.</small></span><input type="checkbox" id="optLock"></label>
-        <label class="sw"><span>استئناف سريع عند الرجوع<small>أول ما ترجع للتطبيق يتأكد من الاتصال فورًا ويكمّل النقل من مكانه.</small></span><input type="checkbox" id="optFast"></label>
-        <label class="sw"><span>استلام الملفات تلقائيًا<small>لو متوقف، هيطلب موافقتك على كل ملف.</small></span><input type="checkbox" id="optAuto"></label>
-        <label class="sw"><span>تنبيه عند اكتمال النقل<small>اهتزاز وصوت قصير.</small></span><input type="checkbox" id="optAlert"></label>
-        <label class="sw"><span>أصوات الاتصال والانتهاء<small>نغمة قصيرة عند الاتصال وعند اكتمال النقل.</small></span><input type="checkbox" id="optSound"></label>
-        <label class="sw"><span>ابدأ بالملفات الصغيرة<small>ترتيب دفعة الملفات من الأصغر للأكبر عشان النتايج الأولى تظهر بسرعة.</small></span><input type="checkbox" id="optSmall"></label>
-        <label class="sw"><span>ضغط الملفات النصية الكبيرة<small>ضغط تلقائي قبل الإرسال لو هيقلل الحجم فعلاً.</small></span><input type="checkbox" id="optZip"></label>
-        <label class="sw"><span>فتح الماسح تلقائيًا عند الانضمام<small>لو إذن الكاميرا مسموح أصلًا. لا يعمل عند إنشاء اتصال.</small></span><input type="checkbox" id="optAutoScan"></label>
-        <label class="sw"><span>تنبيه عند وصول رابط<small>يظهر شريط فيه «فتح» بدل فتح الرابط تلقائيًا.</small></span><input type="checkbox" id="optLink"></label>
-        <label class="sw"><span>تخطي رمز التحقق للأجهزة الموثوقة<small>الجهاز اللي اتحقّقت منه قبل كده بيتعرّف عليه تلقائيًا بشهادته.</small></span><input type="checkbox" id="optTrust"></label>
-        <label class="sw"><span>تخطي الملفات الموجودة<small>يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.</small></span><input type="checkbox" id="optSkip"></label>
         <label class="sw"><span>ملء الشاشة تلقائيًا<small>يُفعَّل عند أول لمسة.</small></span><input type="checkbox" id="optFs"></label>
-        <label class="sw"><span>اهتزاز خفيف عند الأحداث<small>عند الاتصال، وقبول ملف، وحدوث خطأ.</small></span><input type="checkbox" id="optHaptic"></label>
-        <label class="sw"><span>اسم جهازك<small>يظهر للجهاز الآخر بعد الاتصال.</small></span><input type="text" id="optName" maxlength="24" aria-label="اسم جهازك" placeholder="مثال: هاتف أحمد" style="max-width:150px;min-height:44px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit"></label>
-        <label class="sw"><span>مراجعة الملفات قبل الإرسال<small>تظهر قائمة تحدد منها ما يُرسل أو يُلغى.</small></span><input type="checkbox" id="optReview"></label>
+      </div>
+    </div><div class="sec">
+      <h3><svg class="i"><use href="#i-type"/></svg>اللغة</h3>
+      <div class="set">
+        <label class="sw"><span>لغة الواجهة<small>العربية هي الأساسية. تغيير اللغة يعيد تحميل الصفحة.</small></span><select id="optLang" aria-label="لغة الواجهة"><option value="ar">العربية</option><option value="en">English</option></select></label>
       </div>
     </div>
-    <div class="sec">
-      <h3><svg class="i"><use href="#i-wifi"/></svg>الاتصال</h3>
-      <div class="set">
-        <div class="sw" style="cursor:default"><span>الأجهزة المقترنة<small id="pairInfo">—</small></span><button id="btnUnpair" type="button">مسح</button></div>
-        <label class="sw"><span>مدة الاتصال<small>يُقطع الاتصال تلقائيًا بعد المدة المحددة، وينتظر انتهاء أي نقل جارٍ. الافتراضي: يبقى حتى تقطعه.</small></span><select id="optMax"><option value="0">بلا حد</option><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="60">ساعة</option><option value="180">3 ساعات</option><option value="480">8 ساعات</option></select></label>
-        <label class="sw"><span>تحسين التوافق<small>يطلب إذن الكاميرا لحظيًا لإظهار عنوان الجهاز الحقيقي (يخفيه كروم). يُفيد عند تعذّر الاتصال فقط، ولا يُلتقط أي تصوير.</small></span><input type="checkbox" id="optIp"></label>
-      </div>
+    </div>
+    <div class="tpanel" role="tabpanel" id="tp-more" data-tab="more" aria-labelledby="tab-more" hidden>
+<div class="sec">
+      <h3><svg class="i"><use href="#i-chart"/></svg>إحصائيات</h3>
+      <div class="set box" id="totBox" style="padding:6px 14px"></div>
+      <div class="btns"><button id="btnTotReset" type="button">تصفير الإحصائيات</button></div>
     </div>
     <div class="sec">
       <h3><svg class="i"><use href="#i-help"/></svg>تشخيص الاتصال</h3>
@@ -526,32 +620,6 @@ button.icon{width:44px;height:44px}
       </div>
     </div>
     <div class="sec">
-      <h3><svg class="i"><use href="#i-folder"/></svg>مكان الحفظ</h3>
-      <div class="set box">
-        <div id="locName"></div>
-        <div class="btns">
-          <button id="btnLoc" hidden><svg class="i sm"><use href="#i-folder"/></svg>تغيير المجلد</button>
-          <button id="btnLocPerm" hidden>تفعيل المجلد</button>
-          <button id="btnLocReset" hidden>الرجوع للتحميلات</button>
-        </div>
-        <p id="locNoteDir" class="muted" hidden>أندرويد قد يمنع اختيار مجلد التحميلات نفسه أو الذاكرة الرئيسية، فاختر مجلدًا فرعيًا أو أنشئ جديدًا. اختيار مجلد يحفظ المجلدات المستلمة بهيكلها.</p>
-        <p id="locNoteChrome" class="muted">الافتراضي: مجلد التحميلات.</p>
-      </div>
-    </div>
-    <div class="sec">
-      <h3><svg class="i"><use href="#i-history"/></svg>الملفات المستلمة</h3>
-      <div class="set box">
-        <div class="btns" style="margin-top:0"><button id="btnLog"><svg class="i sm"><use href="#i-history"/></svg>فتح السجل (المرسل والمستلم)</button></div>
-        <label class="sw" style="margin-top:12px"><span>حذف الملفات المستلمة تلقائيًا<small>بيمسح الملفات المحفوظة في مجلد الحفظ المخصص بعد المدة دي، وبس لو الملف ما اتعدّلش. مش بيشتغل على اللي في التحميلات.</small></span><select id="optAutoDel" aria-label="مدة الحذف التلقائي"><option value="0">أبدًا</option><option value="1">بعد يوم</option><option value="7">بعد أسبوع</option><option value="30">بعد شهر</option></select></label>
-        <div id="delNote" class="warnbox" hidden></div>
-        <label class="sw" style="margin-top:12px"><span>السماح للنسخ الاحتياطية بالاستبدال<small>لو الجهاز التاني بعت نسخة احتياطية لمجلد، الملفات المتغيرة بتستبدل القديمة بدل ما تتكرر.</small></span><input type="checkbox" id="optOw"></label>
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
-          <div class="muted" id="tmpInfo" style="margin-bottom:8px"></div>
-          <button id="btnTmp" hidden><svg class="i sm"><use href="#i-close"/></svg>مسح الأجزاء المؤقتة</button>
-        </div>
-      </div>
-    </div>
-    <div class="sec">
       <h3><svg class="i"><use href="#i-install"/></svg>التطبيق</h3>
       <div class="set box">
         <div id="pwaState" class="muted"></div>
@@ -559,8 +627,10 @@ button.icon{width:44px;height:44px}
           <button id="btnInstall" hidden><svg class="i sm"><use href="#i-install"/></svg>تثبيت التطبيق</button>
           <button id="btnSaveApp" hidden><svg class="i sm"><use href="#i-save"/></svg>حفظ نسخة من التطبيق</button>
         </div>
-        <p class="muted" id="pwaNote" hidden style="margin-bottom:0">«حفظ نسخة» ينزّل ملفًا واحدًا يمكن إرساله للجهاز الآخر (بلوتوث أو Quick Share) وفتحه دون إنترنت.</p>
+        <p class="muted" id="pwaNote" hidden style="margin-bottom:0">«حفظ نسخة» ينزّل ملفًا واحدًا يمكن إرساله إلى الجهاز الآخر (بلوتوث أو Quick Share) وفتحه دون إنترنت.</p>
       </div>
+    </div>
+    
     </div>
     <div class="sig">𝐃𝐞𝐯𝐞𝐥𝐨𝐩𝐞𝐝 𝐛𝐲 𝔸𝕙𝕞𝕖𝕕 ℕ𝕩</div>
   </div>
@@ -573,7 +643,7 @@ button.icon{width:44px;height:44px}
   <summary><svg class="i"><use href="#i-help"/></svg><b>تعذّر الاتصال؟ جرّب هذه الخطوات بالترتيب</b></summary>
   <ol>
     <li>تأكد أن الجهازين على الواي فاي نفسه. الأضمن: شغّل <b>هوتسبوت</b> من أحدهما وصِل الآخر به.</li>
-    <li>إن كان الواي فاي بلا إنترنت، أوقف <b>بيانات الموبايل</b> وخاصية التبديل الذكي كي لا يتركه أندرويد.</li>
+    <li>إن كان الواي فاي بلا إنترنت، أوقف <b>بيانات الجوال</b> وخاصية التبديل الذكي كي لا يتركه أندرويد.</li>
     <li>أوقف أي <b>VPN</b> على الجهازين.</li>
     <li>الواي فاي العام وشبكات الضيوف تمنع الأجهزة من رؤية بعضها، فاستخدم هوتسبوت بدلًا منها.</li>
     <li>اضغط «جرّب عناوين حقيقية» أدناه واسمح بالكاميرا لحظيًا، ثم اعرض الكود الجديد على الجهاز الآخر.</li>
@@ -606,8 +676,8 @@ button.icon{width:44px;height:44px}
     <div class="actions">
     <button id="btnPre" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">تجهيز ملفات للإرسال<small>اختر الملفات الآن لتُرسل فور إتمام الاتصال</small></span></button>
       <input type="file" id="preFiles" multiple hidden>
-      <button id="btnHomeLog" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">سجل الملفات<small>اللي اتبعت واتستلم قبل كده</small></span></button>
-      <button id="btnHomeDev" class="act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">الأجهزة المقترنة<small>اتصال سريع بجهاز اتصلت بيه قبل كده</small></span></button>
+      <button id="btnHomeLog" class="act"><span class="ico"><svg class="i"><use href="#i-file"/></svg></span><span class="tx">سجل الملفات<small>ما أُرسل وما استُلم سابقًا</small></span></button>
+      <button id="btnHomeDev" class="act"><span class="ico"><svg class="i"><use href="#i-link"/></svg></span><span class="tx">الأجهزة المقترنة<small>اتصال سريع بجهاز سبق الاتصال به</small></span></button>
     </div>
   </details>
 </section>
@@ -690,13 +760,13 @@ button.icon{width:44px;height:44px}
     <div><b>متصل</b><div class="muted" id="connInfo"></div></div>
     <button id="btnDisc" class="danger"><svg class="i sm"><use href="#i-close"/></svg>قطع الاتصال</button>
   </div>
-  <div id="wakeNote" class="warnbox" hidden>المتصفح ما قدرش يمنع انطفاء الشاشة (ممكن يكون وضع توفير الطاقة شغال). خلي الشاشة شغالة أثناء النقل، لأن قفلها بيقطع الاتصال.</div>
+  <div id="wakeNote" class="warnbox" hidden>لم يستطع المتصفح منع انطفاء الشاشة (قد يكون وضع توفير الطاقة مفعّلًا). أبقِ الشاشة مضاءة أثناء النقل، فإغلاقها يقطع الاتصال.</div>
   <div id="lost" class="card lost" hidden>
     <b>انقطع الاتصال</b>
     <p class="muted" id="lostMsg" style="margin:4px 0"></p>
     <div id="lostSum" class="lostsum" hidden></div>
     <p class="muted" style="margin:4px 0">ستُستكمل الملفات الناقصة من حيث توقفت عند عودة الاتصال، دون إغلاق الصفحة.</p>
-    <button id="btnQuickRe" type="button" hidden><svg class="i sm"><use href="#i-zap"/></svg>اتصال سريع بنفس الجهاز</button>
+    <button id="btnQuickRe" type="button" hidden><svg class="i sm"><use href="#i-zap"/></svg>اتصال سريع بالجهاز نفسه</button>
     <button class="primary" id="btnReconnect"><svg class="i sm"><use href="#i-refresh"/></svg>إعادة الاتصال</button>
   </div>
   <div id="vbox" class="card" hidden>
@@ -713,12 +783,12 @@ button.icon{width:44px;height:44px}
       <div class="btns">
         <label class="btn"><input type="file" id="pick" multiple hidden><svg class="i sm"><use href="#i-file"/></svg>ملفات</label>
         <button id="btnFolder"><svg class="i sm"><use href="#i-folder"/></svg>مجلد</button>
-        <button id="btnSync" title="يبعت الجديد والمتغير بس"><svg class="i sm"><use href="#i-refresh"/></svg>نسخة احتياطية لمجلد</button>
+        <button id="btnSync" title="يُرسل الجديد والمتغيّر فقط"><svg class="i sm"><use href="#i-refresh"/></svg>نسخة احتياطية لمجلد</button>
       </div>
       <input type="file" id="pickDir" webkitdirectory hidden>
       <input type="file" id="pickSync" webkitdirectory hidden>
     </div>
-    <input type="text" id="noteIn" maxlength="200" placeholder="ملاحظة تتبعت مع الملفات (اختياري) مثل: ده عقد الشقة" dir="auto" aria-label="ملاحظة مع الملفات" style="margin-bottom:8px">
+    <input type="text" id="noteIn" maxlength="200" placeholder="ملاحظة تُرسل مع الملفات (اختياري) مثل: هذا عقد الشقة" dir="auto" aria-label="ملاحظة مع الملفات" style="margin-bottom:8px">
     <div class="msgrow"><input type="text" id="msgIn" placeholder="نص أو رابط لإرساله" dir="auto"><button id="msgSend" class="primary icon" aria-label="إرسال"><svg class="i"><use href="#i-send"/></svg></button><button id="msgClip" class="icon" aria-label="لصق من الحافظة وإرسال" title="لصق من الحافظة وإرسال"><svg class="i"><use href="#i-copy"/></svg></button></div>
     <div class="btns"><button id="btnSpeed"><svg class="i sm"><use href="#i-zap"/></svg>اختبار السرعة</button></div>
   </div>
@@ -734,7 +804,7 @@ button.icon{width:44px;height:44px}
     <select id="fltState" aria-label="تصفية حسب الحالة"><option value="">كل الحالات</option><option value="active">جاري</option><option value="done">تم</option><option value="bad">فشل</option></select><button id="btnClear"><svg class="i sm"><use href="#i-trash"/></svg>مسح المنتهية</button></div>
   <div id="emptyList" class="card empty">
     <svg class="art" viewBox="0 0 120 96" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><rect x="22" y="28" width="76" height="52" rx="10" opacity=".35"/><path d="M22 44h76" opacity=".35"/><path d="M60 62V34M48 44l12-12 12 12"/><circle cx="18" cy="18" r="3" opacity=".5"/><circle cx="104" cy="14" r="2" opacity=".5"/><circle cx="108" cy="70" r="3" opacity=".35"/></svg>
-    <b>لسه مفيش ملفات</b>اختر ملفات أو مجلدًا من الأعلى، أو اسحبها هنا، وهتظهر هنا مع حالة كل واحد.
+    <b>لا توجد ملفات بعد</b>اختر ملفات أو مجلدًا من الأعلى، أو اسحبها إلى هنا، وستظهر هنا مع حالة كلٍّ منها.
   </div>
   <div id="list"></div>
   <div id="msgs"></div>
@@ -1098,7 +1168,7 @@ async function unpack(code){
   code=String(code).replace(/[\u200b-\u200f\u202a-\u202e\u2060\ufeff\u00a0]/g,'').replace(/[\u2010-\u2015\u2212]/g,'-').replace(/["'`«»“”‘’]/g,'').replace(/\s+/g,'');
   if(/^S[1-5]/i.test(code)) return shortDecode(code);
   const m=code.match(/^(G1|F0|F1)\.([A-Za-z0-9_-]+)$/);
-  if(!m) throw new Error('الكود غير صحيح. تأكد إنك نسخته كامل.');
+  if(!m) throw new Error('الرمز غير صحيح. تأكد من نسخه كاملًا.');
   try{
     let bytes=fromB64(m[2]);
     if(m[1]==='G1') return compactDecode(bytes);
@@ -1111,7 +1181,7 @@ async function unpack(code){
     return {type:o.t,sdp:o.s};
   }catch(e){
     if(e.message&&e.message.indexOf('متصفحك')===0) throw e;
-    throw new Error('الكود غير صالح أو ناقص. انسخه كامل وجرّب تاني.');
+    throw new Error('الرمز غير صالح أو ناقص. انسخه كاملًا وحاول مجددًا.');
   }
 }
 const hasMdns=sdp=>/a=candidate:\S+ \d+ udp \d+ [0-9a-f-]{36}\.local /i.test(String(sdp));
@@ -1183,9 +1253,9 @@ function fmtSize(n){
 function fmtSpd(n){ return fmtSize(n).replace('\u2069','/s\u2069'); }
 function fmtTime(s){
   if(!isFinite(s)||s<=0) return '—';
-  if(s<60) return Math.ceil(s)+' ث';
-  if(s<3600) return Math.ceil(s/60)+' د';
-  return (s/3600).toFixed(1)+' س';
+  if(s<60) return Math.ceil(s)+(LANG==='en'?' s':' ث');
+  if(s<3600) return Math.ceil(s/60)+(LANG==='en'?' min':' د');
+  return (s/3600).toFixed(1)+(LANG==='en'?' h':' س');
 }
 function safeName(n){
   let s=String(n==null?'':n).replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').replace(/[. ]+$/,'').trim();
@@ -1218,7 +1288,7 @@ function view(id){
   if(id==='s-join') autoScanSoon();
 }
 function showTips(open){ const t=$('#tips'); t.hidden=false; t.open=!!open; if(open) try{ t.scrollIntoView({block:'nearest'}); }catch(_){} }
-function setBadge(t,c){ const b=$('#badge'); b.textContent=t; b.className='badge '+(c||''); }
+function setBadge(t,c){ const b=$('#badge'); b.textContent=t; b.className='badge '+(c||''); if(c!=='ok'){ delete b.dataset.q; b.removeAttribute('title'); } }
 function saveBlob(blob,name){
   const url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
@@ -1226,6 +1296,8 @@ function saveBlob(blob,name){
 }
 
 // ---------- settings ----------
+let LANG='ar'; try{ LANG=localStorage.getItem('ft.lang')==='en'?'en':'ar'; }catch(_){}
+const LOCALE=()=>LANG==='en'?'en-US':'ar-EG';
 const settings={haptic:true,review:false,auto:true,realIp:false,fs:true,maxMin:0,alert:true,skip:false,dirHandle:null,mode:('BarcodeDetector' in window)?'qr':'txt'};
 try{
   settings.auto=localStorage.getItem('ft.auto')!=='0';
@@ -1268,7 +1340,7 @@ async function refreshLoc(){
   $('#locNoteDir').hidden=!canPick;
   if(settings.dirHandle){
     const ok=await dirPerm(false);
-    $('#locName').textContent='مجلد مخصص: '+settings.dirHandle.name+(ok?'':' (محتاج تفعيل)');
+    $('#locName').textContent='مجلد مخصص: '+settings.dirHandle.name+(ok?'':'(يحتاج إلى تفعيل)');
     $('#btnLocPerm').hidden=ok; $('#btnLocReset').hidden=false;
   }else{
     $('#locName').textContent='مجلد التحميلات (الافتراضي)';
@@ -1296,7 +1368,7 @@ $('#btnLocReset').onclick=async()=>{ settings.dirHandle=null; try{ await idbDel(
 idbGet('dir').then(h=>{ if(h){ settings.dirHandle=h; refreshLoc(); } }).catch(()=>{});
 if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
   const n=document.createElement('div'); n.className='card muted';
-  n.textContent='على iOS بعض الميزات (حفظ الملفات الكبيرة، مسح QR) محدودة. الأفضل كروم أو إيدج على أندرويد أو الكمبيوتر.';
+  n.textContent='على iOS بعض الميزات (حفظ الملفات الكبيرة، مسح QR) محدودة. الأفضل استخدام Chrome أو Edge على أندرويد أو الحاسوب.';
   $('main').insertBefore(n,$('#s-start'));
 }
 
@@ -1380,13 +1452,13 @@ store.sweep(3*24*3600*1000);
 
 // ---------- PWA ----------
 function setPwa(state){
-  const t={ready:'جاهز للعمل بدون إنترنت',pending:'جارٍ التجهيز للعمل بدون إنترنت…',err:'تعذر تفعيل العمل بدون إنترنت.',file:'بتشتغل من ملف محلي. للتثبيت افتح التطبيق من رابط https.'}[state];
+  const t={ready:'جاهز للعمل بدون إنترنت',pending:'جارٍ التجهيز للعمل بدون إنترنت…',err:'تعذر تفعيل العمل بدون إنترنت.',file:'يعمل من ملف محلي. للتثبيت افتح التطبيق من رابط https.'}[state];
   $('#pwaState').textContent=t;
 }
 function showUpdate(){ $('#toast').hidden=false; }
 function transferBusy(){ return Array.from(outgoing.values()).some(t=>t.state==='sending'||t.state==='offered')||!!(current&&!current.failed)||!!spd; }
 $('#toastBtn').onclick=()=>{
-  if(transferBusy()&&!confirm('فيه نقل شغال، وإعادة التحميل هتقطعه (وبيكمل بعدين). تكمل؟')) return;
+  if(transferBusy()&&!confirm('يوجد نقل جارٍ، وإعادة التحميل ستقطعه (ويُستكمل لاحقًا). هل تتابع؟')) return;
   location.reload();
 };
 $('#toastLater').onclick=()=>{ $('#toast').hidden=true; };
@@ -1404,7 +1476,7 @@ function updateShareNote(){
   const n=$('#shareNote'), c=pendingShare?pendingShare.length:0;
   n.hidden=!c;
   if(!c){ n.textContent=''; return; }
-  n.textContent='فيه '+c+' ملف جاهز للإرسال، وهيتبعتوا تلقائيًا فور إتمام الاتصال. ';
+  n.textContent='يوجد '+c+' ملف جاهز للإرسال، وسيُرسل تلقائيًا فور إتمام الاتصال. ';
   const b=document.createElement('button'); b.textContent='إلغاء'; b.onclick=()=>{ pendingShare=null; if('caches' in window) caches.delete('ft-share').catch(()=>{}); updateShareNote(); };
   n.appendChild(b);
 }
@@ -1454,27 +1526,27 @@ function logUpdate(fn){
 const rootsSeen=new Set();
 function rememberRoot(h){ if(!h||rootsSeen.has(h.name)) return; rootsSeen.add(h.name); idbSet('root:'+h.name,h).catch(()=>{ rootsSeen.delete(h.name); }); }
 async function logFile(e){
-  if(!e.rootName) throw new Error('الملف اتحفظ في التحميلات. افتحه من تطبيق الملفات.');
+  if(!e.rootName) throw new Error('حُفظ الملف في التحميلات. افتحه من تطبيق الملفات.');
   let root=(settings.dirHandle&&settings.dirHandle.name===e.rootName)?settings.dirHandle:null;
   if(!root){ try{ root=await idbGet('root:'+e.rootName); }catch(_){} }
-  if(!root) throw new Error('مجلد الحفظ القديم مش متاح. اختاره تاني من الإعدادات.');
+  if(!root) throw new Error('مجلد الحفظ السابق غير متاح. اختره مجددًا من الإعدادات.');
   let p=await root.queryPermission({mode:'read'});
   if(p!=='granted') p=await root.requestPermission({mode:'read'});
-  if(p!=='granted') throw new Error('لازم تسمح بالوصول للمجلد.');
+  if(p!=='granted') throw new Error('يجب السماح بالوصول إلى المجلد.');
   try{
     let d=root; for(const seg of String(e.path||'').split('/').filter(Boolean)) d=await d.getDirectoryHandle(seg);
     return await (await d.getFileHandle(e.fname)).getFile();
-  }catch(err){ throw new Error('الملف مش موجود (اتمسح أو اتنقل).'); }
+  }catch(err){ throw new Error('الملف غير موجود (حُذف أو نُقل).'); }
 }
 async function refreshTmp(){
   try{
     const u=await store.usage(), b=$('#btnTmp');
-    $('#tmpInfo').textContent=u.n?('أجزاء ملفات ناقصة محفوظة مؤقتًا: '+fmtSize(u.sz)+' (بتتمسح تلقائيًا بعد 3 أيام).'):'مفيش أجزاء مؤقتة محفوظة.';
+    $('#tmpInfo').textContent=u.n?('أجزاء ملفات ناقصة محفوظة مؤقتًا: '+fmtSize(u.sz)+' (تُحذف تلقائيًا بعد 3 أيام).'):'لا توجد أجزاء مؤقتة محفوظة.';
     b.hidden=!u.n;
   }catch(_){}
 }
 $('#btnTmp').onclick=async()=>{
-  if(!confirm('مسح الأجزاء المؤقتة؟ أي ملف ناقص هتحتاج تبعته من الأول. (اللي اتكتب من أقل من 11 دقيقة بيتساب).')) return;
+  if(!confirm('مسح الأجزاء المؤقتة؟ أي ملف ناقص ستحتاج إلى إرساله من البداية. (ما كُتب منذ أقل من 11 دقيقة يُترك).')) return;
   await store.clearAll(current&&!current.failed?current.key:null); refreshTmp();
 };
 $('#btnMenu').addEventListener('click',refreshTmp);
@@ -1493,7 +1565,7 @@ $('#btnSaveApp').onclick=async()=>{
     const r=await fetch(location.href.split('#')[0].split('?')[0]);
     if(!r.ok) throw new Error('http '+r.status);
     saveBlob(new Blob([await r.blob()],{type:'text/html'}),'file-transfer.html');
-  }catch(e){ showErr('تعذر حفظ نسخة من التطبيق: '+(e&&e.message||e)); }
+  }catch(e){ showErr('تعذّر حفظ نسخة من التطبيق: '+(e&&e.message||e)); }
 };
 
 // ---------- connection ----------
@@ -1507,6 +1579,66 @@ function keepAwake(){ return (async()=>{
   wakeNote();
 })(); }
 
+
+
+// ---------- language (Arabic primary, English optional) ----------
+const EN={"غير متصل":"Not connected","الإعدادات":"Settings","الأجهزة":"Devices","النقل":"Transfer","الاتصال":"Connection","التنبيهات":"Notifications","التخزين":"Storage","المظهر":"Appearance","المزيد":"More","الأجهزة المقترنة":"Paired devices","هذا الجهاز":"This device","اسم جهازك":"Your device name","يظهر للجهاز الآخر بعد الاتصال.":"Shown to the other device after connecting.","مسح":"Clear","تخطي رمز التحقق للأجهزة الموثوقة":"Skip the verification code for trusted devices","يُتعرَّف تلقائيًا على الجهاز الذي سبق التحقق منه عبر شهادته.":"A device you verified before is recognized automatically by its certificate.","الاستلام":"Receiving","استلام الملفات تلقائيًا":"Receive files automatically","عند إيقافه، يُطلب موافقتك على كل ملف.":"When off, your approval is requested for each file.","تخطي الملفات الموجودة":"Skip existing files","يعمل مع مجلد حفظ مخصص: نفس الاسم والحجم لا يُرسل ثانيةً.":"Works with a custom save folder: a file with the same name and size is not sent again.","السماح للنسخ الاحتياطية بالاستبدال":"Allow backups to overwrite","إذا أرسل الجهاز الآخر نسخة احتياطية لمجلد، تحلّ الملفات المتغيرة محلّ القديمة بدل تكرارها.":"If the other device sends a folder backup, changed files replace the old ones instead of being duplicated.","الإرسال":"Sending","مراجعة الملفات قبل الإرسال":"Review files before sending","تظهر قائمة تحدد منها ما يُرسل أو يُلغى.":"A list appears so you can choose what to send or cancel.","ابدأ بالملفات الصغيرة":"Start with small files","ترتيب دفعة الملفات من الأصغر إلى الأكبر لتظهر النتائج الأولى بسرعة.":"Order a batch from smallest to largest so the first results appear quickly.","ضغط الملفات النصية الكبيرة":"Compress large text files","ضغط تلقائي قبل الإرسال إذا كان سيُقلّل الحجم فعلًا.":"Automatic compression before sending when it actually reduces the size.","مدة الاتصال":"Connection duration","يُقطع الاتصال تلقائيًا بعد المدة المحددة، وينتظر انتهاء أي نقل جارٍ. الافتراضي: يبقى حتى تقطعه.":"The connection ends automatically after the chosen time, waiting for any ongoing transfer to finish. Default: stays until you disconnect.","بلا حد":"No limit","15 دقيقة":"15 minutes","30 دقيقة":"30 minutes","ساعة":"1 hour","3 ساعات":"3 hours","8 ساعات":"8 hours","تحسين التوافق":"Improve compatibility","يطلب إذن الكاميرا لحظيًا لإظهار عنوان الجهاز الحقيقي (يخفيه كروم). يُفيد عند تعذّر الاتصال فقط، ولا يُلتقط أي تصوير.":"Briefly requests camera permission to reveal the device's real address (Chrome hides it). Helps only when connecting fails; nothing is ever captured.","فتح الماسح تلقائيًا عند الانضمام":"Open the scanner automatically when joining","إذا كان إذن الكاميرا ممنوحًا مسبقًا. لا يعمل عند إنشاء اتصال.":"Only if camera permission is already granted. Does not run when creating a connection.","الاستمرار في الخلفية":"Staying active in the background","استئناف سريع عند الرجوع":"Fast resume on return","عند عودتك إلى التطبيق يتحقق من الاتصال فورًا ويُكمل النقل من موضعه.":"When you return to the app it checks the connection immediately and continues the transfer from where it stopped.","تنبيه لما النقل يقف في الخلفية":"Alert when a transfer stalls in the background","إشعار يذكّرك بفتح التطبيق إذا توقف النقل وأنت في تطبيق آخر. يتطلب إذن الإشعارات.":"A notification reminds you to open the app if the transfer stops while you are in another app. Requires notification permission.","قفل الخلفية (تجريبي)":"Background lock (experimental)","يمسك قفل متصفح أثناء الاتصال لتقليل احتمال تجميد الصفحة. تأثيره على أندرويد ضعيف ولا ضرر منه.":"Holds a browser lock during the connection to reduce the chance of the page being frozen. Its effect on Android is limited and it is harmless.","مواصلة النقل في الخلفية (تجريبي)":"Keep transferring in the background (experimental)","يشغّل صوتًا صامتًا تمامًا وإشعارًا صغيرًا أثناء الاتصال، وقد لا يمنع أندرويد من إيقاف النقل. متوقف افتراضيًا.":"Plays completely silent audio and a small notification during the connection; Android may still stop the transfer. Off by default.","دليل: كيف يستمر النقل في الخلفية؟":"Guide: how to keep transfers running in the background","إعدادات الهاتف ← التطبيقات ← Chrome (أو التطبيق إن كان مثبّتًا) ← البطارية ← «غير مقيّد».":"Phone settings → Apps → Chrome (or the app, if installed) → Battery → “Unrestricted”.","أوقف «توفير الطاقة» و«تحسين البطارية التكيّفي» أثناء النقل الكبير.":"Turn off “Battery saver” and “Adaptive battery” during large transfers.","ثبّت التطبيق على الشاشة الرئيسية (إضافة إلى الشاشة الرئيسية) بدل التبويب العادي.":"Install the app to the home screen (Add to Home screen) instead of using a regular tab.","على أجهزة سامسونج وشاومي وأوبو: ثبّت التطبيق في قائمة التطبيقات الأخيرة (قفل) وفعّل «التشغيل في الخلفية».":"On Samsung, Xiaomi and Oppo: lock the app in the recent-apps list and enable “Run in background”.","استخدم الواي فاي بدل بيانات الجوال، ولا تفتح تطبيقات ثقيلة أثناء النقل.":"Use Wi-Fi instead of mobile data, and avoid heavy apps during the transfer.","إذا توقف النقل: ارجع إلى التطبيق وسيُكمل من الموضع نفسه تلقائيًا.":"If the transfer stops, return to the app and it resumes from the same point automatically.","تنبيه عند اكتمال النقل":"Alert when a transfer completes","اهتزاز وصوت قصير.":"A short vibration and sound.","أصوات الاتصال والانتهاء":"Connection and completion sounds","نغمة قصيرة عند الاتصال وعند اكتمال النقل.":"A short tone when connecting and when a transfer completes.","اهتزاز خفيف عند الأحداث":"Light vibration on events","عند الاتصال وقبول ملف وحدوث خطأ.":"On connecting, accepting a file, and errors.","تنبيه عند وصول رابط":"Alert when a link arrives","يظهر شريط فيه «فتح» بدل فتح الرابط تلقائيًا.":"A bar with “Open” appears instead of opening the link automatically.","مكان الحفظ":"Save location","تغيير المجلد":"Change folder","تفعيل المجلد":"Enable folder","الرجوع للتحميلات":"Return to Downloads","قد يمنع أندرويد اختيار مجلد التحميلات نفسه أو الذاكرة الرئيسية، فاختر مجلدًا فرعيًا أو أنشئ مجلدًا جديدًا. اختيار مجلد يحفظ المجلدات المستلمة بهيكلها.":"Android may block choosing the Downloads folder itself or the main storage, so pick a subfolder or create a new one. Choosing a folder keeps received folders in their original structure.","الافتراضي: مجلد التحميلات.":"Default: the Downloads folder.","الملفات المستلمة":"Received files","فتح السجل (المرسل والمستلم)":"Open history (sent and received)","حذف الملفات المستلمة تلقائيًا":"Delete received files automatically","يحذف الملفات المحفوظة في مجلد الحفظ المخصص بعد هذه المدة، وفقط إذا لم يُعدَّل الملف. لا يعمل على ما في التحميلات.":"Deletes files saved in the custom save folder after this period, only if the file was not modified. Does not apply to files in Downloads.","أبدًا":"Never","بعد يوم":"After a day","بعد أسبوع":"After a week","بعد شهر":"After a month","مسح الأجزاء المؤقتة":"Clear temporary parts","الخلفية":"Background","السطح":"Surface","النص":"Text","اللون الأساسي":"Accent color","حفظ الثيم":"Save theme","إلغاء":"Cancel","العرض":"Display","ملء الشاشة تلقائيًا":"Fullscreen automatically","يُفعَّل عند أول لمسة.":"Activates on the first touch.","إحصائيات":"Statistics","تصفير الإحصائيات":"Reset statistics","تشخيص الاتصال":"Connection diagnostics","عرض سجل الاتصال":"Show connection log","نسخ سجل التشخيص":"Copy diagnostics log","تصدير الإعدادات":"Export settings","استيراد الإعدادات":"Import settings","التطبيق":"App","تثبيت التطبيق":"Install app","حفظ نسخة من التطبيق":"Save a copy of the app","«حفظ نسخة» ينزّل ملفًا واحدًا يمكن إرساله إلى الجهاز الآخر (بلوتوث أو Quick Share) وفتحه دون إنترنت.":"“Save a copy” downloads a single file that can be sent to the other device (Bluetooth or Quick Share) and opened without internet.","تعذّر الاتصال؟ جرّب هذه الخطوات بالترتيب":"Can't connect? Try these steps in order","تأكد أن الجهازين على الواي فاي نفسه. الأضمن: شغّل":"Make sure both devices are on the same Wi-Fi. Safest: turn on a","هوتسبوت":"hotspot","من أحدهما وصِل الآخر به.":"on one of them and connect the other to it.","إن كان الواي فاي بلا إنترنت، أوقف":"If the Wi-Fi has no internet, turn off","بيانات الجوال":"mobile data","وخاصية التبديل الذكي كي لا يتركه أندرويد.":"and smart network switching so Android doesn't leave it.","أوقف أي":"Turn off any","على الجهازين.":"on both devices.","الواي فاي العام وشبكات الضيوف تمنع الأجهزة من رؤية بعضها، فاستخدم هوتسبوت بدلًا منها.":"Public Wi-Fi and guest networks prevent devices from seeing each other, so use a hotspot instead.","اضغط «جرّب عناوين حقيقية» أدناه واسمح بالكاميرا لحظيًا، ثم اعرض الكود الجديد على الجهاز الآخر.":"Press “Try real addresses” below and allow the camera briefly, then show the new code on the other device.","إن استمر الفشل: ابدأ من جديد على الجهازين وأبقِ الشاشتين مضاءتين حتى يتم الاتصال.":"If it keeps failing: start over on both devices and keep both screens on until the connection completes.","جرّب عناوين حقيقية":"Try real addresses","ابدأ من جديد":"Start over","يتوفر إصدار جديد من التطبيق":"A new version of the app is available","تحديث":"Update","لاحقًا":"Later","نقل الملفات والمجلدات بين الأجهزة، مباشرةً.":"Transfer files and folders between devices, directly.","مُشفَّر":"Encrypted","بدون إنترنت":"No internet needed","بدون خادم":"No server","بدئ الإتصال":"Start connection","إنشاء رمز وعرضه على الجهاز الآخر":"Create a code and show it on the other device","إنضمام إلى إتصال":"Join a connection","مسح أو إدخال رمز من الجهاز الآخر":"Scan or enter a code from the other device","تجهيز ملفات للإرسال":"Prepare files to send","اختر الملفات الآن لتُرسل فور إتمام الاتصال":"Choose files now to send as soon as the connection completes","سجل الملفات":"File history","ما أُرسل وما استُلم سابقًا":"What was sent and received before","اتصال سريع بجهاز سبق الاتصال به":"Quick connect to a previously connected device","اعرض الرمز على الجهاز الآخر":"Show the code on the other device","نسخ":"Copy","مشاركة":"Share","مشاركة رابط الاتصال":"Share connection link","يحتوي الرمز على عناوين مخفية (mDNS)، وقد يمنع ذلك الاتصال على بعض الشبكات.":"The code contains hidden addresses (mDNS), which may prevent connecting on some networks.","سيُنشأ رمز جديد، فاعرضه على الجهاز الآخر من جديد. (يطلب إذن الكاميرا لحظيًا)":"A new code will be created; show it again on the other device. (Briefly requests camera permission)","استقبل رمز الرد من الجهاز الآخر":"Receive the reply code from the other device","اكتب الرمز الظاهر على الجهاز الآخر. يبدأ الاتصال تلقائيًا عند اكتماله.":"Type the code shown on the other device. The connection starts automatically when it is complete.","لصق":"Paste","اتصال":"Connect","رجوع":"Back","مساعدة":"Help","استقبل الرمز من الجهاز الأول":"Receive the code from the first device","لو الجهاز الأول عرض رمز قصير (S2…) اكتبه هنا، أو امسح الـQR.":"If the first device shows a short code (S2…), type it here or scan the QR.","إنشاء رمز الرد":"Create reply code","اعرض رمز الرد على الجهاز الأول":"Show the reply code on the first device","سيُنشأ رمز رد جديد، فاعرضه على الجهاز الأول من جديد. (يطلب إذن الكاميرا لحظيًا)":"A new reply code will be created; show it again on the first device. (Briefly requests camera permission)","بعد أن يمسح الجهاز الأول هذا الرمز ويضغط «اتصال»، يكتمل الاتصال تلقائيًا.":"After the first device scans this code and presses “Connect”, the connection completes automatically.","متصل":"Connected","قطع الاتصال":"Disconnect","لم يستطع المتصفح منع انطفاء الشاشة (قد يكون وضع توفير الطاقة مفعّلًا). أبقِ الشاشة مضاءة أثناء النقل، فإغلاقها يقطع الاتصال.":"The browser could not keep the screen on (battery saver may be enabled). Keep the screen on during the transfer, because locking it breaks the connection.","انقطع الاتصال":"Connection lost","ستُستكمل الملفات الناقصة من حيث توقفت عند عودة الاتصال، دون إغلاق الصفحة.":"Incomplete files will resume from where they stopped when the connection returns, without closing the page.","اتصال سريع بالجهاز نفسه":"Quick reconnect to the same device","إعادة الاتصال":"Reconnect","رمز التحقق":"Verification code","يجب أن يظهر الرقم نفسه على الجهاز الآخر. إن اختلف فاقطع الاتصال، فقد يكون أحدهم اعترض الرمز.":"The same number must appear on the other device. If it differs, disconnect: someone may have intercepted the code.","متطابق":"Match","مختلف":"Different","اسحب الملفات أو المجلدات هنا":"Drag files or folders here","أو اخترها من الجهاز":"or choose them from your device","ملفات":"Files","مجلد":"Folder","نسخة احتياطية لمجلد":"Folder backup","اختبار السرعة":"Speed test","ملفات جاهزة للإرسال":"Files ready to send","إرسال المحدد":"Send selected","إلغاء المحدد":"Cancel selected","تحديد الكل":"Select all","كل الأنواع":"All types","صور":"Images","فيديو":"Video","صوت":"Audio","ملفات أخرى":"Other files","كل الحالات":"All statuses","جاري":"In progress","تم":"Done","فشل":"Failed","مسح المنتهية":"Clear finished","لا توجد ملفات بعد":"No files yet","اختر ملفات أو مجلدًا من الأعلى، أو اسحبها إلى هنا، وستظهر هنا مع حالة كلٍّ منها.":"Choose files or a folder above, or drag them here, and they will appear here with the status of each.","تشغيل الكاميرا":"Start camera","إيقاف":"Stop","من صورة":"From image","رمز QR":"QR code","رمز نصي":"Text code","رمز قصير":"Short code","كود واحد":"One code","مصمم ثيم خاص":"Custom theme designer","السجل":"History","الكل":"All","مستلم":"Received","مرسل":"Sent","كل الأجهزة":"All devices","مسح السجل":"Clear history","القائمة والإعدادات":"Menu and settings","ملء الشاشة":"Fullscreen","إغلاق":"Close","أقسام الإعدادات":"Settings sections","مثال: هاتف أحمد":"Example: Ahmed's phone","مدة الحذف التلقائي":"Auto-delete period","اسم الثيم":"Theme name","الجهاز المقترن":"Paired device","جارٍ إنشاء الرمز…":"Creating the code…","الرمز القصير من الجهاز الأول":"Short code from the first device","يُرسل الجديد والمتغيّر فقط":"Sends only what is new or changed","ملاحظة تُرسل مع الملفات (اختياري) مثل: هذا عقد الشقة":"A note sent with the files (optional), e.g. this is the apartment contract","ملاحظة مع الملفات":"Note with the files","نص أو رابط لإرساله":"Text or a link to send","إرسال":"Send","لصق من الحافظة وإرسال":"Paste from clipboard and send","تصفية حسب النوع":"Filter by type","تصفية حسب الحالة":"Filter by status","بحث بالاسم أو الملاحظة…":"Search by name or note…","بحث":"Search","النوع":"Type","الجهاز":"Device","فاتح":"Light","داكن":"Dark","نيون":"Neon","الرمز غير صحيح. تأكد من نسخه كاملًا.":"The code is invalid. Make sure you copied it completely.","متصفحك قديم ولا يدعم فك الضغط. استخدم متصفحًا أحدث.":"Your browser is too old and does not support decompression. Use a newer browser.","متصفحك":"Your browser","الرمز غير صالح أو ناقص. انسخه كاملًا وحاول مجددًا.":"The code is invalid or incomplete. Copy it completely and try again.","افتح المساعدة":"Open help","جرّب الرمز النصي":"Try the text code","مجلد مخصص: ":"Custom folder: ","(يحتاج إلى تفعيل)":"(needs to be enabled)","مجلد التحميلات (الافتراضي)":"Downloads folder (default)","تعذر اختيار المجلد: ":"Could not choose the folder: ","على iOS بعض الميزات (حفظ الملفات الكبيرة، مسح QR) محدودة. الأفضل استخدام Chrome أو Edge على أندرويد أو الحاسوب.":"On iOS some features (saving large files, scanning QR) are limited. Chrome or Edge on Android or desktop is best.","جاهز للعمل بدون إنترنت":"Ready to work offline","جارٍ التجهيز للعمل بدون إنترنت…":"Preparing to work offline…","تعذر تفعيل العمل بدون إنترنت.":"Could not enable offline use.","يعمل من ملف محلي. للتثبيت افتح التطبيق من رابط https.":"Running from a local file. To install, open the app from an https link.","يوجد نقل جارٍ، وإعادة التحميل ستقطعه (ويُستكمل لاحقًا). هل تتابع؟":"A transfer is in progress and reloading will interrupt it (it will resume later). Continue?","يوجد ":"There "," ملف جاهز للإرسال، وسيُرسل تلقائيًا فور إتمام الاتصال. ":" file(s) ready to send; they will be sent automatically once the connection completes. ","حُفظ الملف في التحميلات. افتحه من تطبيق الملفات.":"The file was saved in Downloads. Open it from your Files app.","مجلد الحفظ السابق غير متاح. اختره مجددًا من الإعدادات.":"The previous save folder is unavailable. Choose it again in Settings.","يجب السماح بالوصول إلى المجلد.":"You must allow access to the folder.","الملف غير موجود (حُذف أو نُقل).":"The file does not exist (deleted or moved).","أجزاء ملفات ناقصة محفوظة مؤقتًا: ":"Incomplete file parts stored temporarily: "," (تُحذف تلقائيًا بعد 3 أيام).":" (deleted automatically after 3 days).","لا توجد أجزاء مؤقتة محفوظة.":"No temporary parts are stored.","مسح الأجزاء المؤقتة؟ أي ملف ناقص ستحتاج إلى إرساله من البداية. (ما كُتب منذ أقل من 11 دقيقة يُترك).":"Clear temporary parts? Any incomplete file will need to be sent again from the start. (Anything written less than 11 minutes ago is kept).","تعذّر حفظ نسخة من التطبيق: ":"Could not save a copy of the app: ","النقل جارٍ في الخلفية":"The transfer is running in the background","انقطع الاتصال.":"Connection lost.","نتحقق من الاتصال…":"Checking the connection…","الجهاز الآخر يستعيد نشاطه… نواصل":"The other device is waking up… continuing","جارٍ الاتصال…":"Connecting…","فشل الاتصال":"Connection failed","فشل الاتصال. تأكد من أن الجهازين على الشبكة نفسها (جرّب هوتسبوت من أحدهما) ثم ابدأ من جديد.":"Connection failed. Make sure both devices are on the same network (try a hotspot from one of them) and start over.","يُستكمل…":"Resuming…","انقطع الاتصال — سيُستكمل تلقائيًا بعد إعادة الاتصال":"Connection lost — will resume automatically after reconnecting","تم الإلغاء":"Cancelled","انقطع الاتصال قبل أن تقبل":"The connection was lost before you accepted","قُطع الاتصال.":"The connection was ended.","طول الرمز: ":"Code length: "," حرف":" characters","لا توجد عناوين شبكة متاحة. تأكد من تشغيل الواي فاي أو الهوتسبوت وحاول مجددًا.":"No network addresses are available. Make sure Wi-Fi or the hotspot is on and try again.","بانتظار الجهاز الآخر…":"Waiting for the other device…","لم يكتمل الاتصال بالرمز الواحد. جرّب وضع «رمز قصير» (يتطلب رمز ردّ) أو الرمز العادي.":"The one-code connection did not complete. Try “Short code” mode (requires a reply code) or the regular code.","وضع رمز قصير":"Short code mode","يجب الاقتران بجهاز أولًا: اتصل بالرمز العادي ثم اضغط «متطابق» على الجهازين.":"You must pair with a device first: connect with the regular code, then press “Match” on both devices.","الأجهزة المقترنة لم تتبادل السرّ بعد. اتصل بهذا الجهاز مرة واحدة بأي وضع ثم سيعمل.":"The paired devices have not exchanged the secret yet. Connect to this device once in any mode and it will then work.","تعذّر تجهيز الرمز الواحد، فهذا هو الرمز القصير العادي.":"Could not prepare the one code, so this is the regular short code.","حدث خطأ: ":"An error occurred: ","ابدأ الاتصال من جديد.":"Start the connection again.","وضع «رمز واحد» لا يتضمن رمز ردّ. انتظر الاتصال أو غيّر الوضع.":"“One code” mode has no reply code. Wait for the connection or change the mode.","هذا ليس رمز ردّ. الصق الرمز الذي عاد من الجهاز الآخر.":"This is not a reply code. Paste the code returned from the other device.","طُبِّق ردّ على هذا الرمز مسبقًا. إذا لم يتم الاتصال فاضغط «ابدأ من جديد» وابدأ من الأول.":"A reply was already applied to this code. If the connection does not complete, press “Start over” and begin again.","يبدو أن هذا الردّ ليس للرمز الظاهر عندك (قد يكون من جهاز آخر أو من نسخة قديمة من التطبيق). هل تتابع على أي حال؟":"This reply does not seem to belong to the code shown on your screen (it may be from another device or an old version of the app). Continue anyway?","هذا الردّ ليس للرمز الظاهر عندك. تأكد من نسخ الردّ من الجهاز الذي كتب هذا الرمز أو مسحه تحديدًا.":"This reply does not belong to the code shown on your screen. Make sure you copied the reply from the device that typed or scanned this exact code.","الاتصال يستغرق وقتًا. تأكد من أن الجهازين على شبكة الواي فاي نفسها، أو جرّب هوتسبوت من أحدهما.":"The connection is taking a while. Make sure both devices are on the same Wi-Fi, or try a hotspot from one of them.","هذا ليس رمز بدء اتصال. الصق الرمز من الجهاز الأول.":"This is not a connection-start code. Paste the code from the first device.","بانتظار الجهاز الأول":"Waiting for the first device","قد يكون الجهازان على شبكتين مختلفتين. إن لم يكتمل الاتصال فصلهما بالشبكة نفسها أو استخدم هوتسبوت.":"The devices may be on different networks. If the connection does not complete, connect them to the same network or use a hotspot.","حسنًا":"OK","يتصل بالجهاز الأول… دون كتابة أي رمز آخر.":"Connecting to the first device… without typing any other code.","لم يكتمل الاتصال بالرمز الواحد. اطلب من الجهاز الأول تجربة وضع «رمز قصير».":"The one-code connection did not complete. Ask the first device to try “Short code” mode.","متصل (جهاز موثوق)":"Connected (trusted device)","متصل (موثّق)":"Connected (verified)","قُطع الاتصال لأن رمز التحقق مختلف. ربما اعترض أحدهم الرمز. ابدأ من جديد وأرسل الرمز بطريقة مباشرة.":"The connection was ended because the verification code differs. Someone may have intercepted the code. Start over and send the code directly.","اضغط للتكبير":"Tap to enlarge","على الجهاز الآخر: إنضمام إلى إتصال، ثم تشغيل الكاميرا، ثم وجّهها نحو هذا الرمز.":"On the other device: Join a connection, then Start camera, then point it at this code.","الرمز طويل جدًا لرمز QR. استخدم «رمز نصي».":"The code is too long for a QR code. Use “Text code”.","متصفحك لا يدعم قراءة QR. استخدم «رمز نصي».":"Your browser does not support reading QR codes. Use “Text code”.","تمت قراءة الرمز":"Code read","الكاميرا تحتاج إلى رابط https. استخدم «رمز نصي» أو «من صورة».":"The camera requires an https link. Use “Text code” or “From image”.","إذن الكاميرا مرفوض. فعّله من إعدادات الموقع، أو استخدم «رمز نصي».":"Camera permission was denied. Enable it in the site settings, or use “Text code”.","الكاميرا لا تعمل (":"The camera is not working (","خطأ":"error","). استخدم «رمز نصي».":"). Use “Text code”.","وجّه الكاميرا نحو الرمز…":"Point the camera at the code…","لا يوجد رمز QR صالح في الصورة.":"No valid QR code in the image.","تعذّرت قراءة الصورة.":"Could not read the image.","عرض الرمز":"Show code","استقبال الردّ":"Receive reply","استقبال الرمز":"Receive code","عرض الردّ":"Show reply"," · المتبقي ":" · remaining ","… و":"… and "," ملفًا آخر":" more file(s)","قبول المجلد":"Accept folder","رفض المجلد":"Reject folder","إخفاء التفاصيل":"Hide details","عرض التفاصيل":"Show details","إلغاء الكل":"Cancel all","إعادة محاولة الفاشل":"Retry failed","تم الرفض":"Rejected"," من ":" of "," ملف · ":" file(s) · "," فشل":" failed","تم ":"Done "," ملف":" file(s)"," · بانتظار قرارك":" · waiting for your decision"," ملف (توقف الإرسال) · ":" file(s) (sending stopped) · "," ملف (توقف الإرسال)":" file(s) (sending stopped)","في الانتظار":"Waiting"," منتهٍ من ":" finished of ","الإرسال (الكل)":"Sending (all)","الاستلام (الكل)":"Receiving (all)","انتهى النقل":"Transfer finished","ممتاز":"Excellent","مقبول":"Acceptable","ضعيفة. جرّب هوتسبوت (5GHz) وقرّب الجهازين من بعضهما.":"Poor. Try a hotspot (5GHz) and bring the devices closer together.","اتصل بالجهاز الآخر أولًا.":"Connect to the other device first.","انتظر حتى ينتهي النقل الحالي أولًا.":"Wait for the current transfer to finish first.","نجهّز الاختبار…":"Preparing the test…","لم يستجب الجهاز الآخر للاختبار":"The other device did not respond to the test","الجهاز الآخر مشغول بنقل آخر":"The other device is busy with another transfer","ننتظر تأكيد الجهاز الآخر…":"Waiting for the other device to confirm…","انقطع الاختبار":"The test was interrupted","الإرسال: ":"Sending: "," محدد من ":" selected of ","إلغاء التحديد":"Deselect"," ملف آخر (يُحدَّد معها)":" more file(s) (selected with them)","العدد كبير. سيُرسل أول ":"Too many files. Only the first "," ملف فقط.":" file(s) will be sent.","في الانتظار…":"Waiting…","ملاحظة: ":"Note: ","ملخص الجلسة: ":"Session summary: "," ملف (":" file(s) ("," — أُرسل ":" — sent "," واستُلم ":" and received "," أُرسلت":" sent"," استُلمت":" received","، متوسط السرعة ":", average speed ","، مدة الجلسة ":", session duration ","اجعله التالي":"Make it next","استئناف":"Resume","إيقاف مؤقت":"Pause","جُهّز هذا الملف عند الجهاز الآخر مسبقًا وسيُنقل في دوره":"This file was already prepared on the other device and will be sent in its turn","سيُرسل بعد الملف الحالي مباشرةً":"Will be sent right after the current file","متوقف مؤقتًا — اضغط استئناف للمتابعة":"Paused — press Resume to continue","أوقف الجهاز الآخر الاستلام مؤقتًا":"The other device paused receiving","سيُستكمل بعد إعادة الاتصال":"Will resume after reconnecting","يُضغط الملف قبل الإرسال…":"Compressing the file before sending…","بانتظار قبول الجهاز الآخر…":"Waiting for the other device to accept…","الجهاز الآخر مشغول بملف آخر":"The other device is busy with another file","مساحة الجهاز الآخر غير كافية لهذا الملف":"The other device does not have enough space for this file","الجهاز الآخر لديه الملف بالفعل — تم التخطي":"The other device already has the file — skipped","يُستكمل من ":"Resuming from ","جارٍ الإرسال…":"Sending…","أوقف الجهاز الآخر الاستلام":"The other device stopped receiving","نعيد إرسال الجزء التالف…":"Resending the damaged part…","إعادة المحاولة":"Retry","تعذّر تأكيد الاستلام":"Could not confirm receipt","تم الإرسال":"Sent","قطع الجهاز الآخر الاتصال.":"The other device disconnected.","نسخة احتياطية: تستبدل القديمة إن وُجدت":"Backup: replaces the old copy if it exists","مشغول بملف آخر":"Busy with another file","موجود لديك بالفعل — تم التخطي":"You already have it — skipped","بانتظار قرارك":"Waiting for your decision","يريد إرسال ملف إليك":"wants to send you a file","قبول":"Accept","رفض":"Reject","ألغى الجهاز الآخر الإرسال":"The other device cancelled sending","جارٍ الاستلام…":"Receiving…","الاستلام: ":"Receiving: ","لا يوجد اسم متاح للملف":"No filename available","الملف المحفوظ ناقص":"The saved file is incomplete","جارٍ التجهيز…":"Preparing…","تعذّر تجهيز التخزين: ":"Could not prepare storage: ","المساحة غير كافية: المطلوب ":"Not enough space: needed "," والمتاح تقريبًا ":" and about "," متاحة. أفرغ مساحة وحاول مجددًا.":" available. Free up space and try again.","تحذير: المساحة المتاحة قريبة من حجم الملف (":"Warning: available space is close to the file size ("," تقريبًا). إذا فشل النقل، أفرغ مساحة.":" approximately). If the transfer fails, free up space.","متوقف مؤقتًا — يُكمل الجزء الجاري ثم يثبت":"Paused — finishes the current part, then stops","بيانات زائدة عن المتوقع":"More data than expected","تلف الملف أثناء النقل (فشل التحقق)":"The file was corrupted during transfer (verification failed)","أُغلق الملف":"The file was closed","تلف جزء أثناء النقل — نعيد إرساله تلقائيًا":"A part was corrupted during transfer — resending automatically","فشل: ":"Failed: ","حجم الملف المستلم غير مطابق":"The received file size does not match","جارٍ الحفظ…":"Saving…","تم الحفظ في «":"Saved in “"," · ✓ تم التحقق":" · ✓ verified","مجلد «":"Folder “","تفاصيل":"Details","حذف الملف":"Delete file","يُفك الضغط…":"Decompressing…","فشل فك الضغط":"Decompression failed","تم الحفظ في التحميلات":"Saved in Downloads"," (اسم الملف يتضمن اسم المجلد. اختر مجلد حفظ من الإعدادات للحفاظ على الهيكل)":" (the filename includes the folder name. Choose a save folder in Settings to keep the structure)","التحميلات":"Downloads","حفظ مرة أخرى":"Save again","من الجهاز الآخر":"From the other device","أنت":"You","فتح الرابط":"Open link","فتح هذا الرابط؟\\n":"Open this link?\\n","وصلك رابط: ":"You received a link: ","فتح":"Open","تجاهل":"Ignore","المجلد فارغ.":"The folder is empty.","تعذّر فتح المجلد: ":"Could not open the folder: ","تعذّرت قراءة المجلد: ":"Could not read the folder: ","اضغط مطولًا على الخانة واختر لصق.":"Long-press the field and choose Paste.","متصفحك لا يدعم WebRTC. استخدم Chrome حديثًا.":"Your browser does not support WebRTC. Use a recent Chrome.","لا توجد أجهزة مقترنة بعد. اتصل مرة بالرمز العادي واضغط «متطابق» على الجهازين.":"No paired devices yet. Connect once with the regular code and press “Match” on both devices.","جهاز ":"Device ","الجهاز الأساسي · ":"Primary device · ","جاهز للرمز الأقصر":"Ready for the shorter code","اتصل مرة أخرى لتفعيل الرمز الأقصر":"Connect once more to enable the shorter code"," · آخر وضع: ":" · last mode: ","اتصل بـ ":"Connect to ","اتصل":"Connect","جهاز أساسي":"Primary device","حذف الجهاز":"Remove device","حذف":"Delete","حذف الاقتران مع «":"Remove pairing with “","»؟":"”?","عدد الأجهزة: ":"Devices: "," · جاهز للرمز الأقصر والرمز الواحد: ":" · ready for the shorter code and one code: ","لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.":"None. Pairing happens after the first connection and confirming the verification code.","المتصفح لا يحفظ شهادة الجهاز.":"The browser does not store the device certificate.","يجب الاتصال مرة بالرمز العادي ثم الضغط على «متطابق» في الجهازين أولًا.":"First connect once with the regular code, then press “Match” on both devices.","شكل الرمز غير مدعوم.":"The code format is not supported.","عنوان الشبكة مخفي (mDNS). فعّل «تحسين التوافق» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.":"The network address is hidden (mDNS). Enable “Improve compatibility” in Settings or allow the brief camera permission.","طول الرمز القصير: ":"Short code length: "," حرف (بدون الشرطات)":" characters (without dashes)","رمز واحد: اكتبه أو امسحه على الجهاز الآخر ليتصل وحده دون رمز ردّ. وإن لم يعمل فجرّب وضع «رمز قصير».":"One code: type or scan it on the other device and it connects by itself with no reply code. If it doesn't work, try “Short code” mode.","الرمز الواحد غير متاح الآن. ":"One code is not available now. "," هذا هو الرمز القصير العادي: سيعرض الجهاز الآخر رمز ردّ تكتبه هنا في الخانة التي بالأسفل.":" This is the regular short code: the other device will show a reply code to type here in the field below.","رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح رمز QR. وإن لم يعمل فغيّر الوضع إلى «رمز QR» أو «رمز نصي».":"Short code for a paired device: type it on the other device or scan the QR. If it doesn't work, switch to “QR code” or “Text code”.","الرمز القصير غير متاح الآن: ":"The short code is not available now: "," استخدم رمز QR الظاهر بالأسفل أو غيّر الوضع.":" Use the QR shown below or change the mode.","اكتب هذا الرمز على الجهاز الأول. لا فرق بين الحروف الكبيرة والصغيرة.":"Type this code on the first device. Upper and lower case do not matter.","الرمز القصير غير متاح الآن. يُفعَّل بعد أول اتصال ناجح مع الضغط على «متطابق» في الجهازين. يمكنك كتابة هذا الرمز (الحروف الكبيرة والصغيرة مختلفة).":"The short code is not available now. It is enabled after the first successful connection and pressing “Match” on both devices. You can type this code (upper and lower case differ).","الرمز القصير 52 حرفًا، المكتوب ":"The short code is 52 characters; typed: ","الرمز القصير يحتوي على حرف غير صحيح.":"The short code contains an invalid character.","يوجد خطأ في كتابة الرمز القصير. راجع الحروف.":"There is a typing error in the short code. Check the characters.","هذا الجهاز غير مقترن بالجهاز الأول. اطلب منه تغيير الوضع إلى «رمز QR» أو «رمز نصي» واستخدم الرمز العادي.":"This device is not paired with the first device. Ask it to switch to “QR code” or “Text code” and use the regular code.","هذا الجهاز غير مقترن بعد. اتصل مرة بالرمز العادي ثم اضغط «متطابق» على الجهازين.":"This device is not paired yet. Connect once with the regular code, then press “Match” on both devices.","المكتوب: ":"Typed: ","يجب أن يبدأ الرمز بـ S1":"The code must start with S1","يجب أن يبدأ الرمز بـ S2 أو S3":"The code must start with S2 or S3","الاتصال ضعيف… نحاول":"Weak connection… trying","الاتصال ضعيف ولم يعد.":"The connection is weak and did not recover.","الجهاز الآخر في الخلفية":"The other device is in the background","تغيّرت الشبكة والجهاز الآخر لا يستجيب. إن عاد خلال ثوانٍ فسيُكمل من تلقاء نفسه.":"The network changed and the other device is not responding. If it returns within seconds, it will continue by itself.","إعادة الاتصال الآن":"Reconnect now","تغيّرت الشبكة.":"The network changed.","تغيّرت الشبكة وانقطع الاتصال.":"The network changed and the connection was lost.","انقطع الاتصال: لا يوجد رد من الجهاز الآخر.":"Connection lost: no response from the other device.","لا يوجد رد…":"No response…"," ساعة":" h"," دقيقة":" min","متصل بـ ":"Connected to ","مدة الاتصال: ":"Connection time: "," · يتبقى ":" · remaining "," · بلا حد زمني":" · no time limit","انتهت مدة الاتصال المحددة (":"The set connection time has ended ("," · بانتظار انتهاء النقل":" · waiting for the transfer to finish"," · سرعة مخفّضة (الشبكة مزدحمة)":" · reduced speed (network congested)"," · وضع توفير الذاكرة":" · memory-saving mode","يوجد نقل جارٍ. هل تقطع الاتصال؟":"A transfer is in progress. Disconnect?","تم النسخ":"Copied","حدّد النص يدويًا وانسخه":"Select the text manually and copy it","لا توجد أحداث بعد.":"No events yet.","تحذير: ":"Warning: ","تنبيه: ":"Notice: ","التباين بين النص والخلفية ":"The contrast between text and background is ","ضعيف جدًا (":"very low (","منخفض (":"low (",":1) — قد يصعب قراءة النص. يُفضَّل 4.5 أو أكثر.":":1) — the text may be hard to read. 4.5 or more is recommended.","اكتب اسمًا للثيم أولًا":"Enter a theme name first","التباين بين النص والخلفية ضعيف جدًا وقد لا تتمكن من قراءة الواجهة. هل تحفظ الثيم على أي حال؟":"The contrast between text and background is very low and you may not be able to read the interface. Save the theme anyway?","حدث خطأ غير متوقع. إن تكررت المشكلة فانسخ السجل وأرسله.":"An unexpected error occurred. If the problem repeats, copy the log and send it.","نسخ السجل":"Copy log","إخفاء":"Hide","هذا المتصفح لا يدعم الاتصال المباشر (WebRTC). استخدم Chrome حديثًا.":"This browser does not support direct connections (WebRTC). Use a recent Chrome.","الصفحة غير مفتوحة بشكل آمن (https). افتحها من الرابط الأصلي أو بعد التثبيت.":"The page is not opened securely (https). Open it from the original link or after installing.","ميزة التشفير والتحقق غير متاحة في المتصفح.":"Encryption and verification are not available in this browser.","نجح الاتصال بالعناوين الحقيقية، وفعّلناها تلقائيًا للمرات القادمة (قد تظهر رسالة كاميرا لحظية).":"Connecting with real addresses worked, so we enabled them automatically for next time (a brief camera prompt may appear).","تراجع":"Undo","رمز QR مكبّر":"Enlarged QR code","تم دمج الإعدادات (":"Settings merged ("," عنصر":" item(s)","، ":", "," ثيم":" theme(s)",") وأبقينا ثيماتك الحالية. جارٍ إعادة التحميل…":") and your current themes were kept. Reloading…","الملف ليس ملف إعدادات Nx-Share صالحًا.":"The file is not a valid Nx-Share settings file.","حذف الملف «":"Delete the file “","» من الجهاز؟ لن يمكن استرجاعه.":"” from the device? It cannot be recovered.","تم حذف الملف":"File deleted","تعذّر حذف الملف: ":"Could not delete the file: ","الحافظة فارغة.":"The clipboard is empty.","لم نتمكن من قراءة الحافظة. اسمح بالوصول إلى الحافظة أو الصق النص يدويًا.":"We could not read the clipboard. Allow clipboard access or paste the text manually.","جهازك لا يملك أي عنوان شبكة. تأكد من تشغيل الواي فاي أو الهوتسبوت.":"Your device has no network address. Make sure Wi-Fi or the hotspot is on.","الرمز القادم من الجهاز الآخر لا يحتوي على عناوين شبكة. تأكد من أنه متصل بواي فاي أو هوتسبوت.":"The code from the other device contains no network addresses. Make sure it is connected to Wi-Fi or a hotspot.","عناوين الأجهزة مخفية (mDNS) وهذا يفشل على بعض الهوتسبوت.":"Device addresses are hidden (mDNS), which fails on some hotspots.","الجهازان على الشبكة نفسها لكن الاتصال رُفض. غالبًا يعزل الراوتر الأجهزة عن بعضها (شبكة ضيوف أو عزل العملاء). جرّب هوتسبوت من أحد الهاتفين.":"Both devices are on the same network but the connection was refused. The router probably isolates devices from each other (guest network or client isolation). Try a hotspot from one of the phones.","يبدو أن الجهازين على شبكتين مختلفتين. صِلهما بالواي فاي نفسه أو استخدم هوتسبوت.":"The devices seem to be on different networks. Connect them to the same Wi-Fi or use a hotspot."," سنجرّب العناوين الحقيقية تلقائيًا في المحاولة القادمة.":" We will try real addresses automatically on the next attempt.","جودة الاتصال: ":"Connection quality: ","ممتازة":"excellent","متوسطة":"fair","ضعيفة":"poor","البطارية ":"Battery ","%. صِل الشاحن كي لا يتوقف النقل إذا انطفأ الهاتف.":"%. Plug in the charger so the transfer does not stop if the phone shuts down.","النقل جارٍ… إن توقف فافتح التطبيق للمتابعة":"Transfer in progress… if it stops, open the app to continue","النقل متوقف — افتح التطبيق للمتابعة":"Transfer stalled — open the app to continue","استلام":"Receiving","جارٍ التحقق من الملف المحفوظ…":"Verifying the saved file…","فشل التحقق النهائي: الملف المحفوظ غير مطابق. حُذف، أعد إرساله.":"Final verification failed: the saved file does not match. It was deleted; send it again.","معرض الصور (":"Image gallery (","معرض الصور":"Image gallery","معرض الصور المستلمة":"Received images gallery","إغلاق المعرض":"Close gallery","الرمز القصير ":"The short code "," حرفًا، المكتوب ":" characters; typed: ","هذا الجهاز غير مقترن بالجهاز الأول بالرمز الأقصر. اطلب منه تغيير الوضع واستخدم الرمز العادي (اتصال واحد يكفي بعد ذلك).":"This device is not paired with the first device for the shorter code. Ask it to change the mode and use the regular code (one connection is enough afterwards).","مفتاح الاقتران مختلف بين الجهازين. اتصل مرة بالرمز العادي لتجديده.":"The pairing key differs between the devices. Connect once with the regular code to renew it.","رمز الرد هذا ليس للرمز الحالي. ابدأ الاتصال من جديد وكرّر.":"This reply code is not for the current code. Start the connection again and repeat.","لم يكتمل الاتصال، وقد جدّدنا الرمز. امسحه مجددًا من الجهاز الآخر.":"The connection did not complete, so we renewed the code. Scan it again from the other device.","اضغط للنسخ":"Tap to copy","تعذّر النسخ":"Copy failed","الرمز قيد التجهيز":"The code is still being prepared","افتح الرابط للاتصال":"Open the link to connect","نُسخ الرابط":"Link copied","تعذّر نسخ الرابط":"Could not copy the link","اتصلت بـ ":"Connected to ","الجهاز الآخر":"the other device","زمن الاستجابة ":"Response time ","جودة الاتصال ضعيفة (زمن الاستجابة ":"The connection quality is poor (response time ","، فقد ":", loss ","). قد يكون النقل بطيئًا. قرّب الجهازين من بعضهما أو من الراوتر.":"). The transfer may be slow. Bring the devices closer together or closer to the router.","سيستغرق النقل حوالي ":"The transfer will take about "," دقيقة. لا تقفل الشاشة ولا تغادر التطبيق حتى ينتهي.":" minute(s). Do not lock the screen or leave the app until it finishes."," ملف ناقص سيُستكمل تلقائيًا فور اكتمال الاتصال.":" incomplete file(s) will resume automatically once the connection completes.","تجهّز ":"Prepared "," ملف لإكمال إرساله. سيُرسل ويُستكمل من حيث توقف فور اكتمال الاتصال.":" file(s) to finish sending. They will be sent and resumed from where they stopped once the connection completes."," ملف انقطع إرساله قبل إغلاق التطبيق (":" file(s) were interrupted before the app was closed (","). اختر الملفات نفسها مجددًا ليُستكمل إرسالها من حيث توقفت.":"). Choose the same files again to resume sending from where they stopped.","اختيار الملفات":"Choose files","المُرسل":"Sent","المُستلم":"Received","أسرع سرعة":"Top speed","أكثر جهاز اتصلت به":"Most connected device","جهاز مقترن":"paired device"," مرة":" time(s)","تصفير الإحصائيات؟":"Reset statistics?"," · يظهر ":" · shows ","تفاصيل الملف":"File details","المسار":"Path","الحجم":"Size","حُفظ في":"Saved in","وقت الاستلام":"Received at","المدة":"Duration","متوسط السرعة":"Average speed","التحقق من السلامة":"Integrity check"," جزء (SHA-256)":" part(s) (SHA-256)","غير متاح":"Not available","من":"from","ملاحظة":"Note","تحتاج إلى اختيار الملف مجددًا (هذا الجزء غير محفوظ)":"You need to choose the file again (this part is not stored)","سيُستكمل تلقائيًا فور اكتمال الاتصال (من نسخة محفوظة)":"Will resume automatically once connected (from a saved copy)","امسح أو اكتب الرمز الذي سيظهر على الجهاز الآخر":"Scan or type the code that will appear on the other device","اليوم":"Today","أمس":"Yesterday","مسح كل السجل؟ الملفات نفسها لن تُحذف.":"Clear the entire history? The files themselves will not be deleted."," سجل":" record(s)","لا توجد نتائج.":"No results.","لا توجد ملفات في السجل بعد.":"No files in the history yet."," من «":" from “"," إلى «":" to “"," · حُذف":" · deleted","نوع هذا الملف غير مدعوم للمشاركة.":"This file type is not supported for sharing.","حذف «":"Delete “","حُذف":"Deleted","الملف غير موجود أصلًا":"The file does not exist","تعذّر حذف الملف.":"Could not delete the file.","حذف من السجل":"Remove from history","عرض المزيد (":"Show more ("," ملف انتهت مدته لكنه يحتاج إلى إذن للمجلد ليُحذف.":" file(s) have expired but need folder permission to be deleted.","السماح والحذف":"Allow and delete","كل ملفات «":"All files in “","» مطابقة للنسخة الموجودة عند الجهاز الآخر":"” match the copy on the other device","نسخة احتياطية لمجلد «":"Backup of folder “"," ملف جديد":" new file(s)"," متغيّر (سيحلّ محل القديم عند الجهاز الآخر)":" changed (will replace the old one on the other device)"," مطابق (سيُتخطّى).":" identical (will be skipped).","\\nسيُرسل أول ":"\\nThe first "," ملف والباقي في المرة القادمة.":" file(s) will be sent and the rest next time.","\\nنبدأ؟":"\\nStart?","اللغة":"Language","لغة الواجهة":"Interface language","العربية هي الأساسية. تغيير اللغة يعيد تحميل الصفحة.":"Arabic is the primary language. Changing the language reloads the page.","ستُطبَّق اللغة عند فتح التطبيق مرة أخرى.":"The language will change the next time the app opens."};
+const ENK=Object.keys(EN).sort((a,b)=>b.length-a.length);
+const AR_RX=/[\u0600-\u06FF]/, AR_LT=/[\u0621-\u0652\u0670-\u06D3]/, isArCh=c=>!!c&&AR_LT.test(c);
+function Lt(s){
+  if(LANG!=='en'||s==null) return s;
+  s=String(s); if(!AR_RX.test(s)) return s;
+  const tr=s.trim();
+  if(Object.prototype.hasOwnProperty.call(EN,tr)) return s.replace(tr,EN[tr]);
+  let out=s;
+  for(const k of ENK){
+    const kt=k.trim(); if(kt.length<4&&kt===k) continue;
+    let i=out.indexOf(k); if(i<0) continue;
+    const en=EN[k], a0=isArCh(k[0]), a1=isArCh(k[k.length-1]); let res='', pos=0;
+    while(i>=0){
+      if((a0&&isArCh(out[i-1]))||(a1&&isArCh(out[i+k.length]))){ i=out.indexOf(k,i+1); continue; }
+      res+=out.slice(pos,i)+en; pos=i+k.length; i=out.indexOf(k,pos);
+    }
+    out=res+out.slice(pos);
+    if(!AR_RX.test(out)) break;
+  }
+  return out;
+}
+(function(){
+  const de=document.documentElement; de.lang=LANG; de.dir=LANG==='en'?'ltr':'rtl';
+  const ol=$('#optLang');
+  if(ol){ ol.value=LANG; ol.onchange=()=>{ try{ localStorage.setItem('ft.lang',ol.value); }catch(_){} if(sess&&sess.open&&!sess.lost){ showErr(Lt('ستُطبَّق اللغة عند فتح التطبيق مرة أخرى.')); } else location.reload(); }; }
+  if(LANG!=='en') return;
+  const nc=window.confirm.bind(window), na=window.alert.bind(window);
+  window.confirm=m=>nc(Lt(m)); window.alert=m=>na(Lt(m));
+  const SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1};
+  function trNode(n){
+    if(n.nodeType===3){ const p=n.parentNode; if(!p||SKIP[p.nodeName]) return; const v=n.data; if(!AR_RX.test(v)) return; const t=Lt(v); if(t!==v) n.data=t; }
+    else if(n.nodeType===1){ if(n.nodeName==='SCRIPT'||n.nodeName==='STYLE') return; for(const a of ['title','aria-label','placeholder','alt']){ const v=n.getAttribute(a); if(v&&AR_RX.test(v)){ const t=Lt(v); if(t!==v) n.setAttribute(a,t); } } }
+  }
+  function trTree(r){ trNode(r); if(r.nodeType===1){ const w=document.createTreeWalker(r,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT); let x; while((x=w.nextNode())) trNode(x); } }
+  trTree(document.body);
+  new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='childList') m.addedNodes.forEach(trTree); else if(m.type==='characterData') trNode(m.target); else if(m.type==='attributes') trNode(m.target); } })
+    .observe(document.body,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['title','aria-label','placeholder','alt']});
+})();
+
+// ---------- settings tabs ----------
+(function(){
+  const bar=$('#setTabs'); if(!bar) return;
+  const tabs=Array.from(bar.querySelectorAll('[role=tab]')), panels=Array.from(document.querySelectorAll('#menu .tpanel'));
+  function act(k,focus){
+    if(!tabs.some(t=>t.dataset.tab===k)) k='dev';
+    tabs.forEach(t=>{ const on=t.dataset.tab===k; t.setAttribute('aria-selected',on?'true':'false'); t.tabIndex=on?0:-1; if(on){ try{ t.scrollIntoView({inline:'center',block:'nearest'}); }catch(_){} if(focus) t.focus(); } });
+    panels.forEach(p=>{ p.hidden=p.dataset.tab!==k; });
+    try{ localStorage.setItem('ft.tab',k); }catch(_){}
+    try{ const mn=$('#menu'); if(mn) mn.scrollTop=0; }catch(_){}
+  }
+  tabs.forEach(t=>{ t.onclick=()=>act(t.dataset.tab); });
+  bar.addEventListener('keydown',e=>{ const i=tabs.findIndex(t=>t.getAttribute('aria-selected')==='true'); const rtl=getComputedStyle(bar).direction==='rtl'; let n=-1; if(e.key==='ArrowRight') n=i+(rtl?-1:1); else if(e.key==='ArrowLeft') n=i+(rtl?1:-1); else if(e.key==='Home') n=0; else if(e.key==='End') n=tabs.length-1; if(n>=0&&n<tabs.length){ e.preventDefault(); act(tabs[n].dataset.tab,true); } });
+  let k='dev'; try{ k=localStorage.getItem('ft.tab')||'dev'; }catch(_){}
+  act(k);
+  window.openSettingsTab=act;
+})();
 // ---------- background keep-alive ----------
 // 1) timer that runs in a Worker (not throttled like page timers) 2) silent looping audio + media session so Android keeps the page running
 let hbW=null, bgAudio=null, bgUrl='';
@@ -1530,7 +1662,7 @@ function bgStart(){
     bgUrl=silentWav(); const a=new Audio(bgUrl); a.loop=true; bgAudio=a;
     const pr=a.play(); if(pr&&pr.catch) pr.catch(e=>{ dlogAdd('bg audio blocked: '+(e&&e.name)); });
     if('mediaSession' in navigator){
-      navigator.mediaSession.metadata=new MediaMetadata({title:'Nx-Share',artist:'النقل شغال في الخلفية'});
+      navigator.mediaSession.metadata=new MediaMetadata({title:'Nx-Share',artist:'النقل جارٍ في الخلفية'});
       navigator.mediaSession.playbackState='playing';
       for(const k of ['pause','stop']) try{ navigator.mediaSession.setActionHandler(k,()=>{ try{ a.play(); }catch(_){} }); }catch(_){}
     }
@@ -1554,8 +1686,10 @@ function resumeKick(){
   try{
     if(!settings.fast||!(sess&&sess.open&&!sess.lost)) return;
     const ch=dc; if(!ch||ch.readyState!=='open'){ connLost('انقطع الاتصال.'); return; }
-    graceUntil=Date.now()+8000; setBadge('بنأكّد الاتصال…','wait'); dlogAdd('resume check');
+    graceUntil=Date.now()+8000; setBadge('نتحقق من الاتصال…','wait'); dlogAdd('resume check');
     sendCtl({t:'fg'}); sendCtl({t:'ping'});
+    const p0=ovOut.raw()+ovIn.raw();
+    setTimeout(()=>{ try{ if(ovOut.raw()+ovIn.raw()===p0&&!allIdle()){ sendCtl({t:'ping'}); setBadge('الجهاز الآخر يستعيد نشاطه… نواصل','wait'); dlogAdd('resume: no progress yet'); } }catch(_){} },3000);
     setTimeout(()=>{ try{ watchTick(); if(pc&&pc.connectionState==='connected'&&dc&&dc.readyState==='open'&&sess&&sess.open&&!sess.lost) setBadge('متصل','ok'); }catch(_){} },1500);
   }catch(_){}
 }
@@ -1602,7 +1736,7 @@ function makePC(){
     else if(st==='connecting') setBadge('جارٍ الاتصال…','wait');
     else if(st==='disconnected'||st==='failed'){
       if(live) startWeak();
-      else if(st==='failed'){ setBadge('فشل الاتصال','bad'); showErr(failText('فشل الاتصال. تأكد إن الجهازين على نفس الشبكة (جرّب هوتسبوت من أحدهما) وابدأ من جديد.'),connFailActions()); showTips(true); }
+      else if(st==='failed'){ setBadge('فشل الاتصال','bad'); showErr(failText('فشل الاتصال. تأكد من أن الجهازين على الشبكة نفسها (جرّب هوتسبوت من أحدهما) ثم ابدأ من جديد.'),connFailActions()); showTips(true); }
     }
     else if(st==='closed'){ if(live) connLost('انقطع الاتصال.'); }
   };
@@ -1643,7 +1777,7 @@ function onConnected(){
   for(const t of outgoing.values()){
     if(t.state==='interrupted'){
       if(t.restored){ t.restored=false; recount(t); }
-      t.state='queued'; t.ui.status('بيكمل…'); t.ui.buttons(outBtns(t,'queued')); sendQueue.push(t);
+      t.state='queued'; t.ui.status('يُستكمل…'); t.ui.buttons(outBtns(t,'queued')); sendQueue.push(t);
     }
   }
   if(pendingShare){
@@ -1661,7 +1795,7 @@ function connLost(msg){
   for(const t of outgoing.values()){
     if(t.state==='queued'||t.state==='offered'||t.state==='sending'){
       t.state='interrupted';
-      t.ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]);
+      t.ui.pause('انقطع الاتصال — سيُستكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]);
       const a=t.onAnswer, k=t.onAck, f=t.onFin; t.onAnswer=t.onAck=t.onFin=null; t.pre=false; t.ansP=null;
       a&&a(null); k&&k(); f&&f(); wake(t);
     }
@@ -1669,9 +1803,9 @@ function connLost(msg){
   if(current){
     const r=current; current=null; r.failed=true;
     if(r.direct) r.chain=r.chain.then(()=>directClose(r,false)).catch(()=>{});
-    r.ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>{ store.clear(r.key).catch(()=>{}); if(r.direct) directClose(r,true); inCards.delete(r.key); r.ui.fail('تم الإلغاء'); }]]);
+    r.ui.pause('انقطع الاتصال — سيُستكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>{ store.clear(r.key).catch(()=>{}); if(r.direct) directClose(r,true); inCards.delete(r.key); r.ui.fail('تم الإلغاء'); }]]);
   }
-  for(const j of pendingIn.values()){ j.ui.fail('انقطع الاتصال قبل ما تقبل'); ovIn.gone(j.size); }
+  for(const j of pendingIn.values()){ j.ui.fail('انقطع الاتصال قبل أن تقبل'); ovIn.gone(j.size); }
   pendingIn.clear();
   if(spd){ spd.ui.fail('انقطع الاتصال'); spd=null; }
   for(const [k,w] of Array.from(waiters)){ waiters.delete(k); w(null); }
@@ -1684,7 +1818,7 @@ function connLost(msg){
   if($('#s-xfer').hidden) view('s-xfer');
 }
 function resetToStart(msg){
-  if(sess&&sess.open&&!sess.lost) connLost(msg||'تم قطع الاتصال.');
+  if(sess&&sess.open&&!sess.lost) connLost(msg||'قُطع الاتصال.');
   stopLive(); $('#connBar').hidden=true; closePC(); releaseMedia(); bgStop(); bgUnlock(); hbStop(); sess=null; role=null;
   for(const id of ['offerOut','answerIn','offerIn','answerOut','shortIn']) $('#'+id).value='';
   $('#shortOut').textContent=''; $('#shortCount').textContent=SHORT_HINT;
@@ -1699,15 +1833,15 @@ function resetToStart(msg){
 function showCode(kind,code,desc){
   const isOffer=kind==='offer';
   $(isOffer?'#offerOut':'#answerOut').value=code; setStep(isOffer?'host':'join',2);
-  $(isOffer?'#offerInfo':'#answerInfo').textContent='طول الكود: '+code.length+' حرف';
+  $(isOffer?'#offerInfo':'#answerInfo').textContent='طول الرمز: '+code.length+' حرف';
   drawQR(isOffer?'offerQR':'answerQR',code,isOffer?'offerQRmsg':'answerQRmsg');
   $(isOffer?'#ipWarnH':'#ipWarnJ').hidden=!hasMdns(desc.sdp);
-  if(!countCands(desc.sdp)) showErr('مفيش عناوين شبكة متاحة. تأكد إن الواي فاي أو الهوتسبوت شغال وجرّب تاني.');
+  if(!countCands(desc.sdp)) showErr('لا توجد عناوين شبكة متاحة. تأكد من تشغيل الواي فاي أو الهوتسبوت وحاول مجددًا.');
 }
 async function startHost(force,isRetry){
   if(!isRetry) oneTries=0;
   showErr(''); role='host'; view('s-host'); closePC();
-  offerShort=null; offerCtx=null; oneWhy=''; document.body.classList.remove('onearmed'); $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').innerHTML='<span class="spin"></span>جارٍ إنشاء الكود…';
+  offerShort=null; offerCtx=null; oneWhy=''; document.body.classList.remove('onearmed'); $('#offerShortBox').hidden=true; $('#offerOut').value=''; $('#offerInfo').innerHTML='جارٍ إنشاء الرمز…';
   $('#offerQR').hidden=true; $('#ipWarnH').hidden=true;
   try{
     const wantShort=(settings.mode==='short'||settings.mode==='one')&&certPersistent&&(await getPeers()).length>0;
@@ -1732,47 +1866,47 @@ async function startHost(force,isRetry){
         const code=await shortEncodeOffer3(p.localDescription,'S5');
         if(code){
           await p.setRemoteDescription({type:'answer',sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:offerCtx.peer.fp,setup:'active',cands:[]})});
-          offerCtx.one=true; offerShort=code; document.body.classList.add('onearmed'); setBadge('بانتظار الجهاز التاني…','wait'); dlogAdd('one-code mode armed');
-          clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('الاتصال بالكود الواحد ما اكتملش. جرّب وضع «رمز قصير» (بيطلب رمز رد) أو الكود العادي.'),[['وضع رمز قصير',()=>setMode('short')]].concat(connFailActions())); } },30000);
+          offerCtx.one=true; offerShort=code; document.body.classList.add('onearmed'); setBadge('بانتظار الجهاز الآخر…','wait'); dlogAdd('one-code mode armed');
+          clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('لم يكتمل الاتصال بالرمز الواحد. جرّب وضع «رمز قصير» (يتطلب رمز ردّ) أو الرمز العادي.'),[['وضع رمز قصير',()=>setMode('short')]].concat(connFailActions())); } },30000);
         }
       }catch(e){ dlogAdd('one-code arm failed: '+(e&&e.message)); offerCtx.one=false; }
     }
-    if(oneMode&&!(offerCtx&&offerCtx.one)){ const pr=await getPeers(); oneWhy=!pr.length?'لازم تقترن بجهاز أولًا: اتصل بالكود العادي وبعدين اضغط «متطابق» على الجهازين.':(!pr.some(x=>keysOf(x).length)?'الأجهزة المقترنة لسه ما تبادلتش السر. اتصل بالجهاز ده مرة واحدة بأي وضع وبعدها هيشتغل.':'ما قدرناش نجهّز الكود الواحد، فده الرمز القصير العادي.'); }
+    if(oneMode&&!(offerCtx&&offerCtx.one)){ const pr=await getPeers(); oneWhy=!pr.length?'يجب الاقتران بجهاز أولًا: اتصل بالرمز العادي ثم اضغط «متطابق» على الجهازين.':(!pr.some(x=>keysOf(x).length)?'الأجهزة المقترنة لم تتبادل السرّ بعد. اتصل بهذا الجهاز مرة واحدة بأي وضع ثم سيعمل.':'تعذّر تجهيز الرمز الواحد، فهذا هو الرمز القصير العادي.'); }
     if(!offerShort){ try{ offerShort=(offerCtx&&await shortEncodeOffer3(p.localDescription))||await shortEncodeOffer(p.localDescription); }catch(_){ offerShort=null; } }
     await fillOfferPeers();
     renderOfferShort();
-  }catch(e){ showErr('حصل خطأ: '+(e&&e.message||e)); }
+  }catch(e){ showErr('حدث خطأ: '+(e&&e.message||e)); }
   finally{ releaseMedia(); }
 }
 async function hostConnect(){
   showErr('');
   try{
     if(!pc) throw new Error('ابدأ الاتصال من جديد.');
-    if(offerCtx&&offerCtx.one) throw new Error('وضع «كود واحد» مفيهوش رمز رد. استنى الاتصال، أو غيّر الوضع.');
+    if(offerCtx&&offerCtx.one) throw new Error('وضع «رمز واحد» لا يتضمن رمز ردّ. انتظر الاتصال أو غيّر الوضع.');
     const d=await unpack($('#answerIn').value);
-    if(d.type!=='answer') throw new Error('ده مش كود رد. الصق الكود اللي رجع من الجهاز التاني.');
+    if(d.type!=='answer') throw new Error('هذا ليس رمز ردّ. الصق الرمز الذي عاد من الجهاز الآخر.');
     if(pc.signalingState!=='have-local-offer'){
       if(pc.__ans===d.sdp) return;
-      throw new Error('اتطبق رد قبل كده على الكود ده. لو الاتصال مش بيتم، اضغط «ابدأ من جديد» وابدأ من أول.');
+      throw new Error('طُبِّق ردّ على هذا الرمز مسبقًا. إذا لم يتم الاتصال فاضغط «ابدأ من جديد» وابدأ من الأول.');
     }
     const au=(String(d.sdp).match(/a=ice-ufrag:(.*)\r?\n/)||[])[1]||'';
     if(au.length===4&&/^[FG][01]\./.test(String($('#answerIn').value).replace(/\s+/g,''))){
       const want=await offerTag(pc.localDescription.sdp);
-      if(au.slice(2)!==want&&!confirm('الرد ده شكله مش بتاع الكود اللي ظاهر عندك (ممكن يكون من جهاز تاني، أو من نسخة قديمة من التطبيق). تكمل برضه؟')) throw new Error('الرد ده مش بتاع الكود اللي ظاهر عندك. اتأكد إنك نسخت الرد من الجهاز اللي كتب أو مسح الكود ده بالذات.');
+      if(au.slice(2)!==want&&!confirm('يبدو أن هذا الردّ ليس للرمز الظاهر عندك (قد يكون من جهاز آخر أو من نسخة قديمة من التطبيق). هل تتابع على أي حال؟')) throw new Error('هذا الردّ ليس للرمز الظاهر عندك. تأكد من نسخ الردّ من الجهاز الذي كتب هذا الرمز أو مسحه تحديدًا.');
     }
     setBadge('جارٍ الاتصال…','wait');
     const p=pc;
     p.__ans=d.sdp;
     await p.setRemoteDescription(d);
     clearTimeout(slowT);
-    slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('الاتصال بياخد وقت. تأكد إن الجهازين على نفس الواي فاي، أو جرّب هوتسبوت من أحدهما.'),connFailActions()); showTips(true); } },15000);
+    slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ showErr(failText('الاتصال يستغرق وقتًا. تأكد من أن الجهازين على شبكة الواي فاي نفسها، أو جرّب هوتسبوت من أحدهما.'),connFailActions()); showTips(true); } },15000);
   }catch(e){ showErr(e.message||String(e)); }
 }
 async function joinCreate(force){
   showErr('');
   try{
     const d=await unpack($('#offerIn').value); const s3=d.s3; delete d.s3; document.body.classList.toggle('oneflow',!!(s3&&s3.one));
-    if(d.type!=='offer') throw new Error('ده مش كود بداية اتصال. الصق الكود من الجهاز الأول.');
+    if(d.type!=='offer') throw new Error('هذا ليس رمز بدء اتصال. الصق الرمز من الجهاز الأول.');
     role='join'; closePC(); $('#answerBox').hidden=true; $('#answerQR').hidden=true; $('#ipWarnJ').hidden=true;
     const wantShort=(settings.mode==='short'||settings.mode==='one')&&certPersistent&&(await getPeers()).length>0;
     if(settings.realIp||force||nextReal||wantShort){ if(nextReal&&!settings.realIp) forcedReal=true; await holdMedia(force||nextReal||wantShort); }
@@ -1792,8 +1926,8 @@ async function joinCreate(force){
     $('#answerBox').hidden=false;
     showCode('answer',await pack(p.localDescription),p.localDescription);
     setBadge('بانتظار الجهاز الأول','wait');
-    try{ const Lc=candIps(p.localDescription.sdp), Rc=candIps(p.remoteDescription.sdp); const pre=ip=>ip.split('.').slice(0,3).join('.'); if(Lc.v4.length&&Rc.v4.length&&!Rc.v4.some(ip=>Lc.v4.some(l=>pre(l)===pre(ip)))){ sysNote('netdiff','الجهازين ممكن يكونوا على شبكتين مختلفتين. لو الاتصال ما اكتملش وصّلهم بنفس الواي فاي أو استخدم هوتسبوت.',[['تمام',()=>sysNoteHide('netdiff')]],'bad'); dlogAdd('netdiff: different /24'); } }catch(_){}
-    if(s3ok&&s3.one){ sysNote('one','بيتصل بالجهاز الأول… من غير ما تكتب أي رمز تاني.',null,'ok'); clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ sysNoteHide('one'); showErr(failText('الاتصال بالكود الواحد ما اكتملش. اطلب من الجهاز الأول يجرّب وضع «رمز قصير».'),connFailActions()); } },30000); }
+    try{ const Lc=candIps(p.localDescription.sdp), Rc=candIps(p.remoteDescription.sdp); const pre=ip=>ip.split('.').slice(0,3).join('.'); if(Lc.v4.length&&Rc.v4.length&&!Rc.v4.some(ip=>Lc.v4.some(l=>pre(l)===pre(ip)))){ sysNote('netdiff','قد يكون الجهازان على شبكتين مختلفتين. إن لم يكتمل الاتصال فصلهما بالشبكة نفسها أو استخدم هوتسبوت.',[['حسنًا',()=>sysNoteHide('netdiff')]],'bad'); dlogAdd('netdiff: different /24'); } }catch(_){}
+    if(s3ok&&s3.one){ sysNote('one','يتصل بالجهاز الأول… دون كتابة أي رمز آخر.',null,'ok'); clearTimeout(slowT); slowT=setTimeout(()=>{ if(p===pc&&!(sess&&sess.open)){ sysNoteHide('one'); showErr(failText('لم يكتمل الاتصال بالرمز الواحد. اطلب من الجهاز الأول تجربة وضع «رمز قصير».'),connFailActions()); } },30000); }
     try{ const sc=(s3ok&&await shortEncodeAnswer4(p.localDescription))||await shortEncode(p.localDescription,p.remoteDescription.sdp); fillShort(sc,$('#answerOut').value); }catch(_){ fillShort(null,$('#answerOut').value); }
   }catch(e){ showErr(e.message||String(e)); }
   finally{ releaseMedia(); }
@@ -1814,7 +1948,7 @@ async function showVerify(){
   }catch(_){}
 }
 $('#vOk').onclick=async()=>{ $('#vbox').hidden=true; setBadge('متصل (موثّق)','ok'); try{ await pinPeer(fpOf(pc.remoteDescription.sdp)); await applyPendingSec(); maybeSendSec(); }catch(_){} };
-$('#vBad').onclick=()=>resetToStart('اتقطع الاتصال لأن رمز التحقق مختلف. ممكن حد اعترض الكود. ابدأ من جديد وابعت الكود بطريقة مباشرة.');
+$('#vBad').onclick=()=>resetToStart('قُطع الاتصال لأن رمز التحقق مختلف. ربما اعترض أحدهم الرمز. ابدأ من جديد وأرسل الرمز بطريقة مباشرة.');
 
 // ---------- QR: render + scan ----------
 function drawQR(id,text,msgId){
@@ -1829,7 +1963,7 @@ function drawQR(id,text,msgId){
     for(let y=0;y<q.size;y++) for(let x=0;x<q.size;x++) if(q.get(x,y)) g.fillRect((x+b)*scale,(y+b)*scale,scale,scale);
     cv.hidden=false; cv.title='اضغط للتكبير'; cv.onclick=()=>qrZoom(cv);
     msg.textContent=id==='offerQR'?'على الجهاز الآخر: إنضمام إلى إتصال، ثم تشغيل الكاميرا، ثم وجّهها نحو هذا الرمز.':'';
-  }catch(e){ cv.hidden=true; msg.textContent='الكود طويل جدًا للـQR. استخدم «كود نصي».'; }
+  }catch(e){ cv.hidden=true; msg.textContent='الرمز طويل جدًا لرمز QR. استخدم «رمز نصي».'; }
 }
 let detP=null;
 function getDetector(){
@@ -1850,7 +1984,7 @@ function initScan(box){
   const v=box.querySelector('video'), bs=box.querySelector('[data-s=start]'), bx=box.querySelector('[data-s=stop]'),
         bi=box.querySelector('[data-s=img]'), fi=box.querySelector('input'), msg=box.querySelector('[data-s=msg]');
   const say=t=>{ msg.textContent=t||''; };
-  const noDet='متصفحك لا يدعم قراءة QR. استخدم «كود نصي».';
+  const noDet='متصفحك لا يدعم قراءة QR. استخدم «رمز نصي».';
   let stream=null, timer=null, busy=false;
   const S={ stop(){
     clearInterval(timer); timer=null;
@@ -1860,19 +1994,19 @@ function initScan(box){
   function onText(raw){
     const c=String(raw||'').replace(/\s+/g,'');
     if(!/^(G1|F0|F1)\.[A-Za-z0-9_-]+$/.test(c)&&!/^S[1-5]-?[0-9A-Za-z-]{10,80}$/.test(c)) return false;
-    $('#'+box.dataset.target).value=c; S.stop(); say('تم قراءة الكود');
+    $('#'+box.dataset.target).value=c; S.stop(); say('تمت قراءة الرمز');
     const go=$('#'+box.dataset.go); if(go) go.click();
     return true;
   }
   bs.onclick=async()=>{
     const det=await getDetector(); if(!det){ say(noDet); return; }
-    if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ say('الكاميرا محتاجة رابط https. استخدم «كود نصي» أو «من صورة».'); return; }
+    if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ say('الكاميرا تحتاج إلى رابط https. استخدم «رمز نصي» أو «من صورة».'); return; }
     stopScans(); say('');
     try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}); }
-    catch(e){ stream=null; say(e&&e.name==='NotAllowedError'?'إذن الكاميرا مرفوض. فعّله من إعدادات الموقع، أو استخدم «كود نصي».':'الكاميرا مش شغالة ('+((e&&e.name)||'خطأ')+'). استخدم «كود نصي».'); return; }
+    catch(e){ stream=null; say(e&&e.name==='NotAllowedError'?'إذن الكاميرا مرفوض. فعّله من إعدادات الموقع، أو استخدم «رمز نصي».':'الكاميرا لا تعمل ('+((e&&e.name)||'خطأ')+'). استخدم «رمز نصي».'); return; }
     v.srcObject=stream; v.hidden=false; bs.hidden=true; bx.hidden=false;
     try{ await v.play(); }catch(_){}
-    say('وجّه الكاميرا ناحية الكود…');
+    say('وجّه الكاميرا نحو الرمز…');
     timer=setInterval(async()=>{
       if(busy||!stream||v.readyState<2) return; busy=true;
       try{ const r=await det.detect(v); for(const c of r){ if(onText(c.rawValue)) break; } }catch(_){}
@@ -1884,15 +2018,15 @@ function initScan(box){
   fi.onchange=async()=>{
     const f=fi.files[0]; fi.value=''; if(!f) return;
     const det=await getDetector(); if(!det){ say(noDet); return; }
-    try{ const r=await det.detect(await createImageBitmap(f)); if(!r.some(c=>onText(c.rawValue))) say('مفيش QR صالح في الصورة.'); }
-    catch(_){ say('تعذر قراءة الصورة.'); }
+    try{ const r=await det.detect(await createImageBitmap(f)); if(!r.some(c=>onText(c.rawValue))) say('لا يوجد رمز QR صالح في الصورة.'); }
+    catch(_){ say('تعذّرت قراءة الصورة.'); }
   };
   getDetector().then(d=>{ if(!d){ say(noDet); bs.disabled=bi.disabled=true; } });
   scans.add(S);
 }
 $$('.scan').forEach(initScan);
 
-const FLOW={host:['عرض الرمز','استقبال الرد','متصل'],join:['استقبال الرمز','عرض الرد','متصل']};
+const FLOW={host:['عرض الرمز','استقبال الردّ','متصل'],join:['استقبال الرمز','عرض الردّ','متصل']};
 function buildSteps(){
   for(const [flow,sec] of [['host','#s-host'],['join','#s-join']]){
     const d=document.createElement('ol'); d.className='steps'; d.dataset.flow=flow;
@@ -1951,7 +2085,7 @@ function addCard(dir,name,size){
       bar.style.width=pct.toFixed(1)+'%';
       if(api.hold){ st.textContent=api.hold; st.className='st warn'; return; }
       const sp=(done-api.base)/(((now-start)/1000)||0.001);
-      st.textContent=pct.toFixed(0)+'% · '+fmtSpd(Math.max(0,sp))+' · باقي '+fmtTime(sp>0?(total-done)/sp:0);
+      st.textContent=pct.toFixed(0)+'% · '+fmtSpd(Math.max(0,sp))+' · المتبقي '+fmtTime(sp>0?(total-done)/sp:0);
       st.className='st';
     },
     done(t){ api.hold=''; bar.style.width='100%'; st.textContent=t; st.className='st ok'; api.buttons([]); fin(true); },
@@ -1987,7 +2121,7 @@ function makeGroup(dir,title,n,bytes){
       const a=document.createElement('span'); a.className='n'; a.textContent=m.name;
       const s=document.createElement('span'); s.className='s'; s.textContent=m.text; d.append(a,s); frag.append(d);
     }
-    if(order.length>400){ const x=document.createElement('div'); x.className='muted'; x.textContent='… و'+(order.length-400)+' ملف آخر'; frag.append(x); }
+    if(order.length>400){ const x=document.createElement('div'); x.className='muted'; x.textContent='… و'+(order.length-400)+' ملفًا آخر'; frag.append(x); }
     det.append(frag);
   }
   G.setBtns=()=>{
@@ -1997,7 +2131,7 @@ function makeGroup(dir,title,n,bytes){
     }else{
       list.push([G.open?'إخفاء التفاصيل':'عرض التفاصيل',()=>{ G.open=!G.open; det.hidden=!G.open; if(G.open) renderDet(); G.setBtns(); }]);
       if(busy>0&&G.onCancelAll) list.push(['إلغاء الكل',()=>G.onCancelAll()]);
-      if(!busy&&c.bad&&G.onRetry) list.push(['إعادة المحاولة للفاشل',()=>G.onRetry()]);
+      if(!busy&&c.bad&&G.onRetry) list.push(['إعادة محاولة الفاشل',()=>G.onRetry()]);
     }
     card.buttons(list);
   };
@@ -2018,7 +2152,7 @@ function makeGroup(dir,title,n,bytes){
     }else{
       if(G.completed){ G.completed=false; card.reset(); G.setBtns(); }
       const sp=G.start?G.got/(((now-G.start)/1000)||0.001):0;
-      st.textContent=c.ok+' من '+total+' ملف'+(c.bad?' · '+c.bad+' فشل':'')+(G.pend.length?' · بانتظار قرارك':' · '+pct.toFixed(0)+'%'+(sp>0&&G.bytes?' · '+fmtSpd(sp)+' · باقي '+fmtTime((G.bytes-G.got)/sp):''));
+      st.textContent=c.ok+' من '+total+' ملف'+(c.bad?' · '+c.bad+' فشل':'')+(G.pend.length?' · بانتظار قرارك':' · '+pct.toFixed(0)+'%'+(sp>0&&G.bytes?' · '+fmtSpd(sp)+' · المتبقي '+fmtTime((G.bytes-G.got)/sp):''));
       st.className='st';
     }
     if(G.open&&(force||now-G.dlast>600)){ G.dlast=now; renderDet(); }
@@ -2037,7 +2171,7 @@ function makeGroup(dir,title,n,bytes){
         if(!G.start) G.start=performance.now();
         G.got+=Math.max(0,done-m.got); m.got=done; setState(m,'run'); m.text=Math.floor(total?done/total*100:100)+'%'; G.render(false);
       },
-      done(t){ G.got+=Math.max(0,m.size-m.got); m.got=m.size; setState(m,'ok'); m.text=/^(تم|موجود|الجهاز التاني عنده)/.test(t)?'تم':t; m.retry=null; G.render(true); },
+      done(t){ G.got+=Math.max(0,m.size-m.got); m.got=m.size; setState(m,'ok'); m.text=/^(تم|موجود|الجهاز الآخر لديه)/.test(t)?'تم':t; m.retry=null; G.render(true); },
       fail(t,btns){ setState(m,'bad'); m.text=t; m.retry=(btns&&btns[0])?btns[0][1]:null; G.render(true); },
       pause(t){ setState(m,'pause'); m.text=t; G.render(true); },
       reset(){ G.got=Math.max(0,G.got-m.got); m.got=0; setState(m,'wait'); m.text='في الانتظار'; G.render(true); },
@@ -2061,7 +2195,7 @@ function planGroups(items){
 function setPicker(on){ $('#pickCard').classList.toggle('off',!on); }
 function refreshListBar(){
   const n=$$('#list .item').length, f=$$('#list .item[data-fin="1"]').length;
-  $('#emptyList').hidden=n>0||!$('#stage').hidden; $('#listBar').hidden=!n; $('#listCount').textContent=n?(f+' منتهي من '+n):''; $('#btnClear').disabled=!f;
+  $('#emptyList').hidden=n>0||!$('#stage').hidden; $('#listBar').hidden=!n; $('#listCount').textContent=n?(f+' منتهٍ من '+n):''; $('#btnClear').disabled=!f;
 }
 $('#btnClear').onclick=()=>{
   $$('#list .item[data-fin="1"]').forEach(el=>{ if(el._rm) el._rm(); if(el._turl){ try{ URL.revokeObjectURL(el._turl); }catch(_){} } el.remove(); });
@@ -2084,7 +2218,7 @@ function makeOverall(boxId,title){
     rf.style.strokeDashoffset=(113.1*(1-Math.min(1,pct/100))).toFixed(1); rp.textContent=fin?'تم':Math.floor(pct)+'%';
     if(fin){ st.textContent='تم '+fmtSize(S.bytes); st.className='st ok'; return; }
     const sp=got/(((now-S.start)/1000)||0.001);
-    st.textContent=pct.toFixed(0)+'% · '+fmtSpd(sp)+' · باقي '+fmtTime(sp>0?(S.bytes-got)/sp:0);
+    st.textContent=pct.toFixed(0)+'% · '+fmtSpd(sp)+' · المتبقي '+fmtTime(sp>0?(S.bytes-got)/sp:0);
     st.className='st';
   };
   return {
@@ -2097,6 +2231,7 @@ function makeOverall(boxId,title){
     done(size){ if(S.over) return; S.base+=size; S.cur=0; S.done++; if(S.done>=S.files) S.over=true; draw(true); },
     gone(size){ if(S.over) return; S.files=Math.max(0,S.files-1); S.bytes=Math.max(0,S.bytes-size); S.cur=0; if(S.done>=S.files) S.over=true; draw(true); },
     eta(){ if(S.over||!S.bytes) return null; const now=performance.now(); if(now-S.start<4000) return null; const got=Math.min(S.bytes,S.base+S.cur), sp=got/((now-S.start)/1000); return sp>0?(S.bytes-got)/sp:null; },
+    raw(){ return S.base+S.cur+S.done; },
     pct(){ if(S.over||!S.bytes) return null; return {p:Math.min(100,Math.floor((S.base+S.cur)/S.bytes*100)),d:S.done,n:S.files}; },
     clearIfOver(){ if(S.over){ S.files=0; box.hidden=true; } }
   };
@@ -2126,7 +2261,7 @@ function allIdle(){
 function bgNotify(){
   try{
     if(document.visibilityState!=='hidden'||!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker) return;
-    navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification('Nx-Share',{body:'انتهى النقل',icon:'icon-192.png',tag:'nx-done'})).catch(()=>{});
+    navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification('Nx-Share',{body:Lt('انتهى النقل'),icon:'icon-192.png',tag:'nx-done'})).catch(()=>{});
   }catch(_){}
 }
 for(const id of ['btnHost','btnJoin']) $('#'+id).addEventListener('click',()=>{ try{ if(settings.alert&&'Notification' in window&&Notification.permission==='default') Notification.requestPermission(); }catch(_){} });
@@ -2152,21 +2287,21 @@ function fire(key,v){ const w=waiters.get(key); if(w) w(v); }
 const fmtSpeed=bps=>(bps/1048576).toFixed(1)+' MB/s · '+(bps*8/1e6).toFixed(0)+' Mbps';
 function speedHint(bps){
   const m=bps/1048576;
-  return m>=10?'ممتاز':m>=3?'مقبول':'ضعيف. جرّب هوتسبوت (5GHz) وقرّب الجهازين من بعض.';
+  return m>=10?'ممتاز':m>=3?'مقبول':'ضعيفة. جرّب هوتسبوت (5GHz) وقرّب الجهازين من بعضهما.';
 }
 async function runSpeed(){
-  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
-  if(sending||current||spd||sendQueue.length){ showErr('استنى النقل الحالي يخلص الأول.'); return; }
+  if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
+  if(sending||current||spd||sendQueue.length){ showErr('انتظر حتى ينتهي النقل الحالي أولًا.'); return; }
   showErr(''); sending=true; $('#btnSpeed').disabled=true;
   const SIZE=50*1048576, id='s'+(nextId++), ui=addCard('out','اختبار السرعة',SIZE);
-  ui.status('بنجهّز الاختبار…');
+  ui.status('نجهّز الاختبار…');
   try{
     const chunk=new Uint8Array(CHUNK); crypto.getRandomValues(chunk);
     const go=waitFor('speedgo:'+id,8000);
     sendCtl({t:'speed',id,size:SIZE});
     const g=await go;
-    if(!g) throw new Error('الجهاز التاني مردش على الاختبار');
-    if(!g.ok) throw new Error('الجهاز التاني مشغول بنقل تاني');
+    if(!g) throw new Error('لم يستجب الجهاز الآخر للاختبار');
+    if(!g.ok) throw new Error('الجهاز الآخر مشغول بنقل آخر');
     const res=waitFor('speedres:'+id,90000), start=performance.now(); let sent=0;
     while(sent<SIZE){
       if(!connected()) throw new Error('انقطع الاتصال');
@@ -2175,8 +2310,8 @@ async function runSpeed(){
       dc.send(len===CHUNK?chunk:chunk.subarray(0,len)); sent+=len; ui.progress(sent,SIZE,start);
     }
     sendCtl({t:'speedend',id});
-    ui.status('بنستنى تأكيد الجهاز التاني…');
-    const r=await res; if(!r) throw new Error('الاختبار اتقطع');
+    ui.status('ننتظر تأكيد الجهاز الآخر…');
+    const r=await res; if(!r) throw new Error('انقطع الاختبار');
     const bps=SIZE/((performance.now()-start)/1000);
     ui.progress(SIZE,SIZE,start,true);
     ui.done('الإرسال: '+fmtSpeed(bps)+' — '+speedHint(bps));
@@ -2206,7 +2341,7 @@ function renderStage(){
     const sz=document.createElement('span'); sz.className='sz'; sz.textContent=fmtSize(x.file.size);
     row.append(cb,fi,tx,sz); L.append(row);
   }
-  if(stageItems.length>300){ const m=document.createElement('div'); m.className='muted'; m.textContent='… و'+(stageItems.length-300)+' ملف آخر (بيتحدد معاهم)'; L.append(m); }
+  if(stageItems.length>300){ const m=document.createElement('div'); m.className='muted'; m.textContent='… و'+(stageItems.length-300)+' ملف آخر (يُحدَّد معها)'; L.append(m); }
   refreshListBar();
 }
 function renderStageHead(){
@@ -2219,17 +2354,17 @@ $('#stAll').onclick=()=>{ const all=stageItems.every(x=>x.sel); stageItems.forEa
 $('#stDrop').onclick=()=>{ stageItems=stageItems.filter(x=>!x.sel); renderStage(); };
 $('#stSend').onclick=()=>{
   const go=stageItems.filter(x=>x.sel); if(!go.length) return;
-  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
   stageItems=stageItems.filter(x=>!x.sel); renderStage();
   enqueue(go.map(x=>({file:x.file,path:x.path})),true);
 };
 function enqueue(items,force){
-  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
   if(settings.review&&!force){
     for(const it of items){ if(stageItems.length>=MAXFILES) break; stageItems.push({file:it.file,path:cleanPath(it.path),sel:true,id:++stageSeq}); }
     renderStage(); return;
   }
-  if(items.length>MAXFILES){ showErr('العدد كبير. هيتبعت أول '+MAXFILES+' ملف بس.'); items=items.slice(0,MAXFILES); }
+  if(items.length>MAXFILES){ showErr('العدد كبير. سيُرسل أول '+MAXFILES+' ملف فقط.'); items=items.slice(0,MAXFILES); }
   const note=cleanNote($('#noteIn').value); if(note) $('#noteIn').value='';
   let bytes=0; const qStart=sendQueue.length;
   const gm=planGroups(items);
@@ -2280,15 +2415,15 @@ function statsText(){
 function resetStats(){ stats.out=stats.outB=stats.in=stats.inB=stats.ms=0; }
 function outBtns(t,mode){
   const c=['إلغاء',()=>cancelOut(t)];
-  if(mode==='queued') return [['خليه التالي',()=>prioritize(t)],c];
+  if(mode==='queued') return [['اجعله التالي',()=>prioritize(t)],c];
   return [[t.paused?'استئناف':'إيقاف مؤقت',()=>togglePause(t)],c];
 }
 function prioritize(t){
   const i=sendQueue.indexOf(t); if(i<=0) return;
   let at=0; while(at<sendQueue.length&&sendQueue[at].pre) at++;
-  if(sendQueue[i].pre){ t.ui.status('الملف ده اتجهز عند الجهاز التاني بالفعل وهيتنقل في دوره'); return; }
+  if(sendQueue[i].pre){ t.ui.status('جُهّز هذا الملف عند الجهاز الآخر مسبقًا وسيُنقل في دوره'); return; }
   sendQueue.splice(i,1); sendQueue.splice(at,0,t); $('#list').prepend(t.ui.el._g||t.ui.el);
-  t.ui.status('هيتبعت بعد الملف الحالي مباشرةً');
+  t.ui.status('سيُرسل بعد الملف الحالي مباشرةً');
 }
 function togglePause(t){
   if(t.state!=='sending') return;
@@ -2325,20 +2460,20 @@ function cancelOut(t){
   t.ui.fail('تم الإلغاء');
 }
 function retryOut(t){
-  if(!connected()){ t.state='interrupted'; t.ui.pause('هيكمل بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); recount(t); return; }
+  if(!connected()){ t.state='interrupted'; t.ui.pause('سيُستكمل بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); recount(t); return; }
   recount(t);
   t.state='queued'; t.ui.reset(); t.ui.status('في الانتظار…'); t.ui.buttons(outBtns(t,'queued'));
   sendQueue.push(t); pump();
 }
 async function sendFile(t){
   const ui=t.ui;
-  if(!connected()){ t.state='interrupted'; ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); return; }
+  if(!connected()){ t.state='interrupted'; ui.pause('انقطع الاتصال — سيُستكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); return; }
   let ans, src=t.file, zi=false;
   if(t.pre&&t.ansP){ ans=await t.ansP; t.pre=false; t.ansP=null; }
   else{
     t.state='offered'; t.aborted=false; t.fin=false; t.acked=0;
     if(settings.zip!==false&&!t.noZ&&canZip(t.file)){
-      ui.status('بيضغط الملف قبل الإرسال…');
+      ui.status('يُضغط الملف قبل الإرسال…');
       const zb=await tryZip(t.file).catch(()=>null);
       if(t.state!=='offered') return;
       if(zb){ src=zb; zi=true; } else t.noZ=true;
@@ -2346,7 +2481,7 @@ async function sendFile(t){
     t.src=src;
     sendCtl({t:'meta',id:t.id,name:t.file.name,size:src.size,path:t.path,key:t.key,g:t.g||undefined,z:zi?1:undefined,osize:zi?t.file.size:undefined,note:t.note||undefined,ow:t.ow?1:undefined});
     dlogAdd('send meta #'+t.id+' '+fmtSize(src.size)+(zi?' (gz of '+fmtSize(t.file.size)+')':''));
-    ui.status('بانتظار قبول الجهاز التاني…');
+    ui.status('بانتظار قبول الجهاز الآخر…');
     ans=await new Promise(r=>{ t.onAnswer=r; });
   }
   t.onAnswer=null;
@@ -2355,26 +2490,26 @@ async function sendFile(t){
   if(t.state==='interrupted'||t.state==='cancelled') return;
   if(ans&&ans.nz&&t.src&&t.src!==t.file){ t.noZ=true; t.state='queued'; return sendFile(t); }
   if(!t.src) t.src=t.file;
-  if(!ans||!ans.ok){ t.state='rejected'; uncount(t); ui.fail(ans&&ans.busy?'الجهاز التاني مشغول بملف تاني':(ans&&ans.space?'مساحة الجهاز التاني غير كافية لهذا الملف':'تم الرفض')); return; }
-  if(ans.skip){ t.state='done'; syncMark(t); ui.done('الجهاز التاني عنده الملف بالفعل — اتخطى'); if(t.counted){ t.counted=false; ovOut.done(t.file.size); } noteDone(); return; }
+  if(!ans||!ans.ok){ t.state='rejected'; uncount(t); ui.fail(ans&&ans.busy?'الجهاز الآخر مشغول بملف آخر':(ans&&ans.space?'مساحة الجهاز الآخر غير كافية لهذا الملف':'تم الرفض')); return; }
+  if(ans.skip){ t.state='done'; syncMark(t); ui.done('الجهاز الآخر لديه الملف بالفعل — تم التخطي'); if(t.counted){ t.counted=false; ovOut.done(t.file.size); } noteDone(); return; }
   const size=t.src.size, off=Math.min(Math.max(0,Number(ans.off)||0),size);
   t.state='sending'; t.acked=off; let sent=off;
   let start=performance.now(); ui.base=off; t.paused=false;
-  ui.status(off?('بيكمل من '+fmtSize(off)+'…'):'جارٍ الإرسال…');
+  ui.status(off?('يُستكمل من '+fmtSize(off)+'…'):'جارٍ الإرسال…');
   ui.buttons(outBtns(t,'sending'));
   const gate=async()=>{ if(!(t.paused||t.rpaused)) return; const t0=performance.now(); while(t.paused||t.rpaused){ alive(); await new Promise(r=>{ t.resume=r; }); alive(); } start+=performance.now()-t0; ui.hold=''; ui.status('جارٍ الإرسال…'); };
   const alive=()=>{
     if(t.state==='interrupted'||!dc||dc.readyState!=='open') throw LOST;
     if(t.state==='cancelled') throw new Error('تم الإلغاء');
-    if(t.aborted) throw new Error('الجهاز التاني أوقف الاستلام');
+    if(t.aborted) throw new Error('أوقف الجهاز الآخر الاستلام');
   };
   const onErr=(e)=>{
     if(e===LOST){
-      if(t.state!=='interrupted'){ t.state='interrupted'; ui.pause('انقطع الاتصال — هيكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); }
+      if(t.state!=='interrupted'){ t.state='interrupted'; ui.pause('انقطع الاتصال — سيُستكمل تلقائيًا بعد إعادة الاتصال',[['إلغاء',()=>cancelOut(t)]]); }
       return;
     }
     if(t.state==='cancelled'){ ui.fail('تم الإلغاء'); return; }
-    if(t.aborted&&t.retry&&(t.auto=(t.auto||0)+1)<=2&&connected()){ t.aborted=false; t.retry=false; uncount(t); ui.status('بنعيد إرسال الجزء التالف…'); dlogAdd('send #'+t.id+' auto retry '+t.auto); setTimeout(()=>retryOut(t),600); return; }
+    if(t.aborted&&t.retry&&(t.auto=(t.auto||0)+1)<=2&&connected()){ t.aborted=false; t.retry=false; uncount(t); ui.status('نعيد إرسال الجزء التالف…'); dlogAdd('send #'+t.id+' auto retry '+t.auto); setTimeout(()=>retryOut(t),600); return; }
     t.state='failed'; uncount(t); dlogAdd('send #'+t.id+' FAILED: '+((e&&e.message)||e));
     ui.fail((e&&e.message)||String(e),[['إعادة المحاولة',()=>retryOut(t)]]);
   };
@@ -2402,7 +2537,7 @@ async function sendFile(t){
       await new Promise(r=>{ t.onFin=r; if(t.fin) r(); });
       t.onFin=null;
       alive();
-      if(!t.fin) throw new Error('تعذر تأكيد الاستلام');
+      if(!t.fin) throw new Error('تعذّر تأكيد الاستلام');
       ui.progress(sent,size,start,true);
       t.state='done'; statOut(t,start); dlogAdd('sent #'+t.id+' ok'); ui.done('تم الإرسال');
       if(t.counted){ t.counted=false; ovOut.done(t.file.size); }
@@ -2444,7 +2579,7 @@ function handleCtl(m){
     case 'presume': { const o=outgoing.get(m.id); if(o){ o.rpaused=false; if(!o.paused) o.ui.hold=''; wake(o); } break; }
     case 'bg': remoteBgAt=Date.now(); dlogAdd('remote went to background'); break;
     case 'fg': remoteBgAt=0; graceUntil=Date.now()+8000; if(unresp){ unresp=false; setBadge('متصل','ok'); } sendCtl({t:'ping'}); dlogAdd('remote back in foreground'); break;
-    case 'bye': dlogAdd('remote said bye'); resetToStart('الجهاز الآخر قطع الاتصال.'); break;
+    case 'bye': dlogAdd('remote said bye'); resetToStart('قطع الجهاز الآخر الاتصال.'); break;
     case 'end': finishIn(m); break;
     case 'msg': addMsg(String(m.text),'in'); break;
   }
@@ -2465,17 +2600,17 @@ function onMeta(m){
     }else ui=addCard('in',label,z?osz:size);
     inCards.set(key,ui);
   }
-  if(note) ui.setNote('ملاحظة: '+note); else if(ow) ui.setNote('نسخة احتياطية: بيستبدل النسخة القديمة لو موجودة');
-  if(!pl&&current&&!current.failed){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف تاني'); return; }
+  if(note) ui.setNote('ملاحظة: '+note); else if(ow) ui.setNote('نسخة احتياطية: تستبدل القديمة إن وُجدت');
+  if(!pl&&current&&!current.failed){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف آخر'); return; }
   const job={id,key,name,path,size,ui,z,osize:osz,pl,note,ow};
   (async()=>{
     if(!z&&!ow&&await existsInDest(path,name,size)){
       if(!connected()) return;
       sendCtl({t:'resp',id,ok:true,skip:true,pl:settings.auto?1:0}); inCards.delete(key);
-      ui.done('موجود عندك بالفعل — اتخطى'); ovIn.done(size); noteDone();
+      ui.done('موجود لديك بالفعل — تم التخطي'); ovIn.done(size); noteDone();
       return;
     }
-    if(!connected()||(!pl&&current&&!current.failed)){ if(connected()){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف تاني'); } return; }
+    if(!connected()||(!pl&&current&&!current.failed)){ if(connected()){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف آخر'); } return; }
     if(settings.auto||acceptedKeys.has(key)){ acceptIncoming(job); return; }
     const G=ui.G;
     if(G){
@@ -2484,7 +2619,7 @@ function onMeta(m){
       pendingIn.set(id,job); G.pend.push(job); ui.status('بانتظار قرارك'); G.setBtns(); G.render(true); return;
     }
     pendingIn.set(id,job);
-    ui.status('عايز يبعتلك ملف');
+    ui.status('يريد إرسال ملف إليك');
     ui.buttons([
       ['قبول',()=>{ pendingIn.delete(id); acceptIncoming(job); },'primary'],
       ['رفض',()=>{ pendingIn.delete(id); sendCtl({t:'resp',id,ok:false}); inCards.delete(key); ui.fail('تم الرفض'); ovIn.gone(size); }]
@@ -2509,9 +2644,9 @@ function cancelGroupIn(G){
 }
 function onRemoteCancel(m){
   { const aj=accepting.get(m.id); if(aj) aj.cancelled=true; }
-  { const w=waitJobs.get(m.id); if(w){ w.cancelled=true; waitJobs.delete(m.id); inCards.delete(w.key); w.ui.fail('الجهاز التاني ألغى الإرسال'); ovIn.gone(w.size); return; } }
-  if(current&&current.id===m.id) failIn(current,null,{msg:'الجهاز التاني ألغى الإرسال',silent:true});
-  else{ const j=pendingIn.get(m.id); if(j){ pendingIn.delete(m.id); inCards.delete(j.key); j.ui.fail('الجهاز التاني ألغى الإرسال'); ovIn.gone(j.size); } }
+  { const w=waitJobs.get(m.id); if(w){ w.cancelled=true; waitJobs.delete(m.id); inCards.delete(w.key); w.ui.fail('ألغى الجهاز الآخر الإرسال'); ovIn.gone(w.size); return; } }
+  if(current&&current.id===m.id) failIn(current,null,{msg:'ألغى الجهاز الآخر الإرسال',silent:true});
+  else{ const j=pendingIn.get(m.id); if(j){ pendingIn.delete(m.id); inCards.delete(j.key); j.ui.fail('ألغى الجهاز الآخر الإرسال'); ovIn.gone(j.size); } }
 }
 
 // ---------- speed test (receiver side) ----------
@@ -2538,7 +2673,7 @@ async function uniqueFile(dir,name){
     try{ await dir.getFileHandle(nm); }
     catch(e){ if(e&&e.name==='NotFoundError') return dir.getFileHandle(nm,{create:true}); throw e; }
   }
-  throw new Error('مفيش اسم متاح للملف');
+  throw new Error('لا يوجد اسم متاح للملف');
 }
 async function ensureDirs(root,path){
   let d=root;
@@ -2568,7 +2703,7 @@ async function uniqueName(dir,name){
     const nm=n?base+' ('+n+')'+ext:name;
     try{ await dir.getFileHandle(nm); }catch(e){ if(e&&e.name==='NotFoundError') return nm; throw e; }
   }
-  throw new Error('مفيش اسم متاح للملف');
+  throw new Error('لا يوجد اسم متاح للملف');
 }
 async function directProbe(job){
   if(!settings.dirHandle||!(await dirPerm(false))) return null;
@@ -2641,7 +2776,7 @@ function acceptIncoming(job){
     if(job.pl) while(!job.cancelled&&connected()&&current&&!current.failed) await new Promise(r=>setTimeout(r,10));
     waitJobs.delete(job.id);
     if(job.cancelled||!connected()) return;
-    if(!job.pl&&current&&!current.failed){ sendCtl({t:'resp',id:job.id,ok:false,busy:true}); job.ui.fail('مشغول بملف تاني'); return; }
+    if(!job.pl&&current&&!current.failed){ sendCtl({t:'resp',id:job.id,ok:false,busy:true}); job.ui.fail('مشغول بملف آخر'); return; }
     await acceptNow(job);
   });
   turnChain=p.catch(()=>{}); return p;
@@ -2660,27 +2795,27 @@ async function acceptCore(job){
     if(finishedKeys.has(key)){ await store.clear(key); finishedKeys.delete(key); }
     try{ pr=await directProbe(job); }catch(e){ pr=null; dlogAdd('direct probe failed: '+(e&&e.message||e)); }
     off=pr?pr.off:Math.min(size,(await store.countBlocks(key,size))*BLOCK);
-  }catch(e){ ui.fail('تعذر تجهيز التخزين: '+(e&&e.message||e)); sendCtl({t:'resp',id,ok:false}); return; }
+  }catch(e){ ui.fail('تعذّر تجهيز التخزين: '+(e&&e.message||e)); sendCtl({t:'resp',id,ok:false}); return; }
   if(!connected()){ ui.fail('انقطع الاتصال'); return; }
   if(job.z&&pr){ sendCtl({t:'resp',id,ok:false,nz:true}); ui.status('جارٍ التجهيز…'); return; }
-  if(current&&!current.failed){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف تاني'); return; }
+  if(current&&!current.failed){ sendCtl({t:'resp',id,ok:false,busy:true}); ui.fail('مشغول بملف آخر'); return; }
   const sp=await spaceCheck(size-off,!!(settings.dirHandle));
-  if(sp.state==='no'){ sendCtl({t:'resp',id,ok:false,space:true}); inCards.delete(key); ui.fail('المساحة غير كافية: المطلوب '+fmtSize(sp.need)+' والمتاح تقريبًا '+fmtSize(sp.avail)+'. فضّي مساحة وجرّب تاني.'); ovIn.gone(size); dlogAdd('NO SPACE need='+fmtSize(sp.need)+' avail='+fmtSize(sp.avail)); return; }
+  if(sp.state==='no'){ sendCtl({t:'resp',id,ok:false,space:true}); inCards.delete(key); ui.fail('المساحة غير كافية: المطلوب '+fmtSize(sp.need)+' والمتاح تقريبًا '+fmtSize(sp.avail)+' متاحة. أفرغ مساحة وحاول مجددًا.'); ovIn.gone(size); dlogAdd('NO SPACE need='+fmtSize(sp.need)+' avail='+fmtSize(sp.avail)); return; }
   if(!connected()){ ui.fail('انقطع الاتصال'); return; }
   let direct=null;
   if(pr){
     try{ direct=await directOpen(job,pr); }
     catch(e){ direct=null; dlogAdd('direct open failed, using temp store: '+(e&&e.message||e)); try{ off=Math.min(size,(await store.countBlocks(key,size))*BLOCK); }catch(_){ off=0; } }
   }
-  if(job.cancelled){ if(direct) await directClose({direct,key},true); try{ await store.clear(key); }catch(_){} inCards.delete(key); acceptedKeys.delete(key); ui.fail('الجهاز التاني ألغى الإرسال'); ovIn.gone(size); return; }
+  if(job.cancelled){ if(direct) await directClose({direct,key},true); try{ await store.clear(key); }catch(_){} inCards.delete(key); acceptedKeys.delete(key); ui.fail('ألغى الجهاز الآخر الإرسال'); ovIn.gone(size); return; }
   if(!connected()){ if(direct) directClose({direct,key},false); ui.fail('انقطع الاتصال'); return; }
   const r={direct,id,key,name,path,size,off,got:off,written:off,acked:off,idx:Math.floor(off/BLOCK),
     parts:[],blockGot:0,blockLen:Math.min(BLOCK,size-off),hashes:new Map(),chain:Promise.resolve(),
     start:performance.now(),ui,failed:false,ended:false,z:job.z,osize:job.osize,note:job.note,ow:!!(job.ow&&settings.allowOw!==false)};
   current=r; acceptedKeys.add(key); ui.base=off;
-  ui.status(off?('بيكمل من '+fmtSize(off)+'…'):'جارٍ الاستلام…');
-  if(sp.state==='tight') showErr('تحذير: المساحة المتاحة قريبة من حجم الملف ('+fmtSize(sp.avail)+' تقريبًا). لو النقل فشل، فضّي مساحة.');
-  const inBtns=()=>[[r.paused?'استئناف':'إيقاف مؤقت',()=>{ r.paused=!r.paused; if(r.paused) r.pAt=performance.now(); else if(r.pAt){ r.start+=performance.now()-r.pAt; r.pAt=0; } sendCtl({t:r.paused?'ppause':'presume',id}); if(r.paused){ ui.hold='متوقف مؤقتًا — يكمل الجزء الجاري ثم يثبت'; ui.status(ui.hold); ui.el.querySelector('.st').className='st warn'; } else ui.hold=''; ui.buttons(inBtns()); }],['إلغاء',()=>failIn(r,null,{msg:'تم الإلغاء'})]];
+  ui.status(off?('يُستكمل من '+fmtSize(off)+'…'):'جارٍ الاستلام…');
+  if(sp.state==='tight') showErr('تحذير: المساحة المتاحة قريبة من حجم الملف ('+fmtSize(sp.avail)+' تقريبًا). إذا فشل النقل، أفرغ مساحة.');
+  const inBtns=()=>[[r.paused?'استئناف':'إيقاف مؤقت',()=>{ r.paused=!r.paused; if(r.paused) r.pAt=performance.now(); else if(r.pAt){ r.start+=performance.now()-r.pAt; r.pAt=0; } sendCtl({t:r.paused?'ppause':'presume',id}); if(r.paused){ ui.hold='متوقف مؤقتًا — يُكمل الجزء الجاري ثم يثبت'; ui.status(ui.hold); ui.el.querySelector('.st').className='st warn'; } else ui.hold=''; ui.buttons(inBtns()); }],['إلغاء',()=>failIn(r,null,{msg:'تم الإلغاء'})]];
   ui.buttons(inBtns()); buzz(20); dlogAdd('accept #'+id+' '+fmtSize(size)+(off?' resume@'+fmtSize(off):'')+(r.direct?' direct':' opfs'));
   sendCtl({t:'resp',id,ok:true,off,pl:settings.auto?1:0});
 }
@@ -2692,7 +2827,7 @@ function onBinary(buf){
   }
   const r=current; if(!r||r.failed||r.ended) return;
   const len=buf.byteLength;
-  if(r.got+len>r.size||r.blockGot+len>r.blockLen){ failIn(r,new Error('بيانات زيادة عن المتوقع')); return; }
+  if(r.got+len>r.size||r.blockGot+len>r.blockLen){ failIn(r,new Error('بيانات زائدة عن المتوقع')); return; }
   r.parts.push(buf); r.blockGot+=len; r.got+=len;
   if(r.blockGot===r.blockLen){
     const parts=r.parts, idx=r.idx, blen=r.blockLen;
@@ -2707,11 +2842,11 @@ async function commitBlock(r,parts,idx,blen){
   const h=r.hashes.get(idx); r.hashes.delete(idx);
   if(h&&subtle){
     const d=hex(await sha256(await blob.arrayBuffer()));
-    if(d!==h){ const er=new Error('الملف اتلف أثناء النقل (فشل التحقق)'); er.hashBad=true; throw er; }
+    if(d!==h){ const er=new Error('تلف الملف أثناء النقل (فشل التحقق)'); er.hashBad=true; throw er; }
     (r.hv||(r.hv=new Map())).set(idx,h); r.vN=(r.vN||0)+1;
   }
   if(r.failed) return;
-  if(r.direct){ if(!r.direct.w) throw new Error('الملف اتقفل'); await r.direct.w.write({type:'write',position:idx*BLOCK,data:blob}); }
+  if(r.direct){ if(!r.direct.w) throw new Error('أُغلق الملف'); await r.direct.w.write({type:'write',position:idx*BLOCK,data:blob}); }
   else await store.put(r.key,idx,blob);
   r.written+=blen;
   if(r.written-r.acked>=ACK_EVERY||r.written===r.size){ r.acked=r.written; sendCtl({t:'ack',id:r.id,n:r.written}); }
@@ -2720,7 +2855,7 @@ function failIn(r,e,opts){
   if(r.failed) return;
   if(e&&e.hashBad&&(hashRetry.get(r.key)||0)<2){
     hashRetry.set(r.key,(hashRetry.get(r.key)||0)+1); r.failed=true;
-    r.ui.fail('جزء اتلف أثناء النقل — بنعيد إرساله تلقائيًا'); dlogAdd('recv #'+r.id+' bad block, auto retry '+hashRetry.get(r.key));
+    r.ui.fail('تلف جزء أثناء النقل — نعيد إرساله تلقائيًا'); dlogAdd('recv #'+r.id+' bad block, auto retry '+hashRetry.get(r.key));
     if(r.direct) r.chain=r.chain.then(()=>directClose(r,false)).catch(()=>{});
     inCards.delete(r.key); acceptedKeys.delete(r.key); ovIn.gone(r.size);
     sendCtl({t:'abort',id:r.id,retry:true}); if(current===r) current=null; return;
@@ -2741,14 +2876,14 @@ function finishIn(m){
 }
 async function finalize(r){
   if(r.failed) return;
-  if(r.got!==r.size||r.blockGot!==0) throw new Error('حجم الملف المستلم مش مطابق');
+  if(r.got!==r.size||r.blockGot!==0) throw new Error('حجم الملف المستلم غير مطابق');
   r.ui.progress(r.got,r.size,r.start,true);
   r.ui.status('جارٍ الحفظ…'); r.ui.buttons([]);
   if(r.direct){
     const fin=await directFinish(r);
     await verifyDirect(r,fin);
     r.ui.thumb(fin.file); galAdd(r.name,fin.file); statIn(r);
-    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'»'+(r.vN>0?' · ✓ متحقق منه':'')); { const det=mkDet(r,fin.file,'مجلد «'+r.direct.root.name+'»',()=>delSaved(r,fin)); r.ui.el._det=det; r.ui.buttons(fileActs(fin.file).concat([['تفاصيل',()=>openDetails(det)],['حذف الملف',()=>delSaved(r,fin)]])); }
+    r.ui.done('تم الحفظ في «'+r.direct.root.name+(r.path?'/'+r.path:'')+'»'+(r.vN>0?' · ✓ تم التحقق':'')); { const det=mkDet(r,fin.file,'مجلد «'+r.direct.root.name+'»',()=>delSaved(r,fin)); r.ui.el._det=det; r.ui.buttons(fileActs(fin.file).concat([['تفاصيل',()=>openDetails(det)],['حذف الملف',()=>delSaved(r,fin)]])); }
     rememberRoot(r.direct.root);
     logAdd({dir:'in',note:r.note,peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:r.direct.root.name,fname:fin.fname});
     inCards.delete(r.key); acceptedKeys.delete(r.key); dlogAdd('recv #'+r.id+' saved ok (direct)');
@@ -2757,7 +2892,7 @@ async function finalize(r){
     return;
   }
   let blob=await store.assemble(r.key,Math.ceil(r.size/BLOCK));
-  if(r.z){ r.ui.status('بيفك الضغط…'); blob=await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob(); if(blob.size!==r.osize) throw new Error('فشل فك الضغط'); }
+  if(r.z){ r.ui.status('يُفك الضغط…'); blob=await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob(); if(blob.size!==r.osize) throw new Error('فشل فك الضغط'); }
   else if(blob.size!==r.size) throw new Error('الملف المحفوظ ناقص');
   r.ui.thumb(blob); galAdd(r.name,blob);
   let saved=false;
@@ -2768,7 +2903,7 @@ async function finalize(r){
       fh=await uniqueFile(dir,r.name);
       const w=await fh.createWritable();
       try{ await blob.stream().pipeTo(w); }catch(e){ try{ await w.abort(); }catch(_){} throw e; }
-      statIn(r); r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'»'+(r.vN>0?' · ✓ متحقق منه':''));
+      statIn(r); r.ui.done('تم الحفظ في «'+settings.dirHandle.name+(r.path?'/'+r.path:'')+'»'+(r.vN>0?' · ✓ تم التحقق':''));
       store.clear(r.key).catch(()=>{});
       rememberRoot(settings.dirHandle);
       logAdd({dir:'in',note:r.note,peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:settings.dirHandle.name,fname:fh.name});
@@ -2782,8 +2917,8 @@ async function finalize(r){
     const flat=(r.path?r.path.split('/').join('__')+'__':'')+r.name;
     saveBlob(blob,flat);
     logAdd({dir:'in',note:r.note,peer:peerName,name:r.name,path:r.path,size:r.size,ts:Date.now(),rootName:'',fname:flat});
-    statIn(r); r.ui.done('تم الحفظ في التحميلات'+(r.vN>0?' · ✓ متحقق منه':'')+(r.path?' (اسم الملف فيه اسم المجلد. اختار مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
-    { const ff=new File([blob],flat,{type:blob.type||'application/octet-stream'}); const det=mkDet(r,ff,'التحميلات',null); r.ui.el._det=det; r.ui.buttons([['حفظ مرة تانية',()=>saveBlob(blob,flat)]].concat(fileActs(ff)).concat([['تفاصيل',()=>openDetails(det)]])); }
+    statIn(r); r.ui.done('تم الحفظ في التحميلات'+(r.vN>0?' · ✓ تم التحقق':'')+(r.path?' (اسم الملف يتضمن اسم المجلد. اختر مجلد حفظ من الإعدادات للحفاظ على الهيكل)':''));
+    { const ff=new File([blob],flat,{type:blob.type||'application/octet-stream'}); const det=mkDet(r,ff,'التحميلات',null); r.ui.el._det=det; r.ui.buttons([['حفظ مرة أخرى',()=>saveBlob(blob,flat)]].concat(fileActs(ff)).concat([['تفاصيل',()=>openDetails(det)]])); }
     setTimeout(()=>{ store.clear(r.key).catch(()=>{}); r.ui.buttons([]); },600000);
   }
   inCards.delete(r.key); finishedKeys.add(r.key); acceptedKeys.delete(r.key); dlogAdd('recv #'+r.id+' saved ok');
@@ -2794,7 +2929,7 @@ async function finalize(r){
 // ---------- text messages ----------
 function addMsg(text,dir){
   const d=document.createElement('div'); d.className='msg';
-  const s=document.createElement('small'); s.textContent=dir==='in'?'من الجهاز التاني':'أنت';
+  const s=document.createElement('small'); s.textContent=dir==='in'?'من الجهاز الآخر':'أنت';
   const p=document.createElement('div'); p.textContent=text; p.dir='auto';
   d.append(s,p);
   if(dir==='in'){
@@ -2855,9 +2990,9 @@ $('#btnFolder').onclick=async()=>{
     try{
       const h=await window.showDirectoryPicker({mode:'read'}), out=[];
       await walkDir(h,h.name,out);
-      if(!out.length){ showErr('المجلد فاضي.'); return; }
+      if(!out.length){ showErr('المجلد فارغ.'); return; }
       enqueue(out);
-    }catch(e){ if(!e||e.name!=='AbortError') showErr('تعذر فتح المجلد: '+(e&&e.message||e)); }
+    }catch(e){ if(!e||e.name!=='AbortError') showErr('تعذّر فتح المجلد: '+(e&&e.message||e)); }
   }else $('#pickDir').click();
 };
 
@@ -2868,7 +3003,7 @@ document.addEventListener('paste',e=>{
     if(/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
     const fl=Array.from((e.clipboardData&&e.clipboardData.files)||[]); if(!fl.length) return;
     e.preventDefault();
-    if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+    if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
     enqueue(fl.map(file=>({file,path:''})));
   }catch(_){}
 });
@@ -2877,7 +3012,7 @@ document.addEventListener('dragover',e=>{ e.preventDefault(); if(connected()) dz
 document.addEventListener('dragleave',e=>{ if(!e.relatedTarget) dz.classList.remove('over'); });
 document.addEventListener('drop',async e=>{
   e.preventDefault(); dz.classList.remove('over');
-  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
   const dt=e.dataTransfer; if(!dt) return;
   const entries=[], files=Array.from(dt.files||[]);
   if(dt.items) for(const it of Array.from(dt.items)){
@@ -2887,7 +3022,7 @@ document.addEventListener('drop',async e=>{
   const items=[];
   if(entries.length){
     try{ for(const en of entries) await readEntry(en,'',items); }
-    catch(err){ showErr('تعذر قراءة المجلد: '+(err&&err.message||err)); }
+    catch(err){ showErr('تعذّرت قراءة المجلد: '+(err&&err.message||err)); }
   }else for(const file of files) items.push({file,path:''});
   if(items.length) enqueue(items);
 });
@@ -2931,7 +3066,7 @@ window.addEventListener('beforeunload',e=>{
   const busy=Array.from(outgoing.values()).some(t=>t.state==='sending')||(current&&!current.failed);
   if(busy){ e.preventDefault(); e.returnValue=''; }
 });
-if(!window.RTCPeerConnection){ showErr('متصفحك لا يدعم WebRTC. استخدم كروم حديث.'); $('#btnHost').disabled=$('#btnJoin').disabled=true; }
+if(!window.RTCPeerConnection){ showErr('متصفحك لا يدعم WebRTC. استخدم Chrome حديثًا.'); $('#btnHost').disabled=$('#btnJoin').disabled=true; }
 
 
 // ---------- pairing + short code ----------
@@ -2966,11 +3101,11 @@ async function refreshQuick(){
   try{
     const box=$('#devList'); if(!box) return; box.textContent='';
     const a=certPersistent?(await getPeers()).filter(x=>x.fp).sort((x,y)=>(y.last||y.ts||0)-(x.last||x.ts||0)):[];
-    if(!a.length){ const m=document.createElement('div'); m.className='muted'; m.style.padding='8px 0'; m.textContent='لسه مفيش أجهزة مقترنة. اتصل مرة بالكود العادي واضغط «متطابق» على الجهازين.'; box.appendChild(m); return; }
+    if(!a.length){ const m=document.createElement('div'); m.className='muted'; m.style.padding='8px 0'; m.textContent='لا توجد أجهزة مقترنة بعد. اتصل مرة بالرمز العادي واضغط «متطابق» على الجهازين.'; box.appendChild(m); return; }
     a.forEach((x,i)=>{
       const row=document.createElement('div'); row.className='dev';
       const nm=document.createElement('div'); nm.className='nm'; nm.textContent=x.name||('جهاز '+(i+1));
-      const sm=document.createElement('small'); sm.textContent=(x.primary?'الجهاز الأساسي · ':'')+(keysOf(x).length?'جاهز للكود الأقصر':'اتصل مرة كمان لتفعيل الكود الأقصر')+(x.mode&&MODE_NAMES[x.mode]?' · آخر وضع: '+MODE_NAMES[x.mode]:''); nm.appendChild(sm);
+      const sm=document.createElement('small'); sm.textContent=(x.primary?'الجهاز الأساسي · ':'')+(keysOf(x).length?'جاهز للرمز الأقصر':'اتصل مرة أخرى لتفعيل الرمز الأقصر')+(x.mode&&MODE_NAMES[x.mode]?' · آخر وضع: '+MODE_NAMES[x.mode]:''); nm.appendChild(sm);
       const go=document.createElement('button'); go.type='button'; go.className='primary'; go.setAttribute('aria-label','اتصل بـ '+(x.name||('جهاز '+(i+1)))); go.title='اتصل'; go.innerHTML='<svg class="i sm"><use href="#i-zap"/></svg>';
       go.onclick=()=>{ $('#btnMenuClose').click(); preferFp=x.fp; if(x.mode&&MODE_NAMES[x.mode]&&x.mode!==settings.mode) setMode(x.mode); else if(settings.mode!=='one'&&settings.mode!=='short'&&!x.mode) setMode('short'); startHost(false); };
       const st=document.createElement('button'); st.type='button'; st.setAttribute('aria-pressed',x.primary?'true':'false'); st.setAttribute('aria-label','جهاز أساسي'); st.title='جهاز أساسي'; st.innerHTML='<svg class="i sm'+(x.primary?' fill':'')+'"><use href="#i-star"/></svg>';
@@ -2981,7 +3116,7 @@ async function refreshQuick(){
     });
   }catch(_){}
 }
-async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; const ns=(await getPeers()).filter(x=>keysOf(x).length).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · جاهز للرمز الأقصر وكود واحد: '+ns):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
+async function updatePairInfo(){ refreshQuick(); const n=(await getPeers()).length; const ns=(await getPeers()).filter(x=>keysOf(x).length).length; $('#pairInfo').textContent=n?('عدد الأجهزة: '+n+' · جاهز للرمز الأقصر والرمز الواحد: '+ns):'لا يوجد. يتم الاقتران بعد أول اتصال وتأكيد رمز التحقق.'; $('#btnUnpair').hidden=!n; }
 $('#btnUnpair').onclick=async()=>{ try{ await idbDel('peers'); }catch(_){} updatePairInfo(); };
 updatePairInfo();
 async function shortEncode(desc,remoteSdp){
@@ -2998,11 +3133,11 @@ async function shortEncode(desc,remoteSdp){
 let offerShortWhy='', oneWhy='';
 async function shortEncodeOffer(desc){
   offerShortWhy='';
-  if(!certPersistent){ offerShortWhy='المتصفح مش بيحفظ شهادة الجهاز.'; return null; }
-  if(!(await getPeers()).length){ offerShortWhy='لازم تتصل مرة بالرمز العادي وتضغط «متطابق» على الجهازين الأول.'; return null; }
-  const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass'){ offerShortWhy='شكل الكود مش مدعوم.'; return null; }
-  if(!/^[A-Za-z0-9+\/]{4}$/.test(p.ufrag)||!/^[A-Za-z0-9+\/]{24}$/.test(p.pwd)){ offerShortWhy='شكل الكود مش مدعوم.'; return null; }
-  const c=p.cands.find(x=>ip4(x.addr)); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «استخدم عناوين حقيقية» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
+  if(!certPersistent){ offerShortWhy='المتصفح لا يحفظ شهادة الجهاز.'; return null; }
+  if(!(await getPeers()).length){ offerShortWhy='يجب الاتصال مرة بالرمز العادي ثم الضغط على «متطابق» في الجهازين أولًا.'; return null; }
+  const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass'){ offerShortWhy='شكل الرمز غير مدعوم.'; return null; }
+  if(!/^[A-Za-z0-9+\/]{4}$/.test(p.ufrag)||!/^[A-Za-z0-9+\/]{24}$/.test(p.pwd)){ offerShortWhy='شكل الرمز غير مدعوم.'; return null; }
+  const c=p.cands.find(x=>ip4(x.addr)); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «تحسين التوافق» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
   const id=p.fp.split(':').slice(0,3).map(h=>parseInt(h,16));
   const body=[...id,...b64to(p.ufrag),...b64to(p.pwd),...ip4(c.addr),c.port>>8,c.port&255];
   const crc=crc16(body); body.push(crc>>8,crc&255);
@@ -3013,27 +3148,27 @@ function renderOfferShort(){
   const sh=settings.mode==='short'||settings.mode==='one';
   const on=sh&&!!offerShort;
   $('#offerShortBox').hidden=!sh; $('#offerShortOut').textContent=on?offerShort:'';
-  if(on) $('#offerInfo').textContent='طول الرمز القصير: '+(offerShort.replace(/[^0-9A-Z]/g,'').length-2)+' حرف (من غير الشرطات)';
-  $('#offerShortNote').textContent=on?(offerCtx&&offerCtx.one?'كود واحد: اكتبه أو امسحه على الجهاز الآخر وهيتصل لوحده من غير رمز رد. لو ما اشتغلش جرّب وضع «رمز قصير».':(oneWhy&&settings.mode==='one'?'كود واحد مش متاح دلوقتي. '+oneWhy+' ده الرمز القصير العادي: الجهاز التاني هيعرض رمز رد تكتبه هنا في الخانة اللي تحت.':'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح الـQR. لو ما اشتغلش غيّر الوضع إلى «رمز QR» أو «رمز نصي».')):('الرمز القصير مش متاح دلوقتي: '+offerShortWhy+' استخدم الـQR الظاهر تحت أو غيّر الوضع.');
+  if(on) $('#offerInfo').textContent='طول الرمز القصير: '+(offerShort.replace(/[^0-9A-Z]/g,'').length-2)+' حرف (بدون الشرطات)';
+  $('#offerShortNote').textContent=on?(offerCtx&&offerCtx.one?'رمز واحد: اكتبه أو امسحه على الجهاز الآخر ليتصل وحده دون رمز ردّ. وإن لم يعمل فجرّب وضع «رمز قصير».':(oneWhy&&settings.mode==='one'?'الرمز الواحد غير متاح الآن. '+oneWhy+' هذا هو الرمز القصير العادي: سيعرض الجهاز الآخر رمز ردّ تكتبه هنا في الخانة التي بالأسفل.':'رمز قصير لجهاز مقترن: اكتبه على الجهاز الآخر أو امسح رمز QR. وإن لم يعمل فغيّر الوضع إلى «رمز QR» أو «رمز نصي».')):('الرمز القصير غير متاح الآن: '+offerShortWhy+' استخدم رمز QR الظاهر بالأسفل أو غيّر الوضع.');
   drawQR('offerQR',on?offerShort:$('#offerOut').value,'offerQRmsg');
 }
 function fillShort(sc,long){
-  if(sc) $('#answerInfo').textContent='طول الرمز القصير: '+(sc.replace(/[^0-9A-Z]/g,'').length-2)+' حرف (من غير الشرطات)';
+  if(sc) $('#answerInfo').textContent='طول الرمز القصير: '+(sc.replace(/[^0-9A-Z]/g,'').length-2)+' حرف (بدون الشرطات)';
   $('#shortOut').textContent=sc||String(long||'').replace(/(.{4})/g,'$1 ').trim();
   $('#shortNote').textContent=sc?'اكتب هذا الرمز على الجهاز الأول. لا فرق بين الحروف الكبيرة والصغيرة.'
-    :'الرمز القصير غير متاح الآن. يتفعّل بعد أول اتصال ناجح مع الضغط على «متطابق» في الجهازين. يمكنك كتابة هذا الرمز (الحروف الكبيرة والصغيرة تفرق).';
+    :'الرمز القصير غير متاح الآن. يُفعَّل بعد أول اتصال ناجح مع الضغط على «متطابق» في الجهازين. يمكنك كتابة هذا الرمز (الحروف الكبيرة والصغيرة مختلفة).';
 }
 async function shortDecode(raw){
   { const k=normShort(raw).slice(0,2); if(k==='S3'||k==='S4'||k==='S5') return shortDecode34(k,normShort(raw).slice(2)); }
   const rest=normShort(raw).slice(2);
   if(rest.length!==52) throw new Error('الرمز القصير 52 حرفًا، المكتوب '+rest.length+'.');
-  const b=ckDec(rest); if(!b||b.length<32) throw new Error('الرمز القصير فيه حرف غير صحيح.');
+  const b=ckDec(rest); if(!b||b.length<32) throw new Error('الرمز القصير يحتوي على حرف غير صحيح.');
   const body=b.slice(0,32);
   if(crc16(body.slice(0,30))!==((body[30]<<8)|body[31])) throw new Error('يوجد خطأ في كتابة الرمز القصير. راجع الحروف.');
   const idHex=body.slice(0,3).map(x=>x.toString(16).padStart(2,'0')).join('');
   const peer=(await getPeers()).find(x=>x.fp.split(':').slice(0,3).join('').toLowerCase()===idHex);
   const isOffer=normShort(raw).startsWith('S2');
-  if(!peer) throw new Error(isOffer?'الجهاز ده مش مقترن بالجهاز الأول. اطلب منه يغيّر الوضع إلى «رمز QR» أو «رمز نصي» واستخدم الرمز العادي.':'هذا الجهاز غير مقترن بعد. اتصل مرة بالرمز العادي، ثم اضغط «متطابق» على الجهازين.');
+  if(!peer) throw new Error(isOffer?'هذا الجهاز غير مقترن بالجهاز الأول. اطلب منه تغيير الوضع إلى «رمز QR» أو «رمز نصي» واستخدم الرمز العادي.':'هذا الجهاز غير مقترن بعد. اتصل مرة بالرمز العادي ثم اضغط «متطابق» على الجهازين.');
   const ufrag=bytesToB64(body.slice(3,6)), pwd=bytesToB64(body.slice(6,24));
   return {type:isOffer?'offer':'answer',sdp:buildSDP({ufrag,pwd,fp:peer.fp,setup:isOffer?'actpass':'active',cands:[{addr:body.slice(24,28).join('.'),port:(body[28]<<8)|body[29],prio:2113937151}]})};
 }
@@ -3069,7 +3204,7 @@ $('#preFiles').addEventListener('change',e=>{ const f=Array.from(e.target.files)
 const WEAK_LIMIT=60000; let lastRx=0, lastBA=0, graceUntil=0, remoteBgAt=0, unresp=false;
 function dlogAdd(m){ try{ dlog.push(new Date().toLocaleTimeString('en-GB')+(document.visibilityState==='hidden'?' [bg] ':' ')+m); if(dlog.length>300) dlog.shift(); const b=$('#dlogBox'); if(b&&!b.hidden) b.textContent=dlog.join('\n'); }catch(_){} }
 function startWeak(){
-  setBadge('الاتصال ضعيف… بنحاول','wait');
+  setBadge('الاتصال ضعيف… نحاول','wait');
   if(weakT) return; weakMs=0;
   weakT=setInterval(()=>{
     const p=pc; if(!p||!(sess&&sess.open&&!sess.lost)){ stopWeak(); return; }
@@ -3086,7 +3221,7 @@ function watchTick(){
   if(ch.bufferedAmount<lastBA) lastRx=now; lastBA=ch.bufferedAmount;
   if(now<graceUntil) return;
   if(remoteBgAt&&now-remoteBgAt<5*60000){ if(!unresp){ unresp=true; setBadge('الجهاز الآخر في الخلفية','wait'); } return; }
-  if(netChangeAt){ if(lastRx>netChangeAt){ netChangeAt=0; sysNoteHide('net'); } else if(now-netChangeAt>3000&&$('#sysNote').dataset.key!=='net'){ sysNote('net','الشبكة اتغيّرت والجهاز التاني مش بيرد. لو رجعت خلال ثواني هيكمل لوحده.',[['إعادة الاتصال الآن',()=>{ sysNoteHide('net'); connLost('تغيّرت الشبكة.'); }]],'bad'); } if(netChangeAt&&now-netChangeAt>8000){ connLost('الشبكة اتغيّرت والاتصال وقع.'); return; } }
+  if(netChangeAt){ if(lastRx>netChangeAt){ netChangeAt=0; sysNoteHide('net'); } else if(now-netChangeAt>3000&&$('#sysNote').dataset.key!=='net'){ sysNote('net','تغيّرت الشبكة والجهاز الآخر لا يستجيب. إن عاد خلال ثوانٍ فسيُكمل من تلقاء نفسه.',[['إعادة الاتصال الآن',()=>{ sysNoteHide('net'); connLost('تغيّرت الشبكة.'); }]],'bad'); } if(netChangeAt&&now-netChangeAt>8000){ connLost('تغيّرت الشبكة وانقطع الاتصال.'); return; } }
   const idle=now-lastRx;
   if(idle>20000){ connLost('انقطع الاتصال: لا يوجد رد من الجهاز الآخر.'); }
   else if(idle>6000){ if(!unresp){ unresp=true; setBadge('لا يوجد رد…','wait'); } }
@@ -3116,7 +3251,7 @@ function liveTick(){
     if(allIdle()){ disconnectNow('انتهت مدة الاتصال المحددة ('+fmtMin(settings.maxMin)+').'); return; }
     t+=' · بانتظار انتهاء النقل';
   }
-  if(rateScale<0.99) t+=' · سرعة مخففة (الشبكة مزدحمة)';
+  if(rateScale<0.99) t+=' · سرعة مخفّضة (الشبكة مزدحمة)';
   if(memScale<0.99) t+=' · وضع توفير الذاكرة';
   if(qualText) t+=' · '+qualText;
   $('#connInfo').textContent=t;
@@ -3127,8 +3262,8 @@ function disconnectNow(msg){
   setTimeout(()=>resetToStart(msg),150);
 }
 $('#btnDisc').onclick=()=>{
-  if(!allIdle()&&!confirm('فيه نقل جارٍ. هل تقطع الاتصال؟')) return;
-  disconnectNow('تم قطع الاتصال.');
+  if(!allIdle()&&!confirm('يوجد نقل جارٍ. هل تقطع الاتصال؟')) return;
+  disconnectNow('قُطع الاتصال.');
 };
 $('#optMax').value=String(settings.maxMin);
 if($('#optMax').value!==String(settings.maxMin)){ const o=document.createElement('option'); o.value=String(settings.maxMin); o.textContent=fmtMin(settings.maxMin); $('#optMax').appendChild(o); $('#optMax').value=String(settings.maxMin); }
@@ -3231,7 +3366,7 @@ window.addEventListener('offline',()=>dlogAdd('network offline'));
   $('#dSave').onclick=()=>{
     let name=$('#dName').value.trim().replace(/[<>]/g,'');
     if(!name){ $('#dName').focus(); $('#dName').placeholder='اكتب اسمًا للثيم أولًا'; return; }
-    const ci=contrastIssue(); if(ci&&ci.lvl===2&&!confirm('التباين بين النص والخلفية ضعيف جدًا وقد لا تقدر تقرأ الواجهة. تحفظ الثيم برضه؟')) return;
+    const ci=contrastIssue(); if(ci&&ci.lvl===2&&!confirm('التباين بين النص والخلفية ضعيف جدًا وقد لا تتمكن من قراءة الواجهة. هل تحفظ الثيم على أي حال؟')) return;
     const p={name,bg:inp.bg.value,surface:inp.surface.value,text:inp.text.value,accent:inp.accent.value};
     T.save(p); const id='c:'+name; T.apply(id); T.persist(id); savedId=id; des.hidden=true; render();
   };
@@ -3288,15 +3423,15 @@ function crashNote(msg){
   dlogAdd('ERROR: '+msg);
   const now=Date.now(); if(now-lastCrash<30000) return; lastCrash=now;
   const el=$('#sysNote'); if(!el.hidden&&el.dataset.key!=='crash'&&el.dataset.key!=='cap') return;
-  sysNote('crash','حصل خطأ غير متوقع. لو المشكلة اتكررت انسخ السجل وابعته.',[['نسخ السجل',()=>$('#btnDlogCopy').click()],['إخفاء',()=>sysNoteHide('crash')]],'bad');
+  sysNote('crash','حدث خطأ غير متوقع. إن تكررت المشكلة فانسخ السجل وأرسله.',[['نسخ السجل',()=>$('#btnDlogCopy').click()],['إخفاء',()=>sysNoteHide('crash')]],'bad');
 }
 window.addEventListener('error',e=>{ const m=String(e.message||''); if(/ResizeObserver|Script error\.?$/.test(m)) return; crashNote(m+(e.lineno?' @'+e.lineno:'')); });
 window.addEventListener('unhandledrejection',e=>{ const r=e.reason, n=r&&r.name, m=String((r&&r.message)||r||''); if(n==='AbortError'||n==='NotAllowedError'||/ResizeObserver/.test(m)) return; crashNote('promise: '+(n?n+': ':'')+m); });
 // capability check
 (function(){
   const bad=[];
-  if(!window.RTCPeerConnection) bad.push('المتصفح ده مش بيدعم الاتصال المباشر (WebRTC). استخدم Chrome حديث.');
-  if(!window.isSecureContext) bad.push('الصفحة مش مفتوحة بشكل آمن (https). افتحها من الرابط الأصلي أو بعد التثبيت.');
+  if(!window.RTCPeerConnection) bad.push('هذا المتصفح لا يدعم الاتصال المباشر (WebRTC). استخدم Chrome حديثًا.');
+  if(!window.isSecureContext) bad.push('الصفحة غير مفتوحة بشكل آمن (https). افتحها من الرابط الأصلي أو بعد التثبيت.');
   if(!(window.crypto&&crypto.subtle)) bad.push('ميزة التشفير والتحقق غير متاحة في المتصفح.');
   if(bad.length){ sysNote('cap',bad.join(' '),null,'bad'); dlogAdd('capability: '+bad.join(' | ')); }
 })();
@@ -3305,7 +3440,7 @@ function realIpNote(){
   if(!forcedReal) return; forcedReal=false;
   if(settings.realIp) return;
   settings.realIp=true; lsSet('ft.ip','1'); const o=$('#optIp'); if(o) o.checked=true;
-  sysNote('rip','نجح الاتصال بالعناوين الحقيقية، فعّلناها تلقائيًا للمرات الجاية (ممكن تظهر رسالة كاميرا لحظية).',[['تراجع',()=>{ settings.realIp=false; lsSet('ft.ip','0'); if(o) o.checked=false; sysNoteHide('rip'); }],['تمام',()=>sysNoteHide('rip')]],'ok');
+  sysNote('rip','نجح الاتصال بالعناوين الحقيقية، وفعّلناها تلقائيًا للمرات القادمة (قد تظهر رسالة كاميرا لحظية).',[['تراجع',()=>{ settings.realIp=false; lsSet('ft.ip','0'); if(o) o.checked=false; sysNoteHide('rip'); }],['حسنًا',()=>sysNoteHide('rip')]],'ok');
 }
 // open / share on received files
 function fileActs(file){
@@ -3325,7 +3460,7 @@ function qrZoom(cv){
 // device name + settings backup
 $('#optName').value=settings.name;
 $('#optName').onchange=e=>{ settings.name=cleanName(e.target.value); e.target.value=settings.name; lsSet('ft.name',settings.name); sendHello(); };
-const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow','ft.bg','ft.lock','ft.fast'];
+const BK_FLAG=['ft.auto','ft.ip','ft.alert','ft.skip','ft.fs','ft.haptic','ft.review','ft.sound','ft.link','ft.trust','ft.autoscan','ft.small','ft.zip','ft.ow','ft.bg','ft.lock','ft.fast','ft.stall'];
 const HEXRX=/^#[0-9a-fA-F]{6}$/;
 $('#btnBkExp').onclick=()=>{
   const o={}; for(const k of BK_FLAG.concat(['ft.max','ft.mode','ft.theme','ft.themes','ft.name','ft.autodel'])){ try{ const v=localStorage.getItem(k); if(v!=null) o[k]=v; }catch(_){} }
@@ -3353,34 +3488,34 @@ $('#bkFile').onchange=async e=>{
     for(const k in out) lsSet(k,out[k]);
     dlogAdd('settings imported: '+n+' keys'); setTimeout(()=>location.reload(),300);
     sysNote('bk','تم دمج الإعدادات ('+n+' عنصر'+(themes.length?'، '+themes.length+' ثيم':'')+') وأبقينا ثيماتك الحالية. جارٍ إعادة التحميل…',null,'ok');
-  }catch(_){ sysNote('bk','الملف مش ملف إعدادات Nx-Share صالح.',[['إخفاء',()=>sysNoteHide('bk')]],'bad'); }
+  }catch(_){ sysNote('bk','الملف ليس ملف إعدادات Nx-Share صالحًا.',[['إخفاء',()=>sysNoteHide('bk')]],'bad'); }
 };
 
 // ---------- v8 ----------
 async function delSaved(r,fin){
-  if(!confirm('حذف الملف «'+fin.fname+'» من الجهاز؟ مش هيرجع.')) return;
+  if(!confirm('حذف الملف «'+fin.fname+'» من الجهاز؟ لن يمكن استرجاعه.')) return;
   try{
     await r.direct.dir.removeEntry(fin.fname);
     r.ui.done('تم حذف الملف'); r.ui.buttons([]);
     logUpdate(a=>{ const x=a.find(e=>e.fname===fin.fname&&e.rootName===r.direct.root.name&&(e.path||'')===(r.path||'')&&!e.deleted); if(x){ x.deleted=true; x.delAt=Date.now(); } return a; });
     dlogAdd('deleted saved file');
-  }catch(e){ showErr('تعذر حذف الملف: '+((e&&e.message)||e)); }
+  }catch(e){ showErr('تعذّر حذف الملف: '+((e&&e.message)||e)); }
 }
 $('#msgClip').onclick=async()=>{
   if(!connected()) return;
   try{
     const t=String(await navigator.clipboard.readText()||'').trim().slice(0,20000);
-    if(!t){ showErr('الحافظة فاضية.'); return; }
+    if(!t){ showErr('الحافظة فارغة.'); return; }
     showErr(''); sendCtl({t:'msg',text:t}); addMsg(t,'out'); buzz(20);
-  }catch(_){ showErr('مقدرناش نقرأ الحافظة. اسمح بالوصول للحافظة أو الصق النص يدويًا.'); }
+  }catch(_){ showErr('لم نتمكن من قراءة الحافظة. اسمح بالوصول إلى الحافظة أو الصق النص يدويًا.'); }
 };
 
 // ---------- v9: stability & UX ----------
 let rateScale=1, nextReal=false, trustedPeer=false, batWarned=false, bat=null, lastProg=0;
 const hashRetry=new Map();
-settings.bg=localStorage.getItem('ft.bg')==='1'; settings.lock=localStorage.getItem('ft.lock')!=='0'; settings.fast=localStorage.getItem('ft.fast')!=='0'; settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
+settings.bg=localStorage.getItem('ft.bg')==='1'; settings.lock=localStorage.getItem('ft.lock')!=='0'; settings.stall=localStorage.getItem('ft.stall')!=='0'; settings.fast=localStorage.getItem('ft.fast')!=='0'; settings.sound=false; settings.link=false; settings.trust=true; settings.autoScan=true;
 try{ settings.sound=localStorage.getItem('ft.sound')==='1'; settings.link=localStorage.getItem('ft.link')==='1'; settings.trust=localStorage.getItem('ft.trust')!=='0'; settings.autoScan=localStorage.getItem('ft.autoscan')!=='0'; }catch(_){}
-for(const [id,k] of [['optBg','bg'],['optLock','lock'],['optFast','fast'],['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } if(k==='lock'){ if(settings.lock&&sess&&sess.open&&!sess.lost) bgLock(); else bgUnlock(); } if(k==='bg'){ if(settings.bg&&sess&&sess.open&&!sess.lost) bgStart(); else if(!settings.bg) bgStop(); } }; }
+for(const [id,k] of [['optBg','bg'],['optLock','lock'],['optFast','fast'],['optStall','stall'],['optSound','sound'],['optLink','link'],['optTrust','trust'],['optAutoScan','autoScan']]){ const el=$('#'+id); el.checked=settings[k]; el.onchange=e=>{ settings[k]=e.target.checked; lsSet(k==='autoScan'?'ft.autoscan':'ft.'+k,settings[k]?'1':'0'); if(k==='sound'&&settings.sound){ unlockAudio(); beep(); } if(k==='lock'){ if(settings.lock&&sess&&sess.open&&!sess.lost) bgLock(); else bgUnlock(); } if(k==='bg'){ if(settings.bg&&sess&&sess.open&&!sess.lost) bgStart(); else if(!settings.bg) bgStop(); } }; }
 // network diagnosis from candidates
 function candIps(sdp){
   const r={v4:[],mdns:0,other:0};
@@ -3389,18 +3524,18 @@ function candIps(sdp){
 }
 function netDiag(ls,rs){
   const L=candIps(ls!=null?ls:(pc&&pc.localDescription&&pc.localDescription.sdp)), R=candIps(rs!=null?rs:(pc&&pc.remoteDescription&&pc.remoteDescription.sdp));
-  if(!(L.v4.length+L.mdns+L.other)) return {t:'جهازك مفيهوش أي عنوان شبكة. اتأكد إن الواي فاي أو الهوتسبوت شغال.'};
-  if(!(R.v4.length+R.mdns+R.other)) return {t:'الكود اللي جه من الجهاز التاني مفيهوش عناوين شبكة. اتأكد إنه متصل بواي فاي أو هوتسبوت.'};
-  if((L.mdns&&!L.v4.length)||(R.mdns&&!R.v4.length)) return {mdns:true,t:'عناوين الأجهزة مخفية (mDNS) وده بيفشل على بعض الهوتسبوت.'};
+  if(!(L.v4.length+L.mdns+L.other)) return {t:'جهازك لا يملك أي عنوان شبكة. تأكد من تشغيل الواي فاي أو الهوتسبوت.'};
+  if(!(R.v4.length+R.mdns+R.other)) return {t:'الرمز القادم من الجهاز الآخر لا يحتوي على عناوين شبكة. تأكد من أنه متصل بواي فاي أو هوتسبوت.'};
+  if((L.mdns&&!L.v4.length)||(R.mdns&&!R.v4.length)) return {mdns:true,t:'عناوين الأجهزة مخفية (mDNS) وهذا يفشل على بعض الهوتسبوت.'};
   const pre=ip=>ip.split('.').slice(0,3).join('.'), lp=new Set(L.v4.map(pre));
-  if(R.v4.some(ip=>lp.has(pre(ip)))) return {t:'الجهازين على نفس الشبكة لكن الاتصال اترفض. غالبًا الراوتر بيعزل الأجهزة عن بعض (شبكة ضيوف أو عزل العملاء). جرّب هوتسبوت من أحد الموبايلين.'};
-  return {t:'الجهازين شكلهم على شبكتين مختلفتين. وصّلهم بنفس الواي فاي أو استخدم هوتسبوت.'};
+  if(R.v4.some(ip=>lp.has(pre(ip)))) return {t:'الجهازان على الشبكة نفسها لكن الاتصال رُفض. غالبًا يعزل الراوتر الأجهزة عن بعضها (شبكة ضيوف أو عزل العملاء). جرّب هوتسبوت من أحد الهاتفين.'};
+  return {t:'يبدو أن الجهازين على شبكتين مختلفتين. صِلهما بالواي فاي نفسه أو استخدم هوتسبوت.'};
 }
 function failText(base){
   let d=null; try{ d=netDiag(); }catch(_){}
   if(!d) return base;
   let t=d.t; dlogAdd('diag: '+t);
-  if(d.mdns&&!settings.realIp){ nextReal=true; t+=' هنجرّب العناوين الحقيقية تلقائيًا في المحاولة الجاية.'; }
+  if(d.mdns&&!settings.realIp){ nextReal=true; t+=' سنجرّب العناوين الحقيقية تلقائيًا في المحاولة القادمة.'; }
   return t+' '+base;
 }
 // adaptive send rate (RTT-based: SCTP in WebRTC doesn't expose packet loss)
@@ -3410,6 +3545,7 @@ async function probeNet(){
     const rep=await p.getStats(); let rtt=null;
     rep.forEach(x=>{ if(x.type==='candidate-pair'&&(x.nominated||x.state==='succeeded')&&typeof x.currentRoundTripTime==='number') rtt=x.currentRoundTripTime; });
     if(rtt==null) return;
+    try{ const b=$('#badge'); if(b.classList.contains('ok')){ const ms=Math.round(rtt*1000); b.dataset.q=rtt<0.15?'g':(rtt<0.5?'y':'r'); b.title='جودة الاتصال: '+(rtt<0.15?'ممتازة':(rtt<0.5?'متوسطة':'ضعيفة'))+' ('+ms+'ms)'; } }catch(_){}
     const old=rateScale;
     if(rtt>0.6) rateScale=Math.max(0.25,rateScale*0.6); else if(rtt<0.25&&rateScale<1) rateScale=Math.min(1,rateScale*1.3);
     if(rateScale!==old) dlogAdd('rate '+rateScale.toFixed(2)+' (rtt '+Math.round(rtt*1000)+'ms)');
@@ -3420,15 +3556,39 @@ try{ if(navigator.getBattery) navigator.getBattery().then(b=>{ bat=b; }).catch((
 function batTick(){
   if(!bat) return;
   if(bat.charging||bat.level>=0.2){ batWarned=false; sysNoteHide('bat'); return; }
-  if(bat.level<0.15&&!allIdle()&&!batWarned){ batWarned=true; buzz([60,60,60]); sysNote('bat','البطارية '+Math.round(bat.level*100)+'%. وصّل الشاحن عشان النقل ميقفش لو الموبايل فصل.',[['تمام',()=>sysNoteHide('bat')]],'bad'); }
+  if(bat.level<0.15&&!allIdle()&&!batWarned){ batWarned=true; buzz([60,60,60]); sysNote('bat','البطارية '+Math.round(bat.level*100)+'%. صِل الشاحن كي لا يتوقف النقل إذا انطفأ الهاتف.',[['حسنًا',()=>sysNoteHide('bat')]],'bad'); }
 }
 // background progress notification
-function bgProgress(){
+
+// ---------- stall notice (background) ----------
+let stallPct=-1, stallAt=0, stallShown=false;
+function stallNote(body,loud){
+  try{
+    if(!settings.stall||!settings.alert||!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker) return;
+    navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification('Nx-Share',{body:Lt(body),icon:'icon-192.png',tag:'nx-stall',silent:!loud,renotify:!!loud})).catch(()=>{});
+  }catch(_){}
+}
+function stallTick(){
+  try{
+    if(document.visibilityState!=='hidden'||allIdle()){ stallPct=-1; return; }
+    const o=ovOut.pct(), i=ovIn.pct(), x=o||i; if(!x) return;
+    const v=ovOut.raw()+ovIn.raw(), now=Date.now();
+    if(v!==stallPct){ stallPct=v; stallAt=now; if(stallShown){ stallShown=false; stallNote('النقل جارٍ… إن توقف فافتح التطبيق للمتابعة',false); } return; }
+    if(!stallShown&&now-stallAt>=10000){ stallShown=true; stallNote('النقل متوقف — افتح التطبيق للمتابعة',true); dlogAdd('stall notice'); }
+  }catch(_){}
+}
+document.addEventListener('visibilitychange',()=>{
+  try{
+    if(document.visibilityState==='hidden'){ stallShown=false; stallPct=-1; stallAt=Date.now(); if(sess&&sess.open&&!sess.lost&&!allIdle()) stallNote('النقل جارٍ… إن توقف فافتح التطبيق للمتابعة',false); }
+    else{ navigator.serviceWorker&&navigator.serviceWorker.getRegistration().then(r=>r&&r.getNotifications({tag:'nx-stall'}).then(a=>a.forEach(n=>n.close()))).catch(()=>{}); stallShown=false; }
+  }catch(_){}
+});
+function bgProgress(){ stallTick();
   try{
     if(document.visibilityState!=='hidden'||!settings.alert||!('Notification' in window)||Notification.permission!=='granted'||!navigator.serviceWorker||allIdle()) return;
     const now=Date.now(); if(now-lastProg<5000) return; lastProg=now;
     const o=ovOut.pct(), i=ovIn.pct(), x=o||i; if(!x) return;
-    navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification('Nx-Share — '+(o?'إرسال':'استلام')+' '+x.p+'%',{body:x.d+' من '+x.n+' ملف',icon:'icon-192.png',tag:'nx-prog',silent:true,renotify:false})).catch(()=>{});
+    navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification('Nx-Share — '+Lt(o?'إرسال':'استلام')+' '+x.p+'%',{body:Lt(x.d+' من '+x.n+' ملف'),icon:'icon-192.png',tag:'nx-prog',silent:true,renotify:false})).catch(()=>{});
   }catch(_){}
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ navigator.serviceWorker&&navigator.serviceWorker.getRegistration().then(r=>r&&r.getNotifications({tag:'nx-prog'}).then(a=>a.forEach(n=>n.close()))).catch(()=>{}); } });
@@ -3442,7 +3602,7 @@ async function verifyDirect(r,fin){
     if(d!==h){ bad=idx; break; }
   }
   r.hv=null;
-  if(bad>=0){ try{ await r.direct.dir.removeEntry(fin.fname); }catch(_){} dlogAdd('final verify FAILED block '+bad); throw new Error('فشل التحقق النهائي: الملف المحفوظ غير مطابق. اتمسح، ابعته تاني.'); }
+  if(bad>=0){ try{ await r.direct.dir.removeEntry(fin.fname); }catch(_){} dlogAdd('final verify FAILED block '+bad); throw new Error('فشل التحقق النهائي: الملف المحفوظ غير مطابق. حُذف، أعد إرساله.'); }
   dlogAdd('final verify ok');
 }
 // trusted device name
@@ -3514,7 +3674,7 @@ function idBytes(fp){ return fp.split(':').slice(0,3).map(h=>parseInt(h,16)); }
 async function shortEncodeOffer3(desc,prefix){
   if(!offerCtx) return null;
   const p=parseSDP(desc.sdp); if(!p||p.setup!=='actpass') return null;
-  const c=pickCand(p.cands,offerCtx.peer); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «استخدم عناوين حقيقية» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
+  const c=pickCand(p.cands,offerCtx.peer); if(!c){ offerShortWhy='عنوان الشبكة مخفي (mDNS). فعّل «تحسين التوافق» من الإعدادات أو اسمح بإذن الكاميرا اللحظي.'; return null; }
   const body=[...idBytes(p.fp),...offerCtx.nonce,offerCtx.key.k,...ip4(c.addr),c.port>>8,c.port&255];
   const crc=crc16(body); body.push(crc>>8,crc&255);
   return (prefix||'S3')+'-'+ckEnc(body).match(/.{1,4}/g).join('-');
@@ -3528,20 +3688,20 @@ async function shortEncodeAnswer4(desc){
 }
 async function shortDecode34(kind,rest){
   const need=SHORT_LEN[kind]; if(rest.length!==need) throw new Error('الرمز القصير '+need+' حرفًا، المكتوب '+rest.length+'.');
-  const b=ckDec(rest); const n=kind==='S4'?11:15; if(!b||b.length<n) throw new Error('الرمز القصير فيه حرف غير صحيح.');
+  const b=ckDec(rest); const n=kind==='S4'?11:15; if(!b||b.length<n) throw new Error('الرمز القصير يحتوي على حرف غير صحيح.');
   const body=b.slice(0,n);
   if(crc16(body.slice(0,n-2))!==((body[n-2]<<8)|body[n-1])) throw new Error('يوجد خطأ في كتابة الرمز القصير. راجع الحروف.');
   const idHex=hexOf(body.slice(0,3)), peers=await getPeers();
   const match=x=>x.fp.split(':').slice(0,3).join('').toLowerCase()===idHex;
   if(kind==='S3'||kind==='S5'){
     const peer=peers.find(x=>match(x)&&keysOf(x).length);
-    if(!peer) throw new Error('الجهاز ده مش مقترن بالجهاز الأول بالرمز الأقصر. اطلب منه يغيّر الوضع واستخدم الرمز العادي (اتصال واحد بيكفي بعد كده).');
+    if(!peer) throw new Error('هذا الجهاز غير مقترن بالجهاز الأول بالرمز الأقصر. اطلب منه تغيير الوضع واستخدم الرمز العادي (اتصال واحد يكفي بعد ذلك).');
     const nonce=body.slice(3,6), key=keysOf(peer).find(x=>x.k===body[6]);
     if(!key) throw new Error('مفتاح الاقتران مختلف بين الجهازين. اتصل مرة بالرمز العادي لتجديده.');
     const c=await kdfIce(key.s,nonce,'o');
     return {type:'offer',s3:{sec:key.s,nonce,one:kind==='S5'},sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:peer.fp,setup:'actpass',cands:[{addr:body.slice(7,11).join('.'),port:(body[11]<<8)|body[12],prio:2113937151}]})};
   }
-  if(!offerCtx||!match(offerCtx.peer)) throw new Error('رمز الرد ده مش للرمز الحالي. ابدأ الاتصال من جديد وكرر.');
+  if(!offerCtx||!match(offerCtx.peer)) throw new Error('رمز الرد هذا ليس للرمز الحالي. ابدأ الاتصال من جديد وكرّر.');
   const c=await kdfIce(offerCtx.key.s,offerCtx.nonce,'a');
   return {type:'answer',sdp:buildSDP({ufrag:c.ufrag,pwd:c.pwd,fp:offerCtx.peer.fp,setup:'active',cands:[{addr:body.slice(3,7).join('.'),port:(body[7]<<8)|body[8],prio:2113937151}]})};
 }
@@ -3587,21 +3747,21 @@ function oneIceWatch(p){
 function oneRetry(p,why){
   if(p!==pc||(sess&&sess.open)||!(offerCtx&&offerCtx.one)||oneTries>=2) return;
   oneTries++; dlogAdd('one-code auto retry ('+why+') #'+oneTries);
-  sysNote('oneretry','الاتصال ما اكتملش، جدّدنا الكود. امسحه تاني من الجهاز الآخر.',null,'bad');
+  sysNote('oneretry','لم يكتمل الاتصال، وقد جدّدنا الرمز. امسحه مجددًا من الجهاز الآخر.',null,'bad');
   startHost(false,true);
 }
 function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ el.hidden=true; },1600); }
 for(const id of ['offerShortOut','shortOut']){
   const el=$('#'+id); if(!el) continue; el.setAttribute('role','button'); el.tabIndex=0; el.title='اضغط للنسخ';
-  const cp=async()=>{ const t=el.textContent.trim(); if(!/^S[1-5]-/.test(t)) return; try{ await navigator.clipboard.writeText(t); toast('تم النسخ'); }catch(_){ toast('تعذر النسخ'); } };
+  const cp=async()=>{ const t=el.textContent.trim(); if(!/^S[1-5]-/.test(t)) return; try{ await navigator.clipboard.writeText(t); toast('تم النسخ'); }catch(_){ toast('تعذّر النسخ'); } };
   el.addEventListener('click',cp); el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); cp(); } });
 }
 $('#btnLink').onclick=async()=>{
   const code=(offerShort&&!$('#offerShortBox').hidden)?offerShort:$('#offerOut').value;
-  if(!code){ toast('لسه الكود بيتجهز'); return; }
+  if(!code){ toast('الرمز قيد التجهيز'); return; }
   const url=location.origin+location.pathname+'#nx='+encodeURIComponent(code);
   try{ if(navigator.share){ await navigator.share({title:'Nx-Share',text:'افتح الرابط للاتصال',url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
-  try{ await navigator.clipboard.writeText(url); toast('اتنسخ الرابط'); }catch(_){ toast('تعذر نسخ الرابط'); }
+  try{ await navigator.clipboard.writeText(url); toast('نُسخ الرابط'); }catch(_){ toast('تعذّر نسخ الرابط'); }
 };
 (function(){
   const m=/^#nx=(.+)$/.exec(location.hash||''); if(!m) return;
@@ -3648,14 +3808,14 @@ async function qualityProbe(){
   if(!rtts.length){ dlogAdd('quality probe: no replies (old peer?)'); return; }
   rtts.sort((a,b)=>a-b); const med=Math.round(rtts[Math.floor(rtts.length/2)]), loss=N-rtts.length;
   dlogAdd('quality rtt '+med+'ms loss '+loss+'/'+N); qualText='زمن الاستجابة '+med+'ms';
-  if(med>250||loss>=2){ sysNote('q','جودة الاتصال ضعيفة (زمن الاستجابة '+med+'ms'+(loss?'، فقد '+loss+' من '+N:'')+'). النقل ممكن يبقى بطيء. قرّب الجهازين من بعض أو من الراوتر.',[['تمام',()=>sysNoteHide('q')]],'warn'); }
+  if(med>250||loss>=2){ sysNote('q','جودة الاتصال ضعيفة (زمن الاستجابة '+med+'ms'+(loss?'، فقد '+loss+' من '+N:'')+'). قد يكون النقل بطيئًا. قرّب الجهازين من بعضهما أو من الراوتر.',[['حسنًا',()=>sysNoteHide('q')]],'warn'); }
 }
 // screen-lock warning for long transfers
 function lockTick(){
   const e1=ovOut.eta(), e2=ovIn.eta(), eta=Math.max(e1||0,e2||0);
   if(allIdle()||!eta){ if(lockWarned){ lockWarned=false; sysNoteHide('screen'); } return; }
   const el=$('#sysNote');
-  if(eta>60&&!lockWarned&&wakeOk!==true&&document.visibilityState==='visible'&&(el.hidden||el.dataset.key==='screen')){ lockWarned=true; sysNote('screen','النقل هياخد حوالي '+Math.ceil(eta/60)+' دقيقة. متقفلش الشاشة ومتخرجش من التطبيق لحد ما يخلص.',[['تمام',()=>sysNoteHide('screen')]],'warn'); }
+  if(eta>60&&!lockWarned&&wakeOk!==true&&document.visibilityState==='visible'&&(el.hidden||el.dataset.key==='screen')){ lockWarned=true; sysNote('screen','سيستغرق النقل حوالي '+Math.ceil(eta/60)+' دقيقة. لا تقفل الشاشة ولا تغادر التطبيق حتى ينتهي.',[['حسنًا',()=>sysNoteHide('screen')]],'warn'); }
 }
 // memory-aware window
 (function(){ const dm=navigator.deviceMemory; if(dm&&dm<=1) memBase=0.25; else if(dm&&dm<=2) memBase=0.5; memScale=memBase; })();
@@ -3692,10 +3852,10 @@ function renderResumeNote(){
   rn.textContent='';
   if(!intr&&!old.length&&!picked){ rn.hidden=true; return; }
   const add=(t)=>{ const d=document.createElement('div'); d.textContent=t; rn.appendChild(d); };
-  if(intr) add('فيه '+intr+' ملف ناقص هيكمل تلقائيًا أول ما الاتصال يتم.');
-  if(picked) add('تجهّز '+picked+' ملف لإكمال إرساله. هيتبعتوا ويكملوا من حيث وقفوا أول ما الاتصال يتم.');
+  if(intr) add('يوجد '+intr+' ملف ناقص سيُستكمل تلقائيًا فور اكتمال الاتصال.');
+  if(picked) add('تجهّز '+picked+' ملف لإكمال إرساله. سيُرسل ويُستكمل من حيث توقف فور اكتمال الاتصال.');
   if(old.length){
-    add('فيه '+old.length+' ملف اتقطع إرساله قبل ما تقفل التطبيق ('+old.slice(0,3).map(x=>x.name).join('، ')+(old.length>3?'…':'')+'). اختار نفس الملفات تاني عشان يكملوا من حيث وقفوا.');
+    add('يوجد '+old.length+' ملف انقطع إرساله قبل إغلاق التطبيق ('+old.slice(0,3).map(x=>x.name).join('، ')+(old.length>3?'…':'')+'). اختر الملفات نفسها مجددًا ليُستكمل إرسالها من حيث توقفت.');
     const b=document.createElement('div'); b.className='btns';
     const pick=document.createElement('button'); pick.type='button'; pick.textContent='اختيار الملفات'; pick.onclick=()=>$('#preFiles').click();
     const no=document.createElement('button'); no.type='button'; no.textContent='تجاهل'; no.onclick=()=>{ old.forEach(x=>pendMap.delete(x.key)); idbSet('pendOut',Array.from(pendMap.values())).catch(()=>{}); renderResumeNote(); };
@@ -3711,7 +3871,7 @@ async function renderTot(){
   const row=(a,b)=>{ const d=document.createElement('div'); d.className='totrow'; const x=document.createElement('b'); x.textContent=a; const y=document.createElement('span'); y.textContent=b; d.append(x,y); box.appendChild(d); };
   row('المُرسل',tot.out.n+' ملف · '+fmtSize(tot.out.b)); row('المُستلم',tot.in.n+' ملف · '+fmtSize(tot.in.b)); row('أسرع سرعة',tot.top?fmtSpd(tot.top):'—');
   let top=null; try{ for(const x of await getPeers()) if((x.n||0)>(top?top.n:0)) top=x; }catch(_){}
-  row('أكتر جهاز اتصلت بيه',top?((top.name||'جهاز مقترن')+' · '+top.n+' مرة'):'—');
+  row('أكثر جهاز اتصلت به',top?((top.name||'جهاز مقترن')+' · '+top.n+' مرة'):'—');
 }
 $('#btnMenu').addEventListener('click',renderTot);
 $('#btnTotReset').onclick=()=>{ if(!confirm('تصفير الإحصائيات؟')) return; tot={out:{n:0,b:0},in:{n:0,b:0},top:0}; idbSet('tot',tot).catch(()=>{}); renderTot(); };
@@ -3726,7 +3886,7 @@ function applyFilter(){
     const st=el.querySelector('.st'); const state=el.dataset.fin==='1'?((st&&st.classList.contains('bad'))?'bad':'done'):((st&&st.classList.contains('bad'))?'bad':'active');
     const vis=(!ty||ty===kind)&&(!stt||stt===state); el.hidden=!vis; if(vis) shown++;
   }
-  const c=$('#listCount'); if((ty||stt)&&total) c.textContent=(c.textContent.replace(/ · يظهر .*$/,''))+' · يظهر '+shown+' من '+total; else c.textContent=c.textContent.replace(/ · يظهر .*$/,'');
+  const c=$('#listCount'); if((ty||stt)&&total) c.textContent=(c.textContent.replace(/ · (يظهر|shows) .*$/,''))+' · يظهر '+shown+' من '+total; else c.textContent=c.textContent.replace(/ · (يظهر|shows) .*$/,'');
 }
 $('#fltType').onchange=$('#fltState').onchange=applyFilter;
 (function(){ let t=0; const mo=new MutationObserver(()=>{ if(!$('#fltType').value&&!$('#fltState').value) return; clearTimeout(t); t=setTimeout(applyFilter,120); }); mo.observe($('#list'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-fin']}); })();
@@ -3737,7 +3897,7 @@ function openDetails(d){
   const o=document.createElement('div'); o.id='det'; o.setAttribute('role','dialog'); o.setAttribute('aria-modal','true'); o.setAttribute('aria-label','تفاصيل الملف');
   const c=document.createElement('div'); c.className='card dc';
   const h=document.createElement('h3'); h.innerHTML='<svg class="i"><use href="#i-info"/></svg>'; const hs=document.createElement('span'); hs.textContent=d.name; h.appendChild(hs); c.appendChild(h);
-  const rows=[['المسار',d.path||'—'],['الحجم',fmtSize(d.size)],['النوع',(d.name.split('.').length>1?d.name.split('.').pop().toUpperCase():'—')],['اتحفظ في',d.where],['وقت الاستلام',(()=>{ try{ return new Date(d.ts).toLocaleString('ar-EG'); }catch(_){ return new Date(d.ts).toISOString(); } })()],['المدة',fmtTime(d.dur)],['متوسط السرعة',fmtSpd(d.size/Math.max(0.001,d.dur))],['التحقق من السلامة',d.verified?(d.verified+' من '+d.blocks+' جزء (SHA-256)'):'غير متاح'],['من',d.from||'—']].concat(d.note?[['ملاحظة',d.note]]:[]);
+  const rows=[['المسار',d.path||'—'],['الحجم',fmtSize(d.size)],['النوع',(d.name.split('.').length>1?d.name.split('.').pop().toUpperCase():'—')],['حُفظ في',d.where],['وقت الاستلام',(()=>{ try{ return new Date(d.ts).toLocaleString(LOCALE()); }catch(_){ return new Date(d.ts).toISOString(); } })()],['المدة',fmtTime(d.dur)],['متوسط السرعة',fmtSpd(d.size/Math.max(0.001,d.dur))],['التحقق من السلامة',d.verified?(d.verified+' من '+d.blocks+' جزء (SHA-256)'):'غير متاح'],['من',d.from||'—']].concat(d.note?[['ملاحظة',d.note]]:[]);
   for(const [a,b] of rows){ const r=document.createElement('div'); r.className='dr'; const x=document.createElement('b'); x.textContent=a; const y=document.createElement('span'); y.textContent=b; y.dir='auto'; r.append(x,y); c.appendChild(r); }
   const bt=document.createElement('div'); bt.className='btns';
   let rel=()=>{};
@@ -3764,7 +3924,7 @@ function preOffer(){
     x.pre=true; x.state='offered'; x.aborted=false; x.fin=false; x.acked=0; x.src=x.file;
     x.ansP=new Promise(r=>{ x.onAnswer=r; });
     sendCtl({t:'meta',id:x.id,name:x.file.name,size:x.file.size,path:x.path,key:x.key,g:x.g||undefined,pl:1,note:x.note||undefined,ow:x.ow?1:undefined});
-    x.ui.status('بانتظار قبول الجهاز التاني…'); dlogAdd('pre-offer #'+x.id); n++;
+    x.ui.status('بانتظار قبول الجهاز الآخر…'); dlogAdd('pre-offer #'+x.id); n++;
   }
 }
 // compression
@@ -3776,7 +3936,7 @@ async function tryZip(f){
   const z=await gz(f); if(z.size>0.85*f.size) return null; return z;
 }
 // stash for resume after app close
-class StashFile{ constructor(b,name,size,base,type){ this.b=b; this.name=name; this.size=size; this.base=base; this.type=type||''; this.lastModified=0; } slice(a,b){ if(a<this.base) throw new Error('محتاج تختار الملف تاني (الجزء ده مش محفوظ)'); return this.b.slice(a-this.base,b-this.base); } }
+class StashFile{ constructor(b,name,size,base,type){ this.b=b; this.name=name; this.size=size; this.base=base; this.type=type||''; this.lastModified=0; } slice(a,b){ if(a<this.base) throw new Error('تحتاج إلى اختيار الملف مجددًا (هذا الجزء غير محفوظ)'); return this.b.slice(a-this.base,b-this.base); } }
 async function nxDir(create){ const root=await navigator.storage.getDirectory(); return await root.getDirectoryHandle('nxout',{create:!!create}); }
 function stashOut(t){
   if(t.stashP||t.stashed||t.file instanceof StashFile||!t.file.slice||!(navigator.storage&&navigator.storage.getDirectory)) return;
@@ -3809,7 +3969,7 @@ async function restoreAll(){
       const sf=new StashFile(f,x.name,x.size,x.base||0,f.type);
       const id=nextId++, ui=addCard('out',(x.path?x.path+'/':'')+x.name,x.size);
       const t={id,file:sf,path:x.path||'',key:x.key,ui,acked:0,fin:false,aborted:false,state:'interrupted',counted:false,restored:true,onAnswer:null,onAck:null,onFin:null,g:null,stashed:{base:x.base||0}};
-      ui.pause('هيكمل تلقائيًا أول ما الاتصال يتم (من نسخة محفوظة)',[['إلغاء',()=>cancelOut(t)]]);
+      ui.pause('سيُستكمل تلقائيًا فور اكتمال الاتصال (من نسخة محفوظة)',[['إلغاء',()=>cancelOut(t)]]);
       ui.el._rm=()=>{ if(['done','cancelled','rejected','failed'].includes(t.state)) outgoing.delete(id); };
       outgoing.set(id,t); dlogAdd('restored '+x.name);
     }catch(_){ x.stash=false; unstash(x.key); }
@@ -3825,7 +3985,7 @@ function quickPrep(wasRole){
 $('#btnQuickRe').onclick=()=>{
   const q=quickInfo; if(!q) return; resetToStart('');
   if(q.role==='host'){ preferFp=q.fp; setMode('one'); startHost(false); }
-  else{ showErr(''); role='join'; view('s-join'); setMode('one'); toast('امسح أو اكتب الكود اللي هيظهر على الجهاز التاني'); }
+  else{ showErr(''); role='join'; view('s-join'); setMode('one'); toast('امسح أو اكتب الرمز الذي سيظهر على الجهاز الآخر'); }
 };
 
 // ---------- v14 ----------
@@ -3844,8 +4004,8 @@ function modalTrap(o){
 const logUi={q:'',dir:'',dev:'',lim:150};
 function dayLabel(ts){
   const d=new Date(ts), n=new Date(), sd=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime(), diff=Math.round((sd(n)-sd(d))/864e5);
-  if(diff===0) return 'النهارده'; if(diff===1) return 'امبارح';
-  try{ return d.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }catch(_){ return d.toISOString().slice(0,10); }
+  if(diff===0) return 'اليوم'; if(diff===1) return 'أمس';
+  try{ return d.toLocaleDateString(LOCALE(),{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }catch(_){ return d.toISOString().slice(0,10); }
 }
 function openLog(){
   if($('#logOv')) return; Object.assign(logUi,{q:'',dir:'',dev:'',lim:150});
@@ -3857,7 +4017,7 @@ function openLog(){
   $('#lgQ').oninput=e=>{ logUi.q=e.target.value; logUi.lim=150; renderLog(); };
   $('#lgDir').onchange=e=>{ logUi.dir=e.target.value; logUi.lim=150; renderLog(); };
   $('#lgDev').onchange=e=>{ logUi.dev=e.target.value; logUi.lim=150; renderLog(); };
-  $('#lgClr').onclick=()=>{ if(confirm('مسح كل السجل؟ الملفات نفسها مش هتتمسح.')) logUpdate(()=>[]); };
+  $('#lgClr').onclick=()=>{ if(confirm('مسح كل السجل؟ الملفات نفسها لن تُحذف.')) logUpdate(()=>[]); };
   renderLog(); $('#lgQ').focus();
 }
 async function rootFor(e,interactive){
@@ -3889,7 +4049,7 @@ async function renderLog(){
   const f=ents.filter(e=>(!logUi.dir||(e.dir||'in')===logUi.dir)&&(!logUi.dev||e.peer===logUi.dev)&&(!q||((e.path?e.path+'/':'')+e.name+' '+(e.note||'')).toLowerCase().includes(q)));
   $('#lgCnt').textContent=f.length+' من '+ents.length+' سجل'; $('#lgClr').hidden=!arr.length;
   list.textContent='';
-  if(!f.length){ const m=document.createElement('div'); m.className='muted'; m.style.padding='16px 0'; m.textContent=ents.length?'مفيش نتائج.':'لسه مفيش ملفات في السجل.'; list.append(m); return; }
+  if(!f.length){ const m=document.createElement('div'); m.className='muted'; m.style.padding='16px 0'; m.textContent=ents.length?'لا توجد نتائج.':'لا توجد ملفات في السجل بعد.'; list.append(m); return; }
   let last='';
   for(const e of f.slice(0,logUi.lim)){
     const dl=dayLabel(e.ts); if(dl!==last){ last=dl; const h=document.createElement('div'); h.className='lday'; h.textContent=dl; list.append(h); }
@@ -3897,17 +4057,17 @@ async function renderLog(){
     const r=document.createElement('div'); r.className='row';
     const nm=document.createElement('span'); nm.className='nm'; nm.innerHTML='<svg class="i sm"><use href="#i-'+(isIn?'down':'up')+'"/></svg>'; const nt=document.createElement('span'); nt.textContent=(e.path?e.path+'/':'')+e.name; nt.dir='auto'; nm.append(nt);
     const sz=document.createElement('span'); sz.className='sz muted'; sz.textContent=fmtSize(e.size); r.append(nm,sz); d.append(r);
-    const m=document.createElement('div'); m.className='muted'; let tm=''; try{ tm=new Date(e.ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}); }catch(_){}
-    m.textContent=tm+' · '+(isIn?'استلام':'إرسال')+(e.peer?(isIn?' من «':' إلى «')+e.peer+'»':'')+(isIn?' · '+(e.rootName?('مجلد «'+e.rootName+'»'):'التحميلات'):'')+(e.deleted?' · اتمسح':''); d.append(m);
+    const m=document.createElement('div'); m.className='muted'; let tm=''; try{ tm=new Date(e.ts).toLocaleTimeString(LOCALE(),{hour:'2-digit',minute:'2-digit'}); }catch(_){}
+    m.textContent=tm+' · '+(isIn?'استلام':'إرسال')+(e.peer?(isIn?' من «':' إلى «')+e.peer+'»':'')+(isIn?' · '+(e.rootName?('مجلد «'+e.rootName+'»'):'التحميلات'):'')+(e.deleted?' · حُذف':''); d.append(m);
     if(e.note){ const n=document.createElement('div'); n.className='nt'; n.textContent='ملاحظة: '+e.note; d.append(n); }
     const b=document.createElement('div'); b.className='btns';
     if(isIn&&e.rootName&&!e.deleted){
       const op=document.createElement('button'); op.type='button'; op.textContent='فتح';
       op.onclick=async()=>{ try{ showErr(''); const fl=await logFile(e), u=URL.createObjectURL(fl); const w=window.open(u,'_blank'); if(!w) saveBlob(fl,e.name); setTimeout(()=>URL.revokeObjectURL(u),120000); }catch(err){ showErr(err.message||String(err)); } };
       b.append(op);
-      if(navigator.share){ const sh=document.createElement('button'); sh.type='button'; sh.textContent='مشاركة'; sh.onclick=async()=>{ try{ showErr(''); const fl=await logFile(e); if(navigator.canShare&&!navigator.canShare({files:[fl]})) throw new Error('نوع الملف ده مش مدعوم للمشاركة.'); await navigator.share({files:[fl]}); }catch(err){ if(!err||err.name!=='AbortError') showErr(err.message||String(err)); } }; b.append(sh); }
+      if(navigator.share){ const sh=document.createElement('button'); sh.type='button'; sh.textContent='مشاركة'; sh.onclick=async()=>{ try{ showErr(''); const fl=await logFile(e); if(navigator.canShare&&!navigator.canShare({files:[fl]})) throw new Error('نوع هذا الملف غير مدعوم للمشاركة.'); await navigator.share({files:[fl]}); }catch(err){ if(!err||err.name!=='AbortError') showErr(err.message||String(err)); } }; b.append(sh); }
       const dx=document.createElement('button'); dx.type='button'; dx.className='danger'; dx.textContent='حذف الملف';
-      dx.onclick=async()=>{ if(!confirm('حذف «'+e.name+'» من الجهاز؟ مش هيرجع.')) return; const res=await removeLogged(e,true); if(res==='ok'||res==='gone'){ logUpdate(a=>{ const x=a.find(y=>y.id===e.id); if(x){ x.deleted=true; x.delAt=Date.now(); } return a; }); toast(res==='ok'?'اتمسح':'الملف مش موجود أصلًا'); } else showErr(res==='perm'?'لازم تسمح بالوصول للمجلد.':'تعذر حذف الملف.'); };
+      dx.onclick=async()=>{ if(!confirm('حذف «'+e.name+'» من الجهاز؟ لن يمكن استرجاعه.')) return; const res=await removeLogged(e,true); if(res==='ok'||res==='gone'){ logUpdate(a=>{ const x=a.find(y=>y.id===e.id); if(x){ x.deleted=true; x.delAt=Date.now(); } return a; }); toast(res==='ok'?'حُذف':'الملف غير موجود أصلًا'); } else showErr(res==='perm'?'يجب السماح بالوصول إلى المجلد.':'تعذّر حذف الملف.'); };
       b.append(dx);
     }
     const rm=document.createElement('button'); rm.type='button'; rm.textContent='حذف من السجل'; rm.onclick=()=>logUpdate(a=>a.filter(y=>y.id!==e.id)); b.append(rm);
@@ -3927,7 +4087,7 @@ async function sweepDel(interactive){
     for(const e of due){ const r=await removeLogged(e,!!interactive); if(r==='ok'||r==='gone') done.add(e.id); else if(r==='perm') perm++; else if(r==='changed') done.add('x'+e.id); }
     if(done.size) await logUpdate(a=>{ for(const x of a){ if(done.has(x.id)){ x.deleted=true; x.delAt=Date.now(); } else if(done.has('x'+x.id)) x.autoSkip=true; } return a; });
     if(done.size) dlogAdd('auto-delete: '+Array.from(done).filter(x=>x[0]!=='x').length);
-    if(perm){ note.hidden=false; note.textContent=''; const t=document.createElement('div'); t.textContent='فيه '+perm+' ملف انتهت مدته بس محتاج إذن للمجلد عشان يتمسح.'; const b=document.createElement('button'); b.type='button'; b.textContent='السماح وحذفها'; b.onclick=()=>sweepDel(true); note.append(t,b); } else note.hidden=true;
+    if(perm){ note.hidden=false; note.textContent=''; const t=document.createElement('div'); t.textContent='يوجد '+perm+' ملف انتهت مدته لكنه يحتاج إلى إذن للمجلد ليُحذف.'; const b=document.createElement('button'); b.type='button'; b.textContent='السماح والحذف'; b.onclick=()=>sweepDel(true); note.append(t,b); } else note.hidden=true;
   }catch(e){ dlogAdd('sweep err '+(e&&e.message)); }
   finally{ sweeping=false; }
 }
@@ -3940,7 +4100,7 @@ function syncMark(t){
   clearTimeout(syncT); syncT=setTimeout(()=>{ for(const [k,v] of syncMan) idbSet(k,v).catch(()=>{}); },1500);
 }
 async function startSync(items,rootName){
-  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
   const rf=(pc&&pc.remoteDescription&&fpOf(pc.remoteDescription.sdp))||'x', key='sync:'+rf+':'+rootName;
   let man=null; try{ man=await idbGet(key); }catch(_){}
   if(!man||typeof man.files!=='object') man={files:{},ts:0};
@@ -3950,22 +4110,22 @@ async function startSync(items,rootName){
     if(old===sig){ same++; continue; }
     send.push({file:it.file,path:it.path,ow:!!old,sync:{key,rel,sig}}); if(old) nChg++; else nNew++;
   }
-  if(!send.length){ toast('كل ملفات «'+rootName+'» متطابقة مع النسخة اللي عند الجهاز التاني'); return; }
+  if(!send.length){ toast('كل ملفات «'+rootName+'» مطابقة للنسخة الموجودة عند الجهاز الآخر'); return; }
   const lim=send.length>MAXFILES;
-  const msg='نسخة احتياطية لمجلد «'+rootName+'»:\n'+nNew+' ملف جديد'+(nChg?'، '+nChg+' متغير (هيستبدل القديم عند الجهاز التاني)':'')+'، '+same+' متطابق (هيتخطى).'+(lim?'\nهيتبعت أول '+MAXFILES+' ملف والباقي المرة الجاية.':'')+'\nنبدأ؟';
+  const msg='نسخة احتياطية لمجلد «'+rootName+'»:\n'+nNew+' ملف جديد'+(nChg?'، '+nChg+' متغيّر (سيحلّ محل القديم عند الجهاز الآخر)':'')+'، '+same+' مطابق (سيُتخطّى).'+(lim?'\nسيُرسل أول '+MAXFILES+' ملف والباقي في المرة القادمة.':'')+'\nنبدأ؟';
   if(!confirm(msg)) return;
   syncMan.set(key,man);
   enqueue(send.slice(0,MAXFILES),true);
 }
 $('#btnSync').onclick=async()=>{
-  if(!connected()){ showErr('اتصل بالجهاز التاني الأول.'); return; }
+  if(!connected()){ showErr('اتصل بالجهاز الآخر أولًا.'); return; }
   if('showDirectoryPicker' in window){
     try{
       const h=await window.showDirectoryPicker({mode:'read'}), out=[];
       await walkDir(h,h.name,out);
-      if(!out.length){ showErr('المجلد فاضي.'); return; }
+      if(!out.length){ showErr('المجلد فارغ.'); return; }
       startSync(out,h.name);
-    }catch(e){ if(!e||e.name!=='AbortError') showErr('تعذر فتح المجلد: '+(e&&e.message||e)); }
+    }catch(e){ if(!e||e.name!=='AbortError') showErr('تعذّر فتح المجلد: '+(e&&e.message||e)); }
   }else $('#pickSync').click();
 };
 $('#pickSync').addEventListener('change',e=>{
